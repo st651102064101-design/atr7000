@@ -23,6 +23,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+import llrp
+
 HTTP_PORT = 8080
 WS_PORT = 8765
 HOST = "0.0.0.0"
@@ -247,6 +249,25 @@ async def http_handler(reader, writer):
         writer.close()
 
 
+def emit_sync(obj):
+    """Push one event to every WebSocket client right now (used by the LLRP stream)."""
+    stats["tags"] += 1
+    frame = ws_frame(json.dumps(obj))
+    for w in list(clients):
+        try:
+            w.write(frame)
+        except Exception:
+            clients.discard(w)
+
+
+def arg(name, default=None):
+    if name in sys.argv:
+        i = sys.argv.index(name)
+        if i + 1 < len(sys.argv):
+            return sys.argv[i + 1]
+    return default
+
+
 async def main():
     http = await asyncio.start_server(http_handler, HOST, HTTP_PORT)
     ws = await asyncio.start_server(ws_handler, HOST, WS_PORT)
@@ -255,8 +276,20 @@ async def main():
     print("  WebSocket     : ws://localhost:%d              (set this in the HTML page)" % WS_PORT)
     print("  Raw log       : %s" % RAW_LOG)
     print("  Ctrl+C to stop\n")
+    tasks = [http.serve_forever(), ws.serve_forever()]
+    if "--no-llrp" not in sys.argv:
+        a, b = arg("--ants", "301-397").split("-")
+        ants = list(range(int(a), int(b) + 1))
+        host = arg("--llrp-host", "192.168.1.10")
+        port = int(arg("--llrp-port", "5085"))
+        tls = "--llrp-plain" not in sys.argv
+        print("  LLRP          : %s:%d (%s) antennas %s-%s  [--no-llrp to disable]" % (host, port, "TLS" if tls else "plain", a, b))
+        dwell = int(arg("--dwell", "20"))
+        print("  LLRP dwell    : %d ms per beam (--dwell N, 0 = reader default)" % dwell)
+        client = llrp.LlrpClient(host, port, tls, ants, emit_sync, dwell_ms=dwell or None)
+        tasks.append(client.run_forever())
     async with http, ws:
-        await asyncio.gather(http.serve_forever(), ws.serve_forever())
+        await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
