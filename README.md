@@ -18,3 +18,10 @@ Zebra ATR7000 (Zebra IoT Connector, HTTP POST) -> `rfid-bridge/bridge.py` -> Web
 Bridge endpoints: `POST /rfid`, `POST /simulate`, `GET /health`, `GET /last`. Raw payloads are logged to `rfid-bridge/raw_payloads.jsonl` (git-ignored).
 
 Direction is estimated from the strongest LHCP beams (beam table in the ATR7000 Integration Guide, Table 4); resolution is about 15 degrees.
+
+## Repository layout
+- `rfid-bridge/` bridge (HTTP receiver + LLRP client + WebSocket)
+- `web/` browser pages (`ATR7000_Floor_360_RFID_Test_Lab.html`, `ATR7000_Monitoring_Dashboard.html`)
+- `docs/zebra/` Zebra manuals used for this project (ATR7000 Integration Guide, LLRP interface control guide, SDK guides)
+
+Not in git: the 198 MB firmware zip `FX-ATR-4-0-48-0.zip` (over GitHub's 100 MB limit) and the internal `RFID ATR.pdf` training deck (it contains demo credentials).

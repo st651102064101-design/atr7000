@@ -1,0 +1,339 @@
+FX SERIES
+
+Embedded SDK
+
+Installation Guide
+
+                                                                                                MN000537A01 Rev. A
+FX SERIES EMBEDDED SDK
+      INSTALLATION GUIDE
+
+                            MN000537A01
+                                 Revision A
+
+                           November 2017
+Copyright
+
+          © 2017 ZIH Corp. and/or its affiliates. All rights reserved. ZEBRA and the stylized Zebra head are
+          trademarks of ZIH Corp., registered in many jurisdictions worldwide. All other trademarks are the property
+          of their respective owners.
+
+          COPYRIGHTS & TRADEMARKS: For complete copyright and trademark information, go to
+          www.zebra.com/copyright.
+
+          WARRANTY: For complete warranty information, go to www.zebra.com/warranty.
+
+          END USER LICENSE AGREEMENT: For complete EULA information, go to www.zebra.com/eula.
+
+   For Australia Only
+
+          For Australia Only. This warranty is given by Zebra Technologies Asia Pacific Pte. Ltd., 71 Robinson Road,
+          #05-02/03, Singapore 068895, Singapore. Our goods come with guarantees that cannot be excluded under
+          the Australia Consumer Law. You are entitled to a replacement or refund for a major failure and
+          compensation for any other reasonably foreseeable loss or damage. You are also entitled to have the
+          goods repaired or replaced if the goods fail to be of acceptable quality and the failure does not amount to
+          a major failure.
+
+          Zebra Technologies Corporation Australia's limited warranty above is in addition to any rights and
+          remedies you may have under the Australian Consumer Law. If you have any queries, please call Zebra
+          Technologies Corporation at +65 6858 0722. You may also visit our website: www.zebra.com for the most
+          updated warranty terms.
+
+Terms of Use
+
+                · Proprietary Statement
+                     This manual contains proprietary information of Zebra Technologies Corporation and its
+                     subsidiaries ("Zebra Technologies"). It is intended solely for the information and use of parties
+                     operating and maintaining the equipment described herein. Such proprietary information may not
+                     be used, reproduced, or disclosed to any other parties for any other purpose without the express,
+                     written permission of Zebra Technologies.
+
+                · Product Improvements
+                     Continuous improvement of products is a policy of Zebra Technologies. All specifications and
+                     designs are subject to change without notice.
+
+                · Liability Disclaimer
+                     Zebra Technologies takes steps to ensure that its published Engineering specifications and
+                     manuals are correct; however, errors do occur. Zebra Technologies reserves the right to correct
+                     any such errors and disclaims liability resulting therefrom.
+
+                · Limitation of Liability
+
+                     In no event shall Zebra Technologies or anyone else involved in the creation, production, or
+                     delivery of the accompanying product (including hardware and software) be liable for any damages
+                     whatsoever (including, without limitation, consequential damages including loss of business
+                     profits, business interruption, or loss of business information) arising out of the use of, the results
+                     of use of, or inability to use such product, even if Zebra Technologies has been advised of the
+                     possibility of such damages. Some jurisdictions do not allow the exclusion or limitation of
+                     incidental or consequential damages, so the above limitation or exclusion may not apply to you.
+
+                                                                   3
+Revision History
+
+          Changes to the original manual are listed below:
+
+   Change     Date                                             Description
+-01 Rev A  11/2017
+                    Initial release
+
+                                                            4
+Table of Contents
+
+              Copyright ......................................................................................................................................... 3
+                   For Australia Only ..................................................................................................................... 3
+
+              Terms of Use ................................................................................................................................... 3
+              Revision History .............................................................................................................................. 4
+
+         About This Guide
+              Introduction ..................................................................................................................................... 6
+
+         Chapter Descriptions 6
+         Notational Conventions 6
+
+              Related Documents and Software ................................................................................................. 7
+              Service Information ........................................................................................................................ 7
+
+         Installing CodeSourcery Lite
+              Introduction ..................................................................................................................................... 8
+              Installing Mentor Graphics CodeSourcery Lite ............................................................................ 8
+              Setting CodeSourcery Lite Environment Variable ..................................................................... 13
+
+         Installing Zebra FX Series Embedded SDK
+              Introduction ................................................................................................................................... 15
+              Installing the FX Series Embedded SDK .................................................................................... 15
+
+                                                                   5
+ABOUT THIS GUIDE
+
+Introduction
+
+          This Installation Guide describes how to install the FX Series Embedded SDK.
+
+Chapter Descriptions
+
+          Topics covered in this guide are as follows:
+
+              · Installing CodeSourcery Lite describes how to install Mentor Graphics Corporation CodeSourcery
+
+                     Lite and set the environment variable.
+
+              · Installing Zebra FX Series Embedded SDK describes how to install the Zebra FX Series Embedded
+
+                     SDK.
+
+Notational Conventions
+
+          The following conventions are used in this document:
+
+              · FX Series refers to the FX7500 and FX9600 RFID readers.
+              · Bold text is used to highlight the following:
+
+                   · Dialog box, window and screen names
+                   · Drop-down list and list box names
+                   · Check box and radio button names
+                   · Icons on a screen
+                   · Key names on a keypad
+                   · Button names on a screen.
+              · Bullets (·) indicate:
+                   · Action items
+                   · Lists of alternatives
+                   · Lists of required steps that are not necessarily sequential.
+              · Sequential lists (e.g., those that describe step-by-step procedures) appear as numbered lists.
+
+                                                                   6
+                                                       About This Guide
+
+Related Documents and Software
+
+          The following documents provide more information about the RFID readers.
+
+              · FX Series RFID Reader Integrator Guide, p/n MN000026Axx
+              · FX7500 RFID Reader Quick Start Guide, p/n MN000070Axx
+              · FX7500 RFID Reader Regulatory Information, p/n MN000027Axx
+              · FX9600 RFID Reader Quick Start Guide, p/n MN-003087-xx
+              · FX Series Reader Software Interface Control Guide, p/n 72E-131718--xx
+              · RFID Demo Applications User Guide, p/n 72E-160038-01
+              · FX Series Embedded SDK Programmer's User Guide, p/n MN000540Axx
+              · FX Series Embedded SDK Sample Applications User Guide, p/n MN000539Axx
+              · Application Guide for Zebra Enterprise Mobility Devices, p/n 72E-68902-xx
+              · RFID 3 API
+              · EPCglobal Low Level Reader Protocol (LLRP) Standard
+
+          For the latest version of these guides and software, visit: www.zebra.com/support.
+
+Service Information
+
+          If you have a problem with your equipment, contact Zebra Global Customer Support for your region.
+          Contact information is available at: www.zebra.com/support.
+          When contacting support, please have the following information available:
+
+              · Serial number of the unit
+              · Model number or product name
+              · Software type and version number.
+
+          Zebra responds to calls by email, telephone or fax within the time limits set forth in support agreements.
+          If your problem cannot be solved by Zebra Customer Support, you may need to return your equipment for
+          servicing and will be given specific directions. Zebra is not responsible for any damages incurred during
+          shipment if the approved shipping container is not used. Shipping the units improperly can possibly void
+          the warranty.
+          If you purchased your Zebra business product from a Zebra business partner, contact that business
+          partner for support.
+
+                                                                   7
+Installing CodeSourcery
+Lite
+
+Introduction
+
+          This chapter describes how to install Mentor Graphics Corporation CodeSourcery Lite and set the
+          environment variable.
+
+Installing Mentor Graphics CodeSourcery Lite
+
+          To install CodeSourcery Lite:
+
+                   NOTE:The following instructions show Microsoft Windows 7 screens. The FX Series Embedded SDK also
+
+                        supports the Microsoft Windows XP operating system. This procedure was not tested on Microsoft
+                        Windows 8. The installation was reported as working on Microsoft Windows 8, but is currently not
+                        officially supported.
+          1. Download CodeSourcery Lite Version 4.4-290 from the Mentor Graphics Corporation web site
+                www.mentor.com to the host computer. The installation file name is
+                arm-2010q1-202-arm-none-linuxgnueabi.exe.
+          2. Execute the installation file on the host computer.
+
+                                                                   8
+                         Formats
+
+Figure 1 Welcome Window
+
+3. Select Next.
+4. Accept the License Agreement and select Next.
+5. On the Important Sourcery G++ Lite for ARM GNU/Linux Information window, select Next.
+6. On the Choose Install Set window, select Typical.
+
+Figure 2 Choose Install Set Window
+7. Select Next.
+
+                                                          9
+                                                     Formats
+
+8. Enter the installation folder.
+
+          IMPORTANT:Ensure the installation folder name does NOT contain spaces.
+         NOTE:Retain the path information for setting up environment variable.
+
+Figure 3 Enter Installation Folder
+9. Select Next.
+
+                                                         10
+                                                     Formats
+
+10. On the Add product to the PATH? window, select Modify PATH for all users.
+
+Figure 4 Add Product to the PATH? Window
+11. Select Next.
+12. Keep the defaults listed in the Choose Shortcut Folder window and Select Next.
+13. In the Pre-Installation Summary window, select Install.
+
+Figure 5 Pre-Installation Summary Window
+     A status bar tracks the progress of the installation.
+
+                                                         11
+                                                     Formats
+
+14. To open the Getting Started guide, leave View "Getting Started" guide? checked.
+
+Figure 6 Getting Started Window
+15. Select Next, then Done to finish the installation.
+
+Figure 7 Install Complete Window
+
+                                                         12
+                                                              Formats
+
+Setting CodeSourcery Lite Environment Variable
+
+          To set the environment variable:
+          1. On the host computer, select the Start button.
+          2. Right-click on Computer.
+          3. Select Properties.
+          4. Select Advanced Settings.
+
+          Figure 8 System Properties Window
+          5. Select Environment Variables...
+
+          Figure 9 Environmental Variables Window
+
+                                                                  13
+                                                     Formats
+
+6. Under System Variables, select New... .
+
+Figure 10 Environmental Variables Window
+7. In the Variable name: field, enter CS_LITE_WORKING_DIR, and in the Variable value: field enter the
+
+     installation path from Step 8 in Installing Mentor Graphics CodeSourcery Lite.
+
+          IMPORTANT:Ensure the installation path does NOT contain spaces.
+
+8. Select OK three times to close all property windows.
+9. Close the System Properties windows.
+
+                                                         14
+Installing Zebra FX Series
+Embedded SDK
+
+Introduction
+
+          This chapter describes how to install the Zebra FX Series Embedded SDK.
+
+                   NOTE: The instructions in this chapter show Microsoft Windows 7 screens. This procedure was not
+
+                        tested on Microsoft Windows 8. The installation was reported as working on Microsoft Windows 8, but is
+                        currently not officially supported.
+
+Installing the FX Series Embedded SDK
+
+          To install the Zebra FX Series Embedded SDK:
+          1. Execute the file Zebra FXSeries Embedded SDK Installer.msi on the host computer.
+          Figure 1 SDK Setup Wizard Welcome Window
+
+                                                                  15
+                                                     Formats
+
+2. Select Next.
+3. Accept the License Agreement and select Next.
+Figure 2 SDK License Agreement Window
+
+4. Select the installation path and folder, and click OK. Select Change if a different folder is desired.
+
+          IMPORTANT: Ensure the installation folder name does NOT contain spaces.
+
+Figure 3 SDK Destination Folder Window
+
+5. Select Next.
+
+          IMPORTANT: If installing into Program Files or Program Files (x86), ensure Everyone is selected for all
+
+             files with all access rights included.
+6. Select Install.
+
+                                                         16
+                                  Formats
+
+Figure 4 SDK Installation Window
+
+A status progress bar displays.
+Figure 5 SDK Installation Progress Window.
+
+                                            17
+                                                     Formats
+
+7. Select Finish.
+Figure 6 SDK Installation Completion Window
+
+                                                         18
+www.zebra.com
+

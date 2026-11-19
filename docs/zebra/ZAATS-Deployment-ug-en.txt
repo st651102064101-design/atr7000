@@ -1,0 +1,2166 @@
+ZAATS
+
+Zebra Advanced Asset
+Tracking System
+
+Deployment Guide
+
+                                                                                                                       MN-003194-02EN
+Copyright
+
+          ZEBRA and the stylized Zebra head are trademarks of Zebra Technologies Corporation, registered in many
+          jurisdictions worldwide. All other trademarks are the property of their respective owners. ©2019-2020 Zebra
+          Technologies Corporation and/or its affiliates. All rights reserved.
+
+          COPYRIGHTS & TRADEMARKS: For complete copyright and trademark information,
+          go to www.zebra.com/copyright.
+
+          WARRANTY: For complete warranty information, go to www.zebra.com/warranty.
+
+          END USER LICENSE AGREEMENT: For complete EULA information, go to www.zebra.com/eula.
+
+   For Australia Only
+
+          For Australia Only. This warranty is given by Zebra Technologies Asia Pacific Pte. Ltd., 71 Robinson Road, #05-
+          02/03, Singapore 068895, Singapore. Our goods come with guarantees that cannot be excluded under the
+          Australia Consumer Law. You are entitled to a replacement or refund for a major failure and compensation for any
+          other reasonably foreseeable loss or damage. You are also entitled to have the goods repaired or replaced if the
+          goods fail to be of acceptable quality and the failure does not amount to a major failure.
+
+          Zebra Technologies Corporation Australia's limited warranty above is in addition to any rights and remedies you
+          may have under the Australian Consumer Law. If you have any queries, please call Zebra Technologies
+          Corporation at +65 6858 0722. You may also visit our website: www.zebra.com for the most updated warranty
+          terms.
+
+Terms of Use
+
+                · Proprietary Statement
+                     This manual contains proprietary information of Zebra Technologies Corporation and its subsidiaries
+                     ("Zebra Technologies"). It is intended solely for the information and use of parties operating and
+                     maintaining the equipment described herein. Such proprietary information may not be used, reproduced,
+                     or disclosed to any other parties for any other purpose without the express, written permission of Zebra
+                     Technologies.
+
+                · Product Improvements
+                     Continuous improvement of products is a policy of Zebra Technologies. All specifications and designs are
+                     subject to change without notice.
+
+                · Liability Disclaimer
+                     Zebra Technologies takes steps to ensure that its published Engineering specifications and manuals are
+                     correct; however, errors do occur. Zebra Technologies reserves the right to correct any such errors and
+                     disclaims liability resulting therefrom.
+
+                · Limitation of Liability
+                     In no event shall Zebra Technologies or anyone else involved in the creation, production, or delivery of the
+                     accompanying product (including hardware and software) be liable for any damages whatsoever
+                     (including, without limitation, consequential damages including loss of business profits, business
+                     interruption, or loss of business information) arising out of the use of, the results of use of, or inability to
+                     use such product, even if Zebra Technologies has been advised of the possibility of such damages. Some
+                     jurisdictions do not allow the exclusion or limitation of incidental or consequential damages, so the above
+                     limitation or exclusion may not apply to you.
+
+                                                                   2
+Revision History
+
+          Changes to the original guide are listed below:
+
+Change     Date                                                        Description
+
+-01 Rev A  4/2019   Initial Release
+
+-02EN Rev A 3/2020  - Updated minimum server requirements.
+                    - Updated ATR installation procedures and post installation integration of
+
+                      ATR7000 with CLAS software.
+                    - Other minor enhancements and clarifications.
+
+                                                           3
+Table of Contents
+
+              Copyright ........................................................................................................................................... 2
+                   For Australia Only ....................................................................................................................... 2
+
+              Terms of Use .................................................................................................................................... 2
+              Revision History ................................................................................................................................ 3
+
+         Table of Contents
+
+         About This Guide
+              Introduction ....................................................................................................................................... 7
+              Chapter Descriptions ........................................................................................................................ 7
+              Related Documents .......................................................................................................................... 8
+
+         ZAATS Introduction
+              Introduction ....................................................................................................................................... 9
+              Product Overview .............................................................................................................................. 9
+                   Description and Features ............................................................................................................ 9
+                   ATR7000 Advanced Array Reader (AAR) ................................................................................. 10
+                   RTLS Services .......................................................................................................................... 11
+                   RTLS Configuration and Management (CNM) .......................................................................... 11
+                   Location Analytics (LA) ............................................................................................................. 12
+                   Radio Control & Data (CND) ..................................................................................................... 12
+                   ZAATS Interfaces ...................................................................................................................... 12
+                   REST Interface .......................................................................................................................... 13
+                   Location Data Interface ............................................................................................................. 13
+                   Events Interface ........................................................................................................................ 13
+
+         Deployment Overview
+              Introduction ..................................................................................................................................... 14
+              Project Phases ................................................................................................................................ 14
+              Deployment Team Roles and Responsibilities ............................................................................... 14
+
+         Requirement Definition
+              Introduction ..................................................................................................................................... 16
+
+                                                                   4
+                                               Table of Contents
+
+    Use Case Definition ........................................................................................................................ 16
+    End User Interview .......................................................................................................................... 17
+
+Preliminary System Design
+    Introduction ..................................................................................................................................... 18
+    Initial Site Inspection ....................................................................................................................... 18
+    Minimum Server (System) Requirements ....................................................................................... 19
+    Network and Other Hardware Requirements .................................................................................. 19
+    Tag Selection and Readability ........................................................................................................ 20
+    ATR7000 Coverage ........................................................................................................................ 22
+    Creating the Preliminary Site Map and Equipment Manifest .......................................................... 24
+    Mounting Considerations ................................................................................................................ 25
+    Equipment Manifest ........................................................................................................................ 27
+    Completing the Preliminary System Design .................................................................................... 27
+
+Site Survey
+    Introduction ..................................................................................................................................... 28
+    Guidelines for Performing the Site Survey ...................................................................................... 28
+
+Completing the Final System Design
+    Introduction ..................................................................................................................................... 30
+    Finalizing the Pre-Installation Site Map, Equipment Manifest, and Bill of Materials (BOM) ............ 30
+
+Installation of CLAS Server Software
+    Introduction ..................................................................................................................................... 32
+
+Installation of ZAATS Reader and Network Hardware
+    Introduction ..................................................................................................................................... 33
+    Prior to Arrival of Installation Team ................................................................................................. 33
+    Network Installation and Cabling .................................................................................................... 33
+    WAN Router Setup (Optional) ......................................................................................................... 34
+    Windows Test PC (Optional) ........................................................................................................... 35
+    Installing the ATR7000 Readers ..................................................................................................... 35
+    Preliminary Validation of the ATR7000 Readers ............................................................................ 36
+    Basic Operational Verification (Optional) ........................................................................................ 37
+    Measure Location and Orientation of the ATR7000 Readers ......................................................... 38
+    Finalizing the Site Map and Equipment Manifest ............................................................................ 39
+
+Post-Installation ZAATS Validation
+    Introduction ..................................................................................................................................... 41
+    Entry Criteria ................................................................................................................................... 41
+    RTLS Integration ............................................................................................................................. 41
+    Operational Validation: Static Testing ............................................................................................. 43
+    Operational Validation: Dynamic Testing ........................................................................................ 47
+    End User Handover ........................................................................................................................ 48
+
+                                                          5
+                                               Table of Contents
+
+Appendix: Tools and Resources
+    Introduction ..................................................................................................................................... 50
+    Tools and Resources ...................................................................................................................... 50
+
+Appendix: Leica 3D Instructions for ATR7000
+    Introduction ..................................................................................................................................... 52
+    Detailed Steps ................................................................................................................................. 52
+
+Appendix: RFID Tag Board for ATR7000 Installation and Validation
+    Introduction ..................................................................................................................................... 56
+    Tag Board Construction Guidelines ................................................................................................ 56
+
+                                                          6
+About This Guide
+
+Introduction
+
+          This guide provides a comprehensive overview of how to ensure a successful deployment of Zebra's Advanced
+          Asset Tracking System (ZAATS) comprised of ATR7000 RTLS overhead readers and Configuration and Analytics
+          Software (CLAS.)
+
+          The objective of this document is to describe the requirements and use case definition, detailed system design
+          process (including site survey), installation of reader and networking hardware, and post-installation validation of
+          the ZAATS system. Details of server and software installation are covered in the CLAS Server and Software
+          Installation Guide, and programming information to support application development are covered in the CLAS API
+          Developer Guide.
+
+Chapter Descriptions
+
+          Topics covered in this guide are as follows:
+
+              · ZAATS Introduction provides an overview of Zebra's Advanced Asset Tracking System, including
+
+                     ATR7000 overhead RFID readers and CLAS (RTLS Services) software.
+
+              · Deployment Overview provides an overview of the ZAATS deployment process.
+              · Requirement Definition defines the first steps in the deployment process, including team roles and
+
+                     responsibilities, and defining the identification and location use cases and overall system requirements.
+
+              · Preliminary System Design provides a comprehensive overview of the steps that lead to a complete
+
+                     pro-forma definition of the system, including reader coverage, network design, tag selection, developing
+                     the site map, Equipment Manifest, and bill of materials.
+
+              · Site Survey describes the steps and guidelines on how to perform an effective site survey.
+              · Completing the Final System Design describes the steps involved to finalize the pre-installation site map
+
+                     and bill of materials based on the results of the site survey.
+
+              · Installation of CLAS Server Software references the Zebra documentation used to install CLAS (RTLS
+
+                     Services) software.
+
+              · Installation of ZAATS Reader and Network Hardware provides the detailed steps involved in hardware
+
+                     installation and how to ensure the reader and network hardware is fully functional.
+
+              · Post-Installation ZAATS Validation provides the detailed steps involved to ensure ZAATS can locate and
+
+                     track items and is ready for handover to an end user.
+
+              · Appendix: Tools and Resources lists some helpful resources that can aid in the deployment of ZAATS.
+              · Appendix: Leica 3D Instructions for ATR7000 describes the steps on how to use Leica 3D DISTO for the
+
+                     ATR7000 installation.
+
+                                                                   7
+                                                        About This Guide
+
+              · Appendix: RFID Tag Board for ATR7000 Installation and Validation provides guidelines on tag placement
+
+                     to test an ATR performance after installation.
+
+Related Documents
+
+          The following documents provide more information about ZAATS.
+
+              · ATR7000 Advanced Array RFID Reader Integration Guide, p/n MN-003191-xx
+              · RFID Demo Applications User Guide, p/n 72E-160038-xx
+              · RTLS Demo Application User Guide, p/n MN-003509-xx
+              · CLAS API Developer Guide, p/n MN-003198-xx
+              · CLAS Server & Software Installation Guide, p/n MN-003197-xx
+              · ZAATS Tag Data & Numbering Guide, p/n MN-003199-xx
+
+          For the latest version of this guide and all guides, go to: zebra.com/support.
+
+                                                                   8
+ZAATS Introduction
+
+Introduction
+
+          Zebra's Advanced Asset Tracking System (ZAATS) provides continuous identification, location, and tracking of
+          items tagged with passive UHF RFID tags conforming to the GS1 EPCTM Radio Frequency Identity Protocols
+          Generation-2 UHF RFID Specification for RFID Air Interface standard. ZAATS is designed to enhance the
+          efficiency and work-flows of Zebra's customers' operations, which are increasingly focused on cohesive, real-time
+          data.
+          ZAATS consists of two primary components: the Real-Time Location System (RTLS) Services software, which
+          contains the configuration, management, and location analytics components; and the ATR7000 overhead array
+          readers.
+
+Product Overview
+
+   Description and Features
+
+          ZAATS is a passive UHF RFID based asset tracking solution developed primarily for indoor warehousing,
+          manufacturing, and logistics applications. It is based on the ATR7000 overhead RFID reader containing Zebra's
+          proprietary advanced array architecture with integral antenna capable of steering beams and estimating the
+          bearing to RFID tagged items with unprecedented accuracy and speed.
+          A summary of the key system and product features of ZAATS includes:
+
+              · A passive UHF RFID RTLS system that provides real-time identification and location data of tagged items
+
+                     for continuous asset monitoring.
+
+              · Configuration and Location Analytics Software (CLAS) that configures, controls, and manages the system,
+
+                     as well as a high-performance location analytics engine capable of providing up to 100,000 (1000 readers
+                     at 100 tps) tag location estimates per second with 2 ft typical accuracy.
+
+              · APIs to configure, manage, and control the ZAATS system using an HTTP-based RESTful interface.
+              · Docker container virtualization to simplify integration and deployment into end-user and partner
+
+                     applications.
+
+              · Software tools and documentation to facilitate system installation, including site planning, calibration, initial
+
+                     start-up, and deployment validation testing.
+
+                   NOTE: Configuration and Location Analytics Software (CLAS) is needed to run RTLS Software. Configuration
+
+                        and Location Analytics Software (CLAS) is synonymous with RTLS Services software. The two terms are used
+                        interchangeably throughout this document.
+
+                                                                   9
+                                                        ZAATS Introduction
+
+     Figure 1 illustrates the high level architecture of the ZAATS system showing the two main components of the
+     ZAATS system:
+
+         · AARs (ATR7000 Advanced Readers)
+         · RTLS Services software.
+
+     Figure 1 Zebra Advanced Asset Tracking System (ZAATS)
+
+     In Figure 1, the solid lines correspond to configuration, control, and management interfaces. The dashed lines
+     correspond to data interfaces. The dashed red lines carry tag ID bearing information and require high bandwidth
+     and low-latency connections. Therefore, they typically reside on the same segment of a local area network.
+
+ATR7000 Advanced Array Reader (AAR)
+
+     The ATR7000 Advanced Array Readers are EPC Gen2 readers with an integral phased array antenna capable of
+     steering beams and estimating the bearing (angle of arrival) of EPC Gen2 tags. This product in the RFID portfolio
+     is based on a Zebra proprietary advanced array architecture that provides unprecedented location accuracy and
+     real time tracking of RFID tags.
+
+                                                             10
+                                                        ZAATS Introduction
+
+     A summary of the ATR7000 key product features are:
+
+         · Integral 14 element antenna array.
+         · Advanced multi-channel radio architecture provides accurate bearing estimations in a single read.
+         · Host software compatible with Zebra's family of fixed RFID readers with support for embedded and
+
+                external applications.
+
+         · Integration of Zebra's proprietary ASIC-based RFID radio.
+         · GPIO with external power for driving actuators and sensors.
+         · Support for several standard mounting options to simplify installation.
+         · Two power options; 802.3at Power over Ethernet (PoE+) or external +24 VDC power supply.
+         · Environmental specifications suitable for industrial and warehouse applications (-20 C to +55 C operation
+
+                and IP51 sealing).
+
+RTLS Services
+
+     RTLS Services (CLAS) serves as a data aggregator that executes location analytics to estimate the tag location
+     and reports out unique tag ID, location, and time-stamp in real-time.
+
+     RTLS Services performs the following primary functions:
+
+         · Discovers readers on a local network.
+         · Configures each reader to read tags and report the estimated bearings.
+         · Estimates the tag location based on the bearings reported by the reader.
+         · Reports the location estimates to a location endpoint.
+         · Provides software interfaces to middleware applications that enable end-user solutions to associate items
+
+                with identity, location and movement information, and delivers business logic to streamline operations or
+                workflows.
+
+         · Provides an interface to end-users to configure and manage the RTLS system.
+         · Provides interface to manage and configure the ATR7000 readers in the facility.
+         · Provides license management functions for RTLS and CLAS software.
+
+     The RTLS Services software consists of three major components:
+
+         · RTLS Configuration and Management Server (CNM)
+         · Location Analytics (LA)
+         · Radio Control & Data (CND)
+
+     RTLS Services is deployed as a group of Docker containers. A container is the mechanism that minimizes
+     operating system and hardware dependencies, as well as isolates RTLS from the other software components that
+     comprise a solution, allowing them to coexist on the same infrastructure. It is expected that RTLS Services typically
+     resides on the same physical server as the solution.
+
+     A description of these and other components important to system operation follow below.
+
+RTLS Configuration and Management (CNM)
+
+     As shown in Figure 1, the RTLS configuration and management server is the primary component within RTLS
+     Services responsible for managing and configuring the system, including system start and reset, reader discovery,
+     initial and ongoing configuration of LA and CND, firmware and software upgrades, etc. CNM is a component of
+     RTLS Services that is resident on the server.
+
+                                                             11
+                                                        ZAATS Introduction
+
+     RTLS also provides the configuration and management interfaces (API) to the solution software through a RESTful
+     interface, a common framework found in enterprise environments.
+
+Location Analytics (LA)
+
+     Figure 1 also illustrates that Location Analytics (LA) is the primary component within RTLS Services responsible for
+     aggregating bearing information received from the ATR7000 overhead readers, estimating x-y-z tag location,
+     determining if a tag is moving (dynamic) or not moving (static), applying additional advanced algorithms that
+     enhance static and dynamic location (tracking) accuracy, and reporting a final tag location estimate with metadata
+     (EPC, timestamp, etc.) to a location data endpoint. LA also has the capability of combining raw bearing and
+     location estimates from multiple RFID tags affixed to the same asset (for example. forklifts) to improve overall
+     location accuracy and/or provide orientation and directionality information. The figure illustrates three AARs for
+     simplicity, although, operation is designed to scale up to the maximum of 1000 readers per site. While LA is
+     considered a components of RTLS Services, it is deployed by CNM to the readers at system start.
+     The interface between LA and the CND is optimized to be a high bandwidth, low latency one-way interface that
+     carries only tag ID and bearing information, as indicated by the red arrows in the Figure 1.
+
+Radio Control & Data (CND)
+
+     The Radio Control & Data (CND) component is a reader-based application (process) that configures, controls, and
+     maintains a connection to the RFID radio (engine), receives tag bearing reports from the radio and passes them to
+     LA, and ensures the timestamps on the bearing reports are synchronized to the system time source.
+     While CND is considered a component of RTLS Services, it is deployed by CNM to the readers at system start.
+
+ZAATS Interfaces
+
+     ZAATS presents three main interfaces:
+     1. A REST based management interface.
+     2. A messaging stream interface for location data.
+     3. A messaging stream interface for health and monitoring events.
+     The ZAATS REST API allows applications to view, configure, manage, and monitor various system components in
+     the RTLS system. The ZAATS location data interface allows the client application to consume the location data
+     output by the ZAATS system. The ZAATS event interface allows the client application to consume the health and
+     monitoring events data output by the ZAATS system.
+
+                                                             12
+                             ZAATS Introduction
+
+Figure 2 Interface Overview
+
+REST Interface
+
+     The REST Interface is the primary mechanism to configure and manage the ZAATS system. It supports the ability
+     to query the version, status, configuration of the RTLS system; start and stop the system; and reboot the ATR7000
+     readers. It also supports setting user-defined filters specifying the frequency and format of reported tag data.
+
+Location Data Interface
+
+     Location update messages are sent from the LA components within RTLS through the Location Data Interface to a
+     Location Data Endpoint (MQTT server or a Kafka broker). The RTLS customer's middleware application can
+     consume these location update messages from the Location Data Endpoint to transform information about asset
+     location into solutions that enhance efficiency and workflows of end user operations.
+
+Events Interface
+
+     Health and Configuration events notification messages are sent from CNM within RTLS through the Events
+     Interface to a Event Endpoint (MQTT server or a Kafka broker). The RTLS customer's middleware application can
+     consume these event notification messages from the Event Endpoint to implement solutions for monitoring of the
+     RTLS system and raise alerts to end users about system events.
+
+                                                             13
+Deployment Overview
+
+Introduction
+
+          This chapter provides an overview of the ZAATS deployment process.
+
+Project Phases
+
+          A ZAATS deployment generally consists of seven phases, as shown in the Table 1 on page 15 below. The
+          remaining chapters of this guide describe each of the seven phases and also provide additional guidelines on how
+          to ensure a successful deployment.
+
+Deployment Team Roles and Responsibilities
+
+          The following are critical roles that should be defined as early as possible in the deployment process, along with
+          major responsibilities:
+
+              · Program Manager: oversees and coordinates team activities, works with the business lead, technical lead
+
+                     (or system designer) and end user to define high-level requirements, and set the overall project objectives.
+
+              · System Designer / Solution Architect: responsible for detailed requirement definition, creating the
+
+                     preliminary and final site map, Equipment Manifest, and bill of materials; working with the end-user to
+                     ensure appropriate selection of RFID tags for all assets to be tracked; as well as ensuring that all system
+                     performance objectives are achieved.
+
+              · Network Designer: responsible for designing the local area network (site-based) and backhaul, including
+
+                     cabling requirements, ensuring adequate switch capacity and port availability, and for assigning IP
+                     addresses to all devices.
+
+              · Site Inspector: responsible for observing and ensuring that the use case and workflows are accurately
+
+                     documented, that the facility site map is accurate, and that all facility-related factors that could impact a
+                     deployment are documented and communicated to the system designer and site survey team.
+
+              · Site Survey Team: responsible for ensuring that the final, pre-installation site map, including mounting
+
+                     locations and methods are viable; identifying all permanent landmarks to be used in the post-installation
+                     survey, and for ensuring that the logistics of a site deployment can be successfully executed according to
+                     the final site map.
+
+              · Network and Hardware Installation Team: responsible for the installation of all reader and network
+
+                     hardware and basic operational verification, post installation survey (exact reader x-y-z locations) and
+                     updating the final Equipment Manifest.
+
+              · Software Deployment Lead: responsible for defining the server specification and requirements, deploying
+
+                     the CLAS software, as well as pre-installation and post-installation validation.
+
+                                                                  14
+                                  Deployment Overview
+
+· Validation Team: responsible for configuring the system and ensuring it is fully operational and performing
+
+     as outlined in the requirements.
+
+Table 1 Phases and Detailed Steps in a ZAATS Deployment
+
+               Project Phase                                         Detailed Steps
+Requirement Definition
+Preliminary System Design         · End User Interview (or workshop)
+                                  · Use Case and Requirement Definition
+Site Survey
+Finalize System Design            · Site Inspection
+Server and Software Installation  · Select Asset Tag Type(s)
+Hardware Installation             · Preliminary Site (RF Coverage) Map
+                                  · Preliminary Network Design
+Post-Installation Validation      · Preliminary Equipment Manifest
+                                  · Preliminary Bill of Materials (BOM)
+
+                                  · Preform Site Survey
+
+                                  · Update Network Design and Site Map
+                                  · Update Equipment Manifest and Finalize BOM
+
+                                  · Install CLAS Software
+
+                                  · Network Installation and Cabling
+                                  · ATR7000 Reader Installation
+                                  · Basic Operational Verification of Reader/Network Hardware
+                                  · Survey Reader Locations
+                                  · Finalize Site Map and Equipment Manifest
+
+                                  · RTLS Software Integration
+                                  · System-level Operational Validation
+                                  · End-User Handoff
+
+                                  15
+Requirement Definition
+
+Introduction
+
+          This chapter describes the requirement definition phase of a ZAATS deployment, covering the first steps in the
+          deployment process.
+          The requirement definition phase consists of the following steps:
+          1. Determine the use cases, coverage areas, location accuracy, latency, and any other relevant requirements or
+
+                constraints.
+          2. Document the existing network infrastructure (switches, cabling, availability of PoE+, WAN capacity, etc.) and
+
+                determine if this will be a local (on-premise) or remote server installation.
+          3. Define the assets to be tracked, cost, performance, and other process-related considerations.
+          4. Obtain the site map for each facility.
+          5. Define an origin location (0,0,0) and coordinate system for the site (or multiple sites).
+          The above steps can generally be accomplished through an interview or workshop with the end-user or customer
+          operations team.
+
+Use Case Definition
+
+          The first step of any ZAATS deployment is to define the use case(s) and identify specific solution requirements.
+          Some common applications for ZAATS are:
+
+              · Warehouses and Distribution Centers
+              · Cross-docks
+              · Manufacturing operations
+              · Dock doors and portals
+
+          The use case(s) will drive the coverage area and accuracy requirements, which in turn drive the RF infrastructure
+          requirements of the ATR7000s. Equally as important as defining the coverage area and accuracy requirements is
+          understanding the number of items in a facility to be located and tracked, the density of items, and if the RTLS
+          system latency (approximately 2-3 seconds) supports the business process and workflow needs.
+          In documenting the use case(s), it is important to capture the life cycle of an RFID tagged asset, the list of actions
+          and event steps that comprise the life cycle of the asset, and any implied location accuracy or latency requirement
+          associated with the steps.
+          As an example of a use case in a distribution center (DC) or warehouse application, an RFID tagged forklift or hand
+          truck removes an RFID tagged pallet or item from a trailer and brings it to its destination or to a staging area for
+
+                                                                  16
+                                                                  Requirement Definition
+
+          processing and later retrieval. The pallet or item must be identified, along with the timestamp and dock door it left
+          the trailer, the forklift or hand truck that carried the item, and final location of the asset and the time it arrived. A
+          similar use case in a cross-dock application, an RFID tagged forklift removes an RFID tagged pallet from a trailer,
+          carries the pallet to another trailer/dock door and places the pallet into the trailer. The pallet must be identified, the
+          time it left the trailer noted, the dock door it entered, forklift, and the trailer and dock door it was delivered to (with
+          timestamp) are recorded.
+
+End User Interview
+
+          Typically, the first engagement between the technical team (system designer, network designer, software lead)
+          and end user is structured as an interview or workshop. Below is a sample checklist that can be used to guide the
+          end-user interview.
+
+              · Description of use case(s), business process, and work flow.
+              · Building type and coverage environment (open space or compartmented, floor material, ceiling height and
+
+                     type, presence of metallic structural components or obstructions).
+
+              · Square foot coverage requirements.
+              · Request/obtain site map.
+              · Local coordinate system defined.
+              · Detailed description of items to be tracked; e.g. size, material composition, total items within facility, item
+
+                     density, stacking and/or shelving requirements, and maximum expected tag height.
+
+              · Location accuracy and tracking (latency) requirements.
+              · Existing network infrastructure, including PoE+ and/or electrical power.
+              · Identify location of server closet, rack space, and switch location.
+              · Local premise or remote server.
+              · Backhaul (WAN) requirements.
+
+          In a multi-facility deployment, any similarities and/or differences in any of the above criteria should be noted.
+          After the interview is complete, the technical team, including the system designer/solution architect and network
+          designer should document the findings of the interview as well as any additional relevant technical requirements
+          that may impact the system design and deployment.
+
+                                                                  17
+Preliminary System Design
+
+Introduction
+
+          This chapter describes the preliminary system design phase of a ZAATS deployment. The development of the
+          preliminary system design based on end user requirements and use cases is one of the most important factors in
+          achieving a successful ZAATS deployment.
+          The preliminary system design phase consists of the following steps:
+          1. Perform an (optional) initial site inspection.
+          2. Define server specification if a local (on-premise) server is used.
+          3. Determine the type(s) of RFID tags that will be required.
+          4. Determine the number of ATR readers required to support the coverage area and accuracy requirement and
+
+                create a preliminary site map for each facility.
+          5. Preliminary network design (switches, cabling, power, WAN/backhaul)
+          6. Create a preliminary Equipment Manifest and preliminary bill of materials (BOM) for each facility.
+          The above steps are performed by the system designer/solution architect and other qualified technical specialists
+          with experience in network and RF system deployments and site planning.
+
+Initial Site Inspection
+
+          Prior to installation of a ZAATS RTLS deployment, a site inspection of the facility is strongly recommended. The
+          objectives of the site inspection are to:
+
+              · Deepen the understanding of the use cases, items to be tracked, the facility environment, and the
+
+                     processes and work flows that may impact the initial design.
+
+              · Document the ceiling type and relevant mounting considerations, especially the maximum and minimum
+
+                     allowable heights that the ATR7000 readers will be installed. See note below.
+
+              · Ensure that the facility map is accurate and note any deviations or RF coverage obstructions.
+              · Identify the location of server closet and existing network infrastructure.
+              · Allow the site inspector to document their findings and make suggestions to the system designer or site
+
+                     survey team through a site inspection report.
+
+                   NOTE: The mounting height of the ATR7000 readers is one of the most important physical considerations
+
+                                in a ZAATS deployment. In most cases, the ideal mounting height is between 15'-17', although,
+                                may range anywhere between 12'-20'.
+
+                                                                  18
+                                                               Preliminary System Design
+
+          The following are guidelines that should assist the site inspector in creating the site inspection report:
+
+              · Walk the facility and verify that the floor plan or layout is consistent with the site map.
+              · Determine if the use cases, processes, and work flows are consistent with what was documented in the
+
+                     requirement phase, and note any deviations or other relevant observations in the site inspection report.
+
+              · Inspect all areas to be covered with ATR readers, measure the mounting height, and confirm the mounting
+
+                     method is appropriate for each area (it is possible or likely that one universal mounting approach may not
+                     be applicable to an entire facility).
+
+              · Note if the facility has trusses that facilitate mounting with the mounting pole accessory, or determine if a
+
+                     more customized mounting solution will be required.
+
+              · Document and photograph often, especially any challenges that exist and recommend a solution, if
+
+                     possible.
+
+              · After the site inspection, complete a site inspection report and make it available for internal review.
+              · If necessary, ensure the site map is updated based on your findings to better prepare the site survey team
+
+                     to conduct an efficient and thorough site survey.
+
+                   NOTE: In a multi-site installation, it may not be required that every site be visited if the use case is
+
+                              identical and the facilities are similar.
+
+Minimum Server (System) Requirements
+
+          For installations that require an on-premise server, Zebra has validated the CLAS RTLS software on several
+          hardware platforms. Since most of the intensive location analytics processing is distributed among the ATR7000
+          readers, the computing requirements are relatively modest. The most important considerations, therefore, are
+          related to fault tolerance, including hardware reliability and system availability. A server with the following
+          components related to processing requirements are sufficient to operate the CLAS software:
+
+              · Quad Core CPU @ 2.4 GHz (or equivalent)
+              · 16 GB RAM
+              · 64 GB of free hard disk space
+              · Linux OS (Ubuntu 18.04 LTS and above)
+
+          For more information, please refer to the CLAS Server and Software Installation Guide (p/n MN-003197-xx).
+
+Network and Other Hardware Requirements
+
+          All ZAATS installations require a LAN to support the ATR7000 reader population. A typical LAN consists of the
+          following:
+
+              · Switch(es) with multi-Gbps switching bandwidth and support for 1000 MB Ethernet
+              · Cat5e or Cat6 cables, one for each ATR7000
+              · Rack for mounting
+              · Fan(s) for cooling
+              · Power source
+
+          The key component of the LAN is the switch (or switches) that comprise the switching fabric. Likely there will be
+          several switches since most managed enterprise switches for small-to medium-scale edge deployments are
+          available in 24-port and 48-port models. Ensure that the switch has non-blocking capacity on the order of 1Gbps
+
+                                                                  19
+                                                               Preliminary System Design
+
+          times the number of ports. Also ensure that the switch supports PoE+ (IEEE 802.3at), or alternatively, one or more
+          midspans will be required in addition to the switch(es). It may be preferable to use a midspan, as most PoE+
+          switches do not have the power handling capability to provide full power to every port. Alternatively, the readers
+          may be powered using the optional 24V external supply available from Zebra (p/n PWR-BGA24V78W1WW).
+
+                   NOTE: If not powered using the 24 V external power supply, the ATR7000 readers require PoE+ and will
+
+                                not operate using standard PoE (IEEE 802.3af). LLDP power negotiation is also supported. The
+                                maximum power consumption per reader is 22.9 W (typical 22 W).
+          See Appendix: Tools and Resources for a list of recommended network hardware for use in a ZAATS deployment.
+
+Tag Selection and Readability
+
+          Tag readability and tag read rates are two of the most important factors in achieving good location accuracy and
+          real-time performance of the ZAATS system. Zebra has identified several tags that provide suitable performance
+          for a variety of use cases. The Zebra ZBR4000 Tag with the NXP UCODE8 RFID IC, shown in Figure 3, has been
+          developed specifically for the ZAATS system. It represents the latest in RFID tag performance with high RF
+          sensitivity, good performance in all tag orientations, and exhibits excellent readability at long distances.
+          Dual-dipole tags available from Avery, Confidex, Smartrack, and other medium to large size standard dipole RFID
+          tags with the NXP UCODE8 chip can also be used successfully with the ZAATS system. Table 2 on page 21
+          provides several examples of tags that may be considered. The exact choice will depend on several factors,
+          including material composition of the items to be tracked, item density, reader height and density, stacking and/or
+          shelving requirements, and cost.
+          Other RFID tags with single dipole designs and older, less sensitive RFID ICs can generally be read at the
+          distances required of ZAATS, although, they may not have the multi-orientation readability desired which can result
+          in reduced system performance.
+          Figure 3 Zebra ZBR4000 Tag
+
+                                                                  20
+                                   Preliminary System Design
+
+Table 2 Tag Types Use Cases
+
+              Use Case             Tag Type                         Description/Comments
+Packages, containers
+(non-metallic)                     Zebra ZBR4000 Tag                The Zebra ZBR4000 Tag with
+                                                                    the NXP UCODE8 chip has
+Metal objects, packages, or        Most dual-dipole tags            been thoroughly tested to work
+containers with no intent for                                       well at needed ranges and in
+long-term use or durability.       Most mid-sized or large tags     multiple orientations.
+                                   using NXP UCODE8
+Metal objects with permanently
+affixed tags (e.g. for forklifts,  Same as above applied in a       A well designed on-metal tag
+machinery, trolleys, metal         "flagged" manner - see Figure 4  will use the metal surface of the
+shelving, etc).                                                     object as part of the antenna
+                                   Printable "on-metal" label such  structure to increase the
+Long Range People ID               as Zebra Silverline.             performance of the tag.
+
+                                   Omni ID Dura 1500                Metal mount tags with a
+                                   Omni ID Exo 750                  specified range of greater than
+                                   Confidex Ironside Slim           25 ft are recommended.
+                                   Printable "on-metal' label such
+                                   as Zebra Silverline.
+
+                                   Zebra UHF Badge Cards
+
+Figure 4 Examples of RFID Tags Applied in a Flagged Technique
+
+NOTE: To ensure reliable system performance, RFID tags must exhibit "good readability". Perform a
+
+          simple yet reliable tag readability test as follows: using a hand-held reader with transmit power set
+          to produce 30 dBm EIRP stand 25' to 30' away from a tagged item exactly as it will be tagged on
+          the asset in normal operation; direct the hand-held reader toward the item and wave it slightly up
+          and down, left and right; ensure that the tag can be reliably read. This test should be performed on
+          a variety of items representative of all use cases. When readers are mounted higher than 17' off
+          the floor and assets are stationary for long periods of time, or when the highest levels of location
+          accuracy are desired, then a 35' read distance is recommended.
+
+                                                21
+                                                               Preliminary System Design
+
+ATR7000 Coverage
+
+          The coverage area and number of readers required to reliably support an ATR7000-based ZAATS system
+          depends on many factors. Most important is the relationship between the reader-to-reader spacing, the height at
+          which the readers are mounted, the location accuracy requirements, and the tradeoff between cost and
+          performance. To achieve maximum packing density and, therefore, the most cost-effective coverage, a triangular
+          grid is employed. Using a triangular grid, the coverage zones are hexagonal and shaped like a honeycomb as
+          illustrated in Figure 5.
+          Note in the figure below that the ATR7000 readers are installed at the vertices of equilateral triangles with equally
+          spaced sides, separated by distance, s. The area per hexagonal cell is given by the equation:
+
+              AreaCELL = 3/2 x s2
+
+          Figure 5 Illustration of Hexagonal Coverage Areas Obtained Using Triangular Grid
+
+          The ATR7000 provides coverage over an antenna scanning angle ranging from 0 to 360 in azimuth and from 0
+          to ±60 in elevation, therefore, the maximum coverage area of a single ATR7000 reader occurs when the spacing,
+
+         s = 2* rmax = 2 * Tan (60) * h.
+
+          This maximum coverage is illustrated in Figure 6 and given by the equation:
+
+              AreaMAX = 3/2 * 4*Tan2(60) x h2 = 10.4 x h2
+
+          Where h is the mounting height of the readers.
+          While the above equation may predict coverage, in practice where high levels of real-time performance and
+          location accuracy are essential, two modifications to the above are required.
+          First, the maximum tag height must be taken into consideration:
+
+                h = hreader - htag
+          Second, a sufficient amount of overlap between ATR coverage areas is required. Although, the ATR7000 elevation
+          scan range extends to ±60, location accuracy is highest when the elevation scan range extends only to ±54.7.
+          Therefore, a more typical reader-to-reader spacing becomes:
+
+              styp = 2 x rtyp = 2 x Tan (54.7) x (hreader - htag) = 2.83 x (hreader - htag)
+
+                                                                  22
+                                                    Preliminary System Design
+
+and:
+
+    AreaATR = 3/2 x Styp2 = 6.93 x (hreader - htag)2
+
+Figure 6 Maximum Coverage Area and Typical Coverage Area of ATR7000
+
+         NOTE: ZAATS supports "multi-tagged" items, where two or more tags are placed on the same item with a
+
+                     fixed, known geometry. In this case, the tag height used can be the average (not maximum) tag
+                     height of all tags affixed to the same item. For more information on "multi-tagged" items, see
+                     ZAATS Tag Data and Numbering Guide, (p/n MN-003199-01).
+Using the above formula guarantees coverage overlap between ATR readers in adjacent cells and provides
+maximum coverage area per reader. However, for applications that require the highest levels of location accuracy,
+the reader-to-reader spacing should be reduced by up to 15% (which increases the number of ATR readers by
+~30%):
+Therefore:
+     smax_accuracy = 0.85 x 2.83 x (hreader - htag) = 2.40 x (hreader - htag)
+
+    AreaATR_max_accuracy = 3/2 x smax_accuracy2 = 5.00 x (hreader - htag)2
+
+As an example, in an installation with readers mounted at a height of 15' off the floor and tags mounted 3' off the
+floor, the nominal reader-to-reader spacing is 34' and the coverage area per reader is 1000 square-feet. For the
+highest levels of location accuracy, the reader-to-reader spacing is reduced 15% to 28.8' and the coverage area
+per reader is 720 square-feet. To achieve 1000 square-feet coverage, the reader-to-reader spacing must be 34',
+however, to obtain the additional cell overlap required for the highest levels of performance, the mounting height of
+the reader would be increased to 17.1'. In all cases, it is important to ensure that the RFID tags exhibit "good
+readability" to achieve reliable accuracy and real time performance (see the previous section Tag Selection and
+Readability). It is worth noting that AreaMAX is approximately 3000 square-feet when ATR readers are mounted at
+17.1'. This 3-to-1 ratio between AreaMAX and AreaATR is an important factor of how the ZAATS system achieves its
+high levels of performance.
+One final point concerning the selection of reader-to-reader spacing (grid size) is that the structural aspects of the
+site must also be considered. The basic structural components of most facilities are the support columns and roof
+trusses. It is often possible to choose the grid spacing such that a grid can be maintained without interfering with
+
+                                                         23
+                                                               Preliminary System Design
+          the building structure. It is especially important to ensure readers are not installed within 6' of a support column
+          (see additional guidelines below).
+
+                   NOTE: The preceding material on coverage and best practices has focused on wide area coverage where
+
+                                readers provide overlapping coverage. Another common coverage scenario is warehouses with
+                                pallet racks where ATR readers are mounted in a linear fashion down the center of each drive
+
+                             lane. To ensure adequate coverage line of site is required within the cone formed by a 45 angle
+
+                                emanating from each ATR reader for all but the top shelf (see Figure 7); i.e., the reader-to-reader
+                                spacing down the center of the aisle should be twice the difference between the mounting height
+                                of the reader and the height of the bottom of the top shelf. The RTLS system will track the item up
+                                and down the racks and send tag reports with x-y-z locations until the item is raised to a maximum
+                                height where the tag report then indicates that the item elevation is out of range. The solution
+                                software must then infer the item is on the shelf above the location it was last observed.
+          Figure 7 Warehouse Deployment Scenario with Pallet Racks
+
+Creating the Preliminary Site Map and Equipment Manifest
+
+          The next step in the preliminary system design is to specify the installation locations (i.e., x-y-z coordinates) of the
+          ATR readers and create the preliminary site map. In a multi-facility installation, this should be done for each facility.
+          The steps to complete this process are outlined below.
+          1. Highlight the coverage zones on the site map (for each facility) and note local coordinate system origin and any
+
+                known reference locations.
+
+                                                                  24
+                                                               Preliminary System Design
+
+          2. Based on the use case(s), determine the tag height (htag).
+          3. Based on the facility mounting or structural constraints and tradeoff between coverage per reader (cost) and
+
+                accuracy, determine the ATR mounting height (hreader), reader-to-reader spacing (s), and coverage area per
+                ATR reader.
+          4. Using the guidelines below, locate the readers on the site map adhering as closely as possible to the
+                pre-determined reader-to-reader spacing (s), such that all zones have the desired coverage.
+          5. Create the preliminary Equipment Manifest with the preliminary (target) x-y-z locations of the ATR7000
+                readers.
+
+          The following are guidelines that should assist the system designer in creating the system design and reader
+          locations (site map):
+
+              · The mounting height should be as close to 15'-17' as possible, although, may range anywhere between
+
+                     12'-20' as explained in the previous section.
+
+              · The triangular grid layout should be adhered to as closely as possible. When deviations from a strict
+
+                     triangular grid are required, which will typically be the case, the system designer should minimize such
+                     deviations and do so in a way not to create coverage holes. To prevent coverage holes, ensure that
+                     reader-to-reader spacings do not exceed the target by more than 10%.
+
+              · Readers should be spaced at least 6' away from structural columns, walls, or zone boundaries, and up to a
+
+                     maximum of s/3 (ideally somewhere between these two limits, depending on other environmental
+                     constraints).
+
+              · Readers should be placed at least 3' away (and preferably more) from any metal obstruction; e.g. roof
+
+                     trusses, fans, ventilation ductwork, etc. The exception to this constraint is if the reader is mounted below
+                     the obstruction by at least 6". In this case, the constraint can be relaxed to 1'.
+
+              · Readers should not be placed near objects that would interfere with line-of-sight coverage to the items to
+
+                     be tracked within a coverage zone. Although, this requirement may be challenging to strictly meet in
+                     practice due to the presence of structural support columns, machinery, and other environmental factors.
+
+              · Generally, the actual x-y mounting location of any reader can deviate up to 1.5', and the z mounting
+
+                     location (height) of any reader can deviate up to ±0.75' (higher is better) with minimal impact to
+                     performance.
+
+Mounting Considerations
+
+          As described in previous sections, the mounting height of the ATR7000 readers is one of the most important
+          physical considerations in a ZAATS deployment, as it directly impacts the reader-to-reader spacing, number of
+          readers, and cost required to cover a given area.
+
+          There are three options for mounting the ATR7000 readers to the roof trusses using the accessory mounting poles:
+
+              · Installing directly to a truss - see Figure 8 below
+              · Installing using a strut channel clamped to the bottom of the truss.
+              · Installing using a strut channel and threaded rods clamped to the top of the truss.
+
+          When mounting to a truss is not feasible, the system designer will need to define a mounting method using the
+          optional ATR7000 VESA bracket accessory (Zebra p/n BRKT-VMATR7-00).
+
+                                                                  25
+                                                    Preliminary System Design
+
+Figure 8 Installing Directly to a Truss
+
+                                                                          Truss
+                                                                          Safety Cable
+                                                                          UL Certified Telescoping Pole
+                                                                           Collar
+
+                                         ATR7000
+
+NOTE: The z-axis reference that establishes the mounting height of the ATR7000 is the ground plane of
+
+          the antenna array. This reference is located 4.2" (0.35') above the bottom of the antenna radome
+          at the seam that joins the radome and top cover. This same z-axis reference point is 2.9" (0.24')
+          below the connection point where the mounting bracket attaches to the ATR7000.
+
+In selecting the mounting accessories and hardware, the system designer must take into consideration the height
+of the structure the readers are attached to. The site survey team will ensure during the site survey that the method
+chosen is suitable for the type of structure and applicable building constraints.
+
+Zebra offers UL certified telescoping poles available in three sizes to accommodate a variety of environments, as
+shown in Table 3 below.
+
+As an example, if a reader is intended to be installed at a height of 15', the bottom of the radome is 14.65' above
+the floor and the connection point to the mounting pole or VESA bracket accessory is 15.24' above the floor. Using
+the BR-000237-01 at its minimum extension the truss will be 16.74' above the floor; using the BR-000237-03 at its
+maximum extension the truss will be 26.74' above the floor.
+
+Table 3 Certified Telescoping Poles
+
+Zebra Part Number                    Description               Adjustment Range
+
+BR-000237-01       Bracket, Telescoping, Adjustable, 18"-32",  1'6" to 2'8"
+                   Ceiling Mount, VESA, White
+
+BR-000237-02       Bracket, Telescoping, Adjustable, 36"-66",  3' to 5'6"
+                   Ceiling Mount, VESA, White
+
+BR-000237-03       Bracket, Telescoping, Adjustable, 72"-138", 6' to 11'6"
+                   Ceiling Mount, VESA, White
+
+BR-000238-01       Bracket, Telescoping, Adjustable, 18"-32",  1'6" to 2'8"
+                   Ceiling Mount, VESA, Black
+
+BR-000238-02       Bracket, Telescoping, Adjustable, 36"-66",  3' to 5'6"
+                   Ceiling Mount, VESA, Black
+
+BR-000238-03       Bracket, Telescoping, Adjustable, 72"-138", 6' to 11'6"
+                   Ceiling Mount, VESA, Black
+
+                                     26
+                         Preliminary System Design
+
+In summary, a variety of mounting heights and approaches can be accommodated using the various mounting
+options, choice of mounting poles, and VESA bracket accessory (Zebra p/n = BRKT-VMATR7-00). More
+information on mounting the ATR7000 readers can be found in the ATR7000 Advanced Array Reader Integration
+Guide, (p/n MN-003191-xx)
+
+Equipment Manifest
+
+The Equipment Manifest is a repository of information that captures all attributes required for system installation,
+configuration, and operation in a single location. The Equipment Manifest is used by the system designer, survey
+team, network installers, installation team, and validation team to identify all materials needed for a ZAATS
+installation, and is also used to create the configuration files required during the server and software installation
+process.
+
+At the preliminary design phase, the Equipment Manifest will include the ATR friendly names and preliminary x-y-z
+
+reader locations. The serial number, MAC address, x-y-z locations, and reader orientations () will be finalized at
+
+installation. Network related information, for example IP address, should be provided to the system designer by the
+network designer by the network designer and/or end user IT department when available, but prior to system
+installation.
+
+A sample Equipment manifest is shown in Table 4 below.
+
+Table 4 Sample ZAATS Equipment Manifest: ATR7000 Tab
+
+Friendly  Hostname  ATR    MAC        IP   X-loc        Y-loc  Z-loc    Midspan/Switch
+ Name               S/N  Address  Address                                       Port
+
+ATR01                                      40.0 100 17.1
+
+ATR02                                      15.0 87.5 17.1
+
+ATR03                                      40.0 75.0 17.1
+
+ATR04                                      15.0 62.5 17.1
+
+ATR05                                      40.0 50.0 17.1
+
+ATR06                                      15.0 37.5 17.1
+
+ATR07                                      40.0 25.0 17.1
+
+Completing the Preliminary System Design
+
+          Below is a sample checklist of exit criteria that can be used for the preliminary system design phase:
+
+              · Preliminary network design, including reader power sources, detailed server specification (if required),
+
+                     number and type of switches, midspans, and cabling requirements.
+
+              · Preliminary RFID tag specification(s).
+              · Preliminary site map showing the local coordinate system origin, reader locations (x-y) and mounting
+
+                     height (z), structural features, and other known obstructions or objects that can impair RF coverage.
+
+              · Preliminary Equipment Manifest.
+              · Preliminary comprehensive bill of materials (BOM).
+              · Preliminary system design document (report) summarizing the above, to be used as a guide for the site
+
+                     survey and installation teams.
+
+                                                                  27
+Site Survey
+
+Introduction
+
+          This chapter provides information for the survey team in performing an in-depth comparison of the preliminary site
+          map to the respective on-site ZAATS component locations to ensure the map has been developed according to
+          best practices for ZAATS hardware installations. The survey team also updates the map, where required, for
+          component locations that are inconsistent with best practices.
+          The objectives of the site survey are to:
+
+              · Ensure that the system will deliver the required wireless coverage and location accuracy.
+              · Determine the presence or absence of existing network infrastructure, the data capacity of the existing
+
+                     network, and identify the location of the server closet or mounting location of the switches.
+
+              · Validate the local coordinate system and identify permanent reference location points (landmarks).
+              · Validate that the preliminary site map is accurate, note any deviations or obstructions, and modify the site
+
+                     map (i.e. reader locations) accordingly.
+
+              · Validate that the reader mounting height is practical for each location and modify the site map (i.e. reader
+
+                     locations) accordingly.
+
+              · Ensure that the planned mounting scheme for each reader location is suitable for the type of structure and
+
+                     applicable building constraints, and to document alternative solutions, if needed.
+
+              · Ensure that electrical power is available, either through PoE+ enabled switches or midspans, or by
+
+                     electrical outlets in near proximity to where the readers will be located.
+
+              · Define all materials and tools that will be required by the installation team.
+              · Develop the site survey report, documenting any challenges that exist or special instructions that need to
+
+                     be considered by the installation team, and to make the report available for internal review.
+
+Guidelines for Performing the Site Survey
+
+          The following are guidelines that should assist the site survey team in performing the site survey and creating the
+          site survey report:
+
+              · Become familiar with the facility map and site map and review all ATR locations.
+              · Identify the facility landmark that will serve as the (0,0,0) origin for the local coordinate system and identify
+
+                     the permanent reference location points (landmarks). Identify enough landmarks such that every landmark
+                     has at least two other visible landmarks within 200'.
+
+              · Locate each ATR on the site map and ensure that each ATR location is visible to at least two landmarks.
+
+                                                                  28
+                                                         Site Survey
+
+· Place yourself in an appropriate viewing location to determine if any obstructions or other factors will
+
+     impede the proper installation of the ATR in its planned location.
+
+· Measure from the floor to the lower surface of the structure to determine if the mounting height specified on
+
+     the site map is feasible. If the lower surface of the mounting structure is not high enough, then the site
+     survey lead will need to discuss an alternate approach with the system designer and modify the site map
+     accordingly.
+
+· If a planned ATR location or mounting height is unsuitable due to an obstruction or mounting at the
+
+     specified height is not practical, it is acceptable to move the location in any direction up to 18" or change
+     the mounting height up to 9". Take photos of the original location and new location, and indicate the reason
+     necessitating a move. For consistency, take all photos facing the rear of the facility (if possible) and angled
+     back to view the ceiling.
+
+· If a minor location or height change is not practical, then the survey team needs to be prepared to modify
+
+     the preliminary site map in a manner that maintains the coverage objectives. Typically, this is either by
+     tolerating a minor sacrifice in coverage, or by replacing a single ATR reader with two ATR readers (at
+     different locations). It is advised to contact the system designer or technical lead in these situations.
+
+· If a planned location requires any deviation, the site map must be modified to reflect the revised location.
+
+     Ensure a person familiar with the best practices for ATR locations updates the map.
+
+· Ensure that the planned mounting scheme for each reader at each location is suitable for the type of
+
+     structure and applicable building constraints, and to document alternative solutions (for later review by the
+     system designer) if necessary.
+
+· Validate the presence or absence of existing network infrastructure and network capacity, including the
+
+     location of the server closet or mounting location of the switches.
+
+· Ensure that the electrical power is available, either through PoE+ enabled switches or midspans, or by
+
+     electrical outlets in near proximity to where the readers will be located.
+
+· Define all materials and tools that will be required by the installation team.
+· Document and photograph any challenges that exist and provide instructions to the installation team in the
+
+     site survey report.
+
+· After the site inspection is complete, prepare a site survey report and make it available for internal review.
+
+                                                    29
+Completing the Final
+System Design
+
+Introduction
+
+          This chapter describes the final system design phase of a ZAATS deployment, the last step prior to the arrival of
+          the installation team.
+          The final system design phase consists of the following steps:
+          1. Review the site survey report.
+          2. Finalize the Site Map with exact installation locations of the ATR7000 readers and network hardware.
+          3. Finalize the network hardware and network design, including assignment of IP addresses if not using DHCP.
+          4. Update the Equipment Manifest and the final bill of materials (BOM).
+          5. Prepare the final system design and site report.
+          After the site survey, working with the site survey lead and network designer, the system designer will finalize the
+          site map and create detailed installation notes and instructions to guide the network and hardware installation
+          team.
+
+Finalizing the Pre-Installation Site Map, Equipment Manifest, and Bill of
+Materials (BOM)
+
+          It is quite often the case that the site survey team needed to make modifications to the preliminary site map based
+          on mounting considerations, ceiling height, building, or other structural constraints. General guidelines were
+          provided in the previous section where it is acceptable for the site survey team to move the preliminary x-y location
+          of a reader in any direction up to 18" or change the mounting height up to 9". It is very important that these
+          locations are now considered final, and that no significant deviations to mounting height or x-y location be made by
+          the hardware installation team after finalization of the site map. However, from a practical perspective, it is
+          important that the system designer consider that the hardware installation team may still need to make minor
+          adjustments, up to 6" in height or location, based on each unique mounting situation.
+          After updating the pre-installation site map, the Equipment Manifest should also be updated with any adjustments
+          to reader quantities, installation locations, and assigned IP addresses (See Table 5) and the bill of materials (BOM)
+          updated with the final reader count, mounting hardware, network hardware, or other hardware required for
+          installation. Comparing the pre-installation manifest in Table 4 to the preliminary manifest in Table 5, note that the
+          y-locations of the ATR readers were adjusted by 15.0'.
+
+                                                                  30
+                         Completing the Final System Design
+
+Table 5 Sample Pre-Installation ZAATS Equipment Manifest
+
+Friendly  Hostname  ATR    MAC    IP Address  X-loc Y-loc Z-loc    Midspan/Switch
+ Name               S/N  Address                                           Port
+
+ATR01                             192.168.7.201 40.0 115.0 17.1
+
+ATR02                             192.168.7.202 15.0 102.5 17.1
+
+ATR03                             192.168.7.203 40.0 90.0 17.1
+
+ATR04                             192.168.7.204 15.0 77.5 17.1
+
+ATR05                             192.168.7.205 40.0 65.0 17.1
+
+ATR06                             192.168.7.206 15.0 52.5 17.1
+
+ATR07                             192.168.7.207 40.0 40.0 17.1
+
+Below is a sample checklist of exit criteria that can be used for the final system design phase:
+
+    · Final network design, including reader power sources, detailed server specification (if required), number
+
+          and type of switches, and cabling requirements.
+
+    · Final RFID tag specification(s).
+
+    · Updated, pre-installation site map showing the local coordinate system origin, reader locations (x-y) and
+
+          mounting height (z), structural features, permanent landmarks, and known obstructions or objects than can
+          impair RF coverage.
+
+    · Updated, pre-installation Equipment Manifest.
+
+    · Final comprehensive bill of materials (BOM).
+
+    · Final system design and site report with mounting and installation instructions to be used as a guide for the
+
+          network and hardware installation team.
+
+                                  31
+Installation of CLAS Server
+Software
+
+Introduction
+
+          In cases where a local on-premise server is used, the CLAS software should be installed and pre-validated on the
+          on-premise server and should be shipped to the end-user facility prior to the arrival of the installation team.
+          For more information, see CLAS Server and Software Installation Guide (p/n MN-003197-xx).
+
+                                                                  32
+Installation of ZAATS Reader
+and Network Hardware
+
+Introduction
+
+          This chapter describes the hardware installation phase of a ZAATS deployment, including the detailed steps
+          involved in reader and network installation, and how to ensure the hardware is fully functional.
+          The hardware installation phase consists of the following steps:
+          1. Install all network hardware and Cat5e/Cat6 cabling.
+          2. Install electrical power to each reader location (if PoE+ is not available).
+          3. Configure switch(es), midspan(s), and router(s).
+          4. Install all ATR7000 readers.
+          5. Assign an IP address to each ATR7000 (if DHCP is not used).
+          6. Perform basic reader "health test", including network connectivity and antenna operation.
+          7. Measure installed ATR7000 locations with Leica 3D DISTOTM, or equivalent.
+          8. Finalize site map and Equipment Manifest.
+
+Prior to Arrival of Installation Team
+
+          After completing the final system design, all materials defined in the bill of materials (BOM) need to be on-site and
+          accessible prior to the arrival of the network and hardware installation team. In addition, all specialized equipment
+          and tools required for mounting readers, cabling, and installing network hardware will need to be delivered or
+          carried on-site by the team. See Appendix: Tools and Resources for a listing of some helpful resources that can
+          facilitate installation and aid in the deployment of a ZAATS system.
+
+Network Installation and Cabling
+
+          The first step in deploying hardware is to install all network components in their permanent locations and all
+          Cat5e/Cat6 cabling should be pre-wired and labeled with termination points at each reader location. It is
+          recommended to allow a 4'-6' service loop to facilitate minor adjustments to reader x-y-z location, if needed. If
+          PoE+ is not available and electrical power is required, power outlets should be installed by a qualified electrician,
+          preferably within 6' of the final reader location.
+          After the Cat5e/Cat6 cables are installed they should be terminated at the switch (or midspan) and the port number
+          should be recorded in the Equipment Manifest corresponding to each ATR reader location.
+          A block diagram of a typical system installation is shown in Figure 9, which also illustrates the use of an optional
+          WAN router and optional test PC.
+
+                                                                  33
+                                              Installation of ZAATS Reader and Network Hardware
+
+          Figure 9 System Design
+
+          The following are guidelines that should assist the network engineer/specialist to ensure proper operation of the
+          system after its installation:
+
+              · Preferably use a dedicated switch with Gpbs switching capacity for connecting all ATR7000 readers and
+
+                     server. This will ensure that the high network bandwidth required by the ATR7000 readers and RTLS
+                     software does not impact other devices on the network.
+
+              · Ensure IP multi-casting and IP multi-cast routing is enabled in the switch configuration. This will allow
+
+                     ATR7000 readers to be discoverable over the network during installation.
+
+              · Ensure that a DHCP server is available. Even if static IP addresses are used, the installation process
+
+                     requires DHCP.
+
+              · If using the optional WAN router, enable the bridging function to connect the two LANs, This will allow a
+
+                     roaming laptop (test PC) to access an ATR on the LAN through a local WLAN established by the router.
+
+                   NOTE: It may be preferable to go through the installation process with the ATR/switch local network not
+
+                                connected to the end-user (corporate) network. This ensures no conflicts with the corporate
+                                network prior to provisioning by the end user IT department.
+
+WAN Router Setup (Optional)
+
+          The use of a cellular WAN router on either a temporary or permanent basis is useful to provide remote access to
+          authorized personnel to the ZAATS system. Also, during installation, a router with WLAN capability can be used to
+          establish a temporary WLAN to facilitate ATR "health testing" (See Preliminary Validation of the ATR7000
+          Readers).
+          When using the optional WAN router, the following is recommended.
+
+                                                                  34
+                                              Installation of ZAATS Reader and Network Hardware
+
+              · Ensure that the router is assigned a static IP address. This will allow direct remote access to specific ports
+
+                     and services of systems running on the local network.
+
+              · Port forwarding needs to be enabled. The following ports will need to be forwarded to the local network
+
+                     address of the RTLS server.
+
+                   · SSH: Port 22 (TCP)
+                   · HTTP: Port 80 (TCP)
+                   · HTTPS: Port 443 (TCP)
+              · If using an optional Windows test PC (see below):
+                   · RDP: Port 3389 (TCP & UDP)
+                   NOTE: To maintain http, https, and SSH access to both the WAN router and the RTLS server, the ports
+
+                                for these services must be modified for the router.
+          Figure 10 shows the typical port forwarding requirements for both a local RTLS server and an optional Windows
+          test PC. IP address 192.168.7.199 represents the RTLS server system and 192.168.7.200 represents the
+          Windows test PC.
+          Figure 10 Port Forwarding Requirements for Optional WAN Router
+
+Windows Test PC (Optional)
+
+          The use of a small Windows PC on either a temporary or permanent basis is useful for preliminary testing of the
+          ATR7000 readers (e.g. testing with PowerSession software), post installation validation and/or remote network
+          monitoring. The optional test PC can be accessed remotely via the remote desktop service on Port 3389, which will
+          need to be enabled through the firewall of the local network.
+
+                   NOTE: Port 3389 is a commonly restricted port on many corporate networks, therefore, an alternate
+
+                                approach may be required. One example of an alternate approach is to use TeamViewer software
+                                (license required) as it does not require inbound port forwarding.
+
+Installing the ATR7000 Readers
+
+          After all network components are in their permanent locations, cable drops have been installed, and electrical
+          power is available at each location, the process of installing reader hardware can begin. All information on
+
+                                                                  35
+                                              Installation of ZAATS Reader and Network Hardware
+
+          unpacking and installing the ATR7000 readers can be found in the ATR7000 Advanced Array Reader Integration
+          Guide (p/n MN-003191-xx) and is not repeated in this document.
+          The following are guidelines that should assist the installation team in performing the installation:
+
+              · Ensure that all Cat5e/Cat6 cables are terminated at the switch (or midspan) prior to installing readers.
+              · If a PoE+ enabled switch with LLDP power negotiation is used, ensure that the ATR7000 Power
+
+                     Negotiation configuration setting is enabled. Setting this parameter is explained in the ATR7000 Advanced
+                     Array Reader Integration Guide, MN-003191-xx.
+
+              · Locate each ATR on the site map and ensure that each ATR location is visible to at least two landmarks.
+              · Install the mounting hardware, including mounting poles or brackets, at each ATR location. It is important
+
+                     to follow the site map as closely as possible, however, deviations in location (x-y) up to 12" or height (z) up
+                     to 6" are allowable if necessary.
+
+              · Attach and secure the ATR reader to the mounting bracket and ensure the unit is level to within 5.
+              · After the ATR reader is mounted, note the orientation of the reader relative to the reference coordinate
+
+                     system. This is explained in Measure Location and Orientation of the ATR7000 Readers on page 38.
+
+              · Connect the reader to the Cat5e/Cat6 cable. If not using PoE+, connect the power supply connector.
+
+                     Validate the proper boot up sequence. When complete, the LED indicator should be solid green.
+
+              · Follow the steps outlined in the section below, Preliminary Validation of the ATR7000 Readers.
+              · Optionally follow the steps outlined in Basic Operational Verification (Optional) on page 37.
+              · Repeat for each ATR reader throughout the facility.
+              · Update the Equipment Manifest with the MAC address, serial number, hostname, and orientation of each
+
+                     ATR reader (associated with the friendly name and location coordinates).
+
+Preliminary Validation of the ATR7000 Readers
+
+          Once the reader is installed, connected to the network and power, and the boot-up sequence has been validated,
+          the indicator LED should be lit solid green. At this point the IP address (if required by the end-user IT department)
+          and a basic functional health check should be performed on the reader using the installation software tools as
+          follows:
+
+              · The installer should have a laptop (test PC) with PowerSession installed to facilitate testing immediately
+
+                     after mounting the reader.
+
+              · Ensure DHCP is enabled on the local network.
+              · If a static IP address is required by the end-user IT department:
+
+                   · Connect to the reader using the hostname and assign a static IP address assigned to the ATR (per the
+
+                           Equipment Manifest). This procedure is described in the ATR7000 Advanced Array Reader Integration
+                           Guide (p/n MN-003191-xx).
+
+                   · Follow the prompts to first apply changes and then re-boot the reader from within the web console
+
+                           interface for the network configuration changes to take effect.
+
+              · Place a tag board directly underneath the reader within 6-10' of the bottom of the antenna radome. See
+
+                     Appendix: RFID Tag Board for ATR7000 Installation and Validation for details on constructing a tag board.
+
+                                                                  36
+                                              Installation of ZAATS Reader and Network Hardware
+
+              · Using the PowerSession RFID Demo Application with beams 400-413 enabled (these beams correspond
+
+                     to individual antenna elements), verify that all elements (beams) are reporting tag reads:
+
+                   · Connect to the reader being tested using the hostname (or IP address).
+                   · On the Settings tab, enter a custom antenna sequence of "400-413" at 36 dBm EIRP and click apply.
+                   · On the Main tab, click Start to begin reading.
+                   · Confirm that each individual antenna element from 400-413 (14 elements total) are all able to read
+
+                           tags with the tag board positioned directly underneath the reader within 6-10' of the bottom of the
+                           antenna radome. This will ensure that all 14 antenna elements are functional.
+
+              · Using the PowerSession RFID Demo Application with beam 397 enabled (this beam corresponds to a 0 
+
+                     elevation, or boresight beam with left hand circular polarization), verify nominal read performance is
+                     achieved by ensuring that 100% of the tags are read at an output power 6 dB less than maximum (EIRP),
+                     and that greater than 50% of the tags at an output power 12 dB less than maximum (EIRP):
+
+                   · Connect to the reader being tested using the hostname (or IP address).
+                   · On the Settings tab, enter a custom antenna sequence of "397" at 30 dBm EIRP and click apply.
+                   · On the Main tab, click Start to begin reading.
+                   · Confirm that 100% of the tags are read with the tag board positioned directly underneath the reader
+
+                           within 8-12' of the bottom of the antenna radome.
+
+                   · On the Settings tab, enter a custom antenna sequence of "397" at 24 dBm EIRP and click apply.
+                   · On the Main tab, click Start to begin reading.
+                   · Confirm that greater than 50% of the tags are read with the tag board positioned directly underneath
+
+                           the reader within 8-12' of the bottom of the antenna radome.
+
+Basic Operational Verification (Optional)
+
+          While not strictly necessary, basic operational verification of the ATR7000 systems can be performed two systems
+          at a time for a given row of ATR7000 readers along the North-South axis, or for a row of readers along the
+          West-East axis, whichever is most suitable for the given installation. This verification accomplishes the following:
+
+              · Confirms that each ATR7000 reader can read RFID tags at the distances it will be required to read during
+
+                     normal operation.
+
+              · Confirms that each ATR7000 reader can read tags in the direction corresponding to a given beam.
+              · Confirms that each ATR7000 reader's physical orientation has not been mistakenly reversed or badly
+
+                     misaligned.
+
+              · Confirms that there are no internal antenna faults within the reader being tested.
+
+          The basic operational test procedure is as follows:
+
+              · Place the tag board approximately three feet off the ground at a point midway between two readers on a
+
+                     North-South axis.
+
+                   · Connect to the "South" reader using PowerSession and apply custom antenna sequence "325" at 36
+                        dBm EIRP. This is a left hand circular polarized beam points North (0° azimuth) at an elevation angle
+                        of 45°.
+
+                   · Confirm that greater than 50% of tags are read.
+                   · Connect to the "North" reader using PowerSession and apply custom antenna sequence "337" at 36
+
+                        dBm EIRP. This beam points South (180° azimuth) at an elevation angle of 45°.
+                   · Confirm that greater than 50% of the tags are read.
+
+                                                                  37
+                                              Installation of ZAATS Reader and Network Hardware
+
+              · Repeat the above for all readers to ensure proper North-South beam steering,
+              · Place the tag board approximately three feet off the ground at a point midway between two readers on an
+
+                     East-West axis,
+
+                   · Connect to the "West" reader using PowerSession and apply custom antenna sequence "331" at 36
+                        dBm EIRP. This beam points East (90° azimuth) at an elevation angle of 45°.
+
+                   · Confirm that greater than 50% of the tags are read.
+                   · Connect to the "East" reader using PowerSession and apply custom antenna sequence "343" at 36
+
+                        dBm EIRP. This beam points West (270° azimuth) at an elevation angle of 45°.
+                   · Confirm that greater than 50% of the tags are read.
+              · Repeat the above for all readers to ensure proper East-West beam steering.
+
+          Note that due to multi-path propagation effects, a given system might not be able to read the tag board if the tag
+          board's location happens to fall into a null on the specific static test beam and polarization being used. It is
+          permissible to move the tag board around slightly during testing within a 2-foot radius to confirm tag read
+          performance. As a best practice, try first moving the tag board further away from the reader under test for a higher
+          confidence result.
+
+Measure Location and Orientation of the ATR7000 Readers
+
+          To achieve the full location accuracy performance potential of ZAATS, it is necessary to accurately survey the
+          precise positions of the installed ATR7000 readers in the x, y, and z-axis with a surveying tool such as the Leica 3D
+          Disto system. Manual measurements with hand-held laser rangefinder tools are not recommended as they will
+          result in too much variability and have a direct negative impact on overall system accuracy.
+          There are two ways to survey the ATR7000 systems, directly underneath or from the side of the systems. A
+          procedure for both methods is described in detail in Appendix: Leica 3D Instructions for ATR7000.
+          The ZAATS system requires that the reference reader orientation =0 be in the direction of the positive y-axis. The
+          positive y-axis is commonly referred to as facility north, which is usually not the same north as defined by a
+          compass reading. It is recommended, but not required, that the orientation of each reader be the same. The reader
+          should be laser aligned as closely as possible to adjacent systems within a given row, or to a facility reference
+          point. Any dependencies should be noted in the Equipment Manifest, as described below. When installing
+          ATR7000 readers into a facility, it is often not possible to ensure that the orientation of every reader is aligned to
+          the facility north. An example of a slightly misaligned reader is shown below in Figure 11 on page 39. Note in the
+          figure, the view is from the perspective of someone standing directly beneath the reader, facing the facility north,
+          looking straight up. Note the indentions and bulges that define the reader orientation points of 0, 60, 120, 180, and
+          240 degrees. Also note the green light at approximately 230 degrees azimuth. In this example the reader is
+          oriented slightly west by 5 degrees. The orientation of this reader should be entered as 355 into the Equipment
+          Manifest.
+
+                                                                  38
+                                   Installation of ZAATS Reader and Network Hardware
+Figure 11 Example of a Slightly Misaligned ATR7000 Reader
+
+Finalizing the Site Map and Equipment Manifest
+
+          The last step of the hardware installation process is to update the Equipment Manifest with the final (surveyed)
+          x-y-z locations of the ATR readers, and to ensure that all the other fields in the Equipment Manifest have been
+          properly recorded.
+
+          The finalized Equipment Manifest becomes the basis for configuring the RTLS Services software, as described in
+          the following chapter. An example of a completed Equipment Manifest is shown in the table below.
+
+          Table 6 Sample Finalized ZAATS Equipment Manifest
+
+Friendly  Hostname   ATR    MAC        IP Address  X-loc Y-loc Z-loc                  Midspan/
+ Name                S/N  Address                                                      Switch
+                                                                                         Port
+
+ATR01 ATR7000F422C8       84248DF42 192.168.7.201 40.0 100 17.1 0 7
+                          2C8
+
+ATR02 ATR7000F476E1       84248DF47 192.168.7.202 15.0 87.5 17.1 355 1
+                          6E1
+
+ATR03 ATR7000F3F489       84248DF3F 192.168.7.203 40.0 75.0 17.1 0 11
+                          489
+
+ATR04 ATR7000F3F316       84248DF3F 192.168.7.204 15.0 62.5 17.1 0 3
+                          316
+
+ATR05 ATR7000F3F4A1       84248DF3F 192.168.7.205 40.0 50.0 17.1 10 13
+                          4A1
+
+                                   39
+          Installation of ZAATS Reader and Network Hardware
+
+Friendly  Hostname   ATR       MAC     IP Address   X-loc Y-loc Z-loc   Midspan/
+ Name                S/N    Address  192.168.7.206                        Switch
+                                     192.168.7.207  15.0 37.5 17.1 0       Port
+ATR06 ATR7000F36F4B       84248DF36                 40.0 25.0 17.1 0
+                          F4B                                           5
+ATR07 ATR7000F3F4B1
+                          84248DF3F                                     15
+                          4B1
+
+                          40
+Post-Installation ZAATS
+Validation
+
+Introduction
+
+          This chapter describes the post installation ZAATS validation phase of a ZAATS deployment and how to ensure
+          the system is fully functional and ready for handover to an end user.
+          The objectives of the post-installation validation are to:
+
+              · Ensure that the CLAS RTLS software is operational and properly configured.
+              · Ensure that ZAATS can locate non-moving (static) tags throughout the coverage area with the accuracy
+
+                     objective specified during the requirement definition phase.
+
+              · Ensure that the ZAATS system can locate moving (dynamic) tags throughout the coverage area with the
+
+                     accuracy and latency objectives specified during the requirement definition phase.
+
+              · Place an adequate number of "reference tags" within the coverage area to facilitate ongoing system health
+
+                     monitoring or troubleshooting.
+
+              · Prepare and deliver the system validation and test report to the customer or end user.
+
+Entry Criteria
+
+          Prior to validation of the ZAATS system, the following entry criteria are presumed to be satisfied:
+
+              · All ATR7000 readers and network hardware have been installed and validated as described in the Basic
+
+                     Operational Verification (Optional) section of the previous chapter.
+
+              · The Equipment Manifest has been finalized with all reader locations recorded as described in the
+
+                     Finalizing the Site Map and Equipment Manifest section of the previous chapter.
+
+              · The CLAS/RTLS Services software has been installed, deployed, and validated as described in the
+
+                     Validating an CLAS/RTLS Services Installation chapter of the CLAS Server and Software Installation
+                     Guide (p/n MN-003197-xx). This includes starting CLAS with the bundled Kafka broker and verifying that
+                     the bundled Kafka consumer can consume tag ID and location data using the RTLS simulator.
+
+RTLS Integration
+
+          After the ATR7000 has been installed and basic hardware and network operation has been validated, and after the
+          CLAS (RTLS Services) software has been installed on the server, the next step is to integrate these two major
+          components of the ZAATS system. This ensures that the RFID readers are reading and estimating tag bearings
+          and that the tag reports from the readers are being ingested by the RTLS location analytics, and the resulting tag
+          ID and location information is being directed to a live bundled Kafka location endpoint.
+
+                                                                  41
+                                               Post-Installation ZAATS Validation
+
+The following are basic steps to integrate the ATR readers and CLAS (RTLS Services) software:
+1. Using the information contained in the Equipment Manifest, update the aar_info.csv file with the ATR host
+
+     names, IP addresses, x-y-z locations, and orientations.
+2. Ensure that radio_c_and_d_config parameter in the rtls/config/rtls.conf file is set to bearing. This will inform
+
+     RTLS Services (software) that it will be operating in live mode.
+3. Ensure that there are at least 10-20 RFID tags within the coverage zone, preferably located such that they are
+
+     within range of several ATR readers.
+4. Start RTLS Services with the bundled Kafka broker and the bundled NTP server. To do this, cd to the rtls folder
+
+     and run:
+     ./rtls.sh -nk start
+
+         NOTE: If the host is already running an NTP service then remove the "n" option from the command above.
+
+     To verify that the RTLS is indeed reporting tag IDs and location estimates on the live bundled Kafka location
+     endpoint, follow the steps below:
+5. List the Kafka topics that are created on the broker using the following command:
+     docker exec -it rtls_bitnami_kafka_container kafka-topics.sh --list -- bootstrap-server
+     <kafka_broker_ip>:<port>
+6. A topic with the name "rtls.tag_location_update.v2.json" should be listed as a response to the previous
+     command.
+7. Start a consumer to consume the tag location updates from the above topic by running the following command:
+     docker exec -it rtls_bitnami_kafka_container kafka-console-consumer.sh --
+     bootstrap-server
+     <kafka_broker_ip>:<port> -- topic rtls.tag_location_update.v2.json
+8. To confirm that the system is operational, a steady stream of messages like those shown in Figure 12 should
+     be seen on the Kafka consumer console.
+9. Review the messages and verify that all tags are being reported and the location estimates look reasonable. It
+     is recommended to move the tags throughout the coverage zone and verify that all tags are being read and
+     their locations are being updated and reported.
+10. Stop RTLS Services. To do this, cd to the rtls folder and run:
+     ./rtls.sh -nk stop
+
+                                                         42
+                                                          Post-Installation ZAATS Validation
+          Figure 12 Tag with Locations Being Reported on the Kafka Consumer Console
+
+Operational Validation: Static Testing
+
+          There are two methods for validating static location accuracy. The first method involves the use of reference tags
+          placed in permanent, known locations. The second method involves the use of a denser, however, temporary grid
+          of tags. Both reference tags and temporary grid tags have known tag IDs and their exact locations are precisely
+          measured.
+          The following are guidelines for static testing of reference tags:
+
+              · Use a mid-large sized tag with read ranges of at least 25' that are designed for industrial environments and
+
+                     can be permanently mounted. The Dura 1500 tag manufactured by Omni-ID has excellent read range and
+                     is optimized for mounting on metal.
+
+              · Reference tags should be encoded using the guidelines outlined in the ZAATS Tag Data and Numbering
+
+                     Guide, (p/n MN-003199-xx).
+
+              · Locate the tags at various heights and in areas where they will be minimally disturbed.
+              · Do not mount tags closer than 5' to an ATR reader; mount the tags a minimum of 18" off the ground; and
+
+                     do not mount the tags such that the reported bearing to the closest ATR reader is higher than 55 
+                     elevation; i.e., the 0  elevation beam is pointed at the floor (boresight beam) and the 90  elevation beam is
+
+                                                                  43
+                                               Post-Installation ZAATS Validation
+
+          pointed at the horizon. For example, if a reference tag is mounted 6' off the floor, and the ATR readers are
+          mounted at 16' off the floor, then the x-y distance from the reference tag to the closest ATR reader should
+          be less than 15'. As another example, if the reference tag is mounted 18" off the floor, then the closest ATR
+          reader mounted 16' off the floor should be no more than 21" away. This angle can be easily measured
+          using handheld laser range finder devices.
+
+    · Use enough tags so that each ATR reader can reliably read at least one tag, preferably two. Also, ideally
+
+          place the reference tags so that they are read by more than a single ATR reader.
+
+    · Record the exact x-y-z location of each reference tag (measured using the Disto 3D system) and store the
+
+          information into the file ref_tag_info.csv.
+
+    · Use the built-in feature of the RTLS Demo Application to analyze and report the location accuracy statistics
+
+          of the reference tags. See the RTLS Demo Application User Guide (p/n MN-003509-01) for more
+          information on capturing accuracy statistics.
+Using reference tags is a way to ensure proper operation and ongoing health of the RTLS system, even after
+handover to an end user. The RTLS system can be configured such that reference tag locations are monitored and
+a notification event is sent if the recorded locations deviate by greater than a configurable distance, typically 4'.
+The use of reference tags is one method to validate the static location accuracy of the RTLS system. However,
+more tag location estimates are needed across the entire coverage area to ensure that the system fully meets the
+accuracy objectives specified during the requirement definition phase. Whereas the reference tags are permanent,
+the method described below is temporary, although, highly effective at ensuring proper system operation.
+An example of a reference tag attached to a permanent metal object is illustrated in Figure 13.
+Figure 13 Reference Tag Attached to Permanent Metal Object
+
+A second method for validating static location accuracy involves the use of RFID tags placed in a grid or array. The
+tags are surveyed with the DISTO system (See Appendix: Leica 3D Instructions for ATR7000) and their exact x-y-z
+locations recorded. The surveyed locations, also referred to as "ground truth", are then compared to the tag
+
+                                                         44
+                                               Post-Installation ZAATS Validation
+locations estimated by the RTLS system. In this method, RFID tags are temporarily located within the coverage
+zone as shown in Figure 14.
+The following are tips and guidelines for testing RTLS system operation with temporary grid tags:
+
+    · Use omni-directional tags with read ranges of at least 30'. The Zebra Sunrise RTLS tag is an excellent tag
+
+          for this purpose.
+
+    · Grid tags should be encoded using the guidelines outline in the ZAATS Tag Data and Numbering Guide,
+
+          (p/n MN-003199-xx)
+
+    · Locate the tags at heights between 2' to 4' off the floor.
+    · Place tags throughout the entire coverage zone, approximately 10-15' apart.
+    · If it is not practical to cover the entire area in one step, the process can easily be broken up into multiple
+
+          steps. Also, not every facility lends itself to such a uniform coverage of tags and certain trade offs will have
+          to be made.
+
+    · The use of a measuring wheel is highly recommended to setup a grid of tags very quickly with reasonable
+
+          precision.
+Figure 14 Example of Grid Tags Used to Verify Static Location Accuracy with ATR Locations Superimposed
+
+    · To streamline the process, the origin of the grid can start directly underneath the known location of one
+
+          ATR7000. Next, setup the tag grid relative to this known location using the measuring wheel to spot and
+
+                                                         45
+                                               Post-Installation ZAATS Validation
+          record the grid tag locations. Optionally, the Leica 3D Disto may be used for more precise grid tag
+          locations for installations that require the highest levels of location accuracy.
+
+    · If it is not practical to cover the entire area in one step, the process can easily be broken up into multiple
+
+          steps. Also, not every facility lends itself to such a uniform coverage of tags and certain trade offs will have
+          to be made.
+
+    · Record the exact x-y-z location of each grid tag (measured using the Disto system) and store the
+
+          information into the file grid_tag_info.csv.
+
+    · Use the built-in feature of the RTLS Demo Application to analyze and report the location accuracy statistics
+
+          of the grid tags. See the RTLS Demo Application User Guide (p/n MN-003509-01) for more information on
+          capturing accuracy statistics.
+An example of tag location estimates for a typical ZAATS system, with coverage optimized for location accuracy is
+shown in Figure 15. A statistical analysis of this data reveals that 95% of the reported tag location estimates were
+within 4' of the actual location.
+
+         NOTE: It is important to ensure that 100% of the grid tags are reported by the RTLS system with no
+
+                   coverage holes.
+Figure 15 Example of Grid Tags Used to Verify Static Location Accuracy
+
+                                                         46
+                                                          Post-Installation ZAATS Validation
+
+Operational Validation: Dynamic Testing
+
+          Once static location accuracy has been measured and validated, the final step in post-installation validation is to
+          measure and validate the dynamic location accuracy of the system. Many of the same principles used to determine
+          static location accuracy are employed for dynamic location accuracy. The procedure consists of establishing
+          known fixed locations and moving one or several tags between the known locations, and then comparing "ground
+          truth" to the locations estimated recorded.
+          Figure 16 illustrates a dynamic test procedure where the starting location is in front of the dock door labeled Door 1
+          and the ending location is in front of Door 18. The test is conducted where a tag is moved at close to constant
+          speed between the known locations while the RTLS system is recording location estimates in real time. The test
+          should be performed at two speeds, approximately 30-50% of the maximum anticipated speed and at 100% of the
+          maximum anticipated speed. The former can be performed in the form of a walking test where a tag is walked at a
+          constant pace between the known locations. In cases where multi-tagged items (forklifts, dollys, etc) are being
+          tracked, the latter is ideally performed with the forklift, hand truck or dolly carrying the tagged items.
+          Figure 17 illustrates a second dynamic test procedure using a zig-zag pattern. As with the rectangular path, the test
+          is conducted where a tag is moved at close to constant speed between known locations while the RTLS system is
+          recording location estimates in real time. As before, the test should be performed at two speeds. In cases where
+          multi-tagged items (forklifts, dollys, etc) are being tracked, the higher speed test is ideally performed with the
+          forklift, hand truck, or dolly carrying the tagged items.
+          The following figures visualize these two testing procedures:
+          Figure 16 Example of Movement Pattern Used to Verify Dynamic Location Accuracy
+
+                                                                  47
+                                                          Post-Installation ZAATS Validation
+          Figure 17 Example of Zig Zag Pattern Used to Verify Dynamic Location Accuracy
+
+          The following are tips and guidelines for dynamic testing:
+
+              · Use omni-directional tags with read ranges of at least 30` and encode tags using the guidelines outlined in
+
+                     the ZAATS Tag Data and Numbering Guide, (p/n MN-003199-xx).
+
+              · Locate the tags at heights between 2' to 4' off the floor.
+              · Endpoints should be situated such that tags are moved throughout the entire coverage zone.
+              · Record the exact x-y-z location of each endpoint (measured using the Disto system) and record the
+
+                     information into the file dyanmic_testi_info.csv.
+
+              · Use the built-in feature of the RTLS Demo Application to analyze and report the location accuracy statistics
+
+                     of the dynamic tags. See the RTLS Demo Application User Guide (p/n MN-003509-01) for more
+                     information on capturing accuracy statistics.
+
+End User Handover
+
+          Prior to handover to an end user, the system designer/solution architect will review the validation test results and
+          prepare a final report. Table 7 illustrates a template that can be used to summarize validation test coverage and
+          location accuracy results that typically should be included in the report.
+          Depending on end-user specific requirements, there may be additional features and testing required; e.g.
+          "multi-tag" testing, directionality testing, etc.
+
+                                                                  48
+                                   Post-Installation ZAATS Validation
+
+Table 7 Validation Test Results Template
+
+          General Test Conditions         Date Tested:                 Percentage of Tags Read
+                                          Location:
+Static Testing:                           Tested By:
+Reference Tags - Coverage
+                                          Number of Tags
+
+                                                          Expected     Actual
+
+                                                          100
+
+Static Testing:                                           R50          R95
+Reference Tags - Location Accuracy
+                                                          Expected Actual Expected Actual
+
+                                                          < 2.0'       < 4.0'
+
+Static Testing: Grid Tags - Coverage      Number of Tags               Percentage of Tags Read
+
+                                                          Expected     Actual
+
+                                                          100
+
+Static Testing: Grid Tags - Location      Number of Tags  R50          R95
+Accuracy
+                                                          Expected Actual Expected Actual
+
+                                                          < 2.0'       < 4.0'
+
+Dynamic Testing: Slow Speed - Location Number of Tags     R50          R95
+Accuracy
+                                                          Expected Actual Expected Actual
+
+                                                          < 3.0'       < 5.0'
+
+Dynamic Testing: Fast Speed - Location Number of Tags     R50          R95
+Accuracy
+                                                          Expected Actual Expected Actual
+
+                                                          < 4.0'       < 6.0'
+
+Depending on end-user specific requirements, there may be additional features and testing required; e.g.
+"multi-tag" testing, directionality testing, etc.
+
+                                          49
+Appendix: Tools and
+Resources
+
+Introduction
+
+          The following table summarizes tools and resources that are recommended for deploying a ZAATS system.
+
+Tools and Resources
+
+          Table 8 Tools and Other Resources Used in a ZAATS Deployment
+
+                     Tools                                              Supplier
+
+General Tools
+
+Gloves
+
+Zip-Ties
+
+Plier Set
+
+Screwdriver Set
+
+Laser Level
+
+Wrench Set (Basic)
+
+Ratcheting Wrench Set (Recommended)
+
+Bosch GLM80 Laser Rangefinder (Basic)
+
+Leica E7400x Laser Rangefinder (Recommended)
+
+RFID Reader for Read Range Testing            Zebra RFD8500
+
+USB RFID Reader for RFID Tag Programming
+
+Mounting Hardware
+
+Strut Channel 1 Foot Long                     Available from McMaster
+
+Clamps I-Beam                                 Available from McMaster
+
+Channel Nuts 1/2-13                           Available from McMaster
+
+                                          50
+                                         Tools and Resources
+
+                      Tools                                     Supplier
+
+Hex Nuts 1/2-13                                 Available from McMaster
+
+Wave Disc Spring                                Available from McMaster
+
+Measuring and Layout, Advanced
+
+Laser Scanning Distance Meter                   Leica 3D Disto
+
+Aluminum Tripod                                 Leica CTP104D 790226
+
+Self-Adhesive Target                            Leica 780967
+
+Measuring Wheel                                 Lufkin 12-1/2 in. Contractors Measuring Wheel
+
+LED Flashlight                                  Medium to Large-sized with Adjustable Zoom Head
+
+Binoculars
+
+Computer and Networking
+
+Managed PoE+ Gigabit Switch with SFP            Ubiquiti Networks EdgeSwitch or equivalent
+
+WAN Router, with WiFI                           CradlePoint IBR600C with LTE/HSPA+/EVDP
+
+                                                Verizon
+
+Cabling
+
+1000 Feet Bulk Cat6 STP Ethernet Cable - Solid
+Twisted Pair - Cat6 Shielded 550Mhz 24AWG Full
+Copper Wire Pull Box - In -Wall (CM), Blue
+
+Cat6, Cat5e RJ-45 Ethernet Cable Cap Connector
+Boots Plug Cover Strain Relief Boots (Blue)
+
+Cat6, Cat5e RJ-45 8P8C Ethernet Modular Crimp
+Connectors Plugs, pack of 100
+
+100 ft Cat6 Ethernet Cable - with RJ-45
+
+50 ft Cat6 Ethernet Cable - with RJ-45
+
+25 ft Cat6 Ethernet Cable - with RJ-45
+
+Ethernet Couplers, pack of 5
+
+Network Tool Repair Kit                         SGILE Pro 9/1 (or equivalent)
+
+Tone Generator and Probe Kit                    Fluke Networks 26000900 Pro3000 (or equivalent)
+
+8-Wire In-Line Modular Adapter with K-Plug      Fluke Networks 10230101 (or equivalent)
+
+                                                51
+Appendix: Leica 3D
+Instructions for ATR7000
+
+Introduction
+
+          This appendix describes step-by-step instructions to utilize a range finding device to obtain actual, ground-truth
+          coordinates of the ATR readers, facility landmarks, reference tags, etc.
+
+Detailed Steps
+
+          Location accuracy of the ZAATS system depends on having accurate coordinates ("ground truth") of the fixed
+          facility landmarks, ATR readers, reference tags, and locations of static tags and walking path endpoints used
+          during post-installation validation. The Leica 3D DISTO TM , a cross between a surveyor's robotic total station and a
+          hand-held laser distance measurer, can significantly enhance the accuracy and reduce the time required to
+          perform these critical measurement tasks.
+          There are two ways to survey the ATR7000 readers, the bottom method (locating the center point of the antenna
+          radome) or the side method (locating the z-reference point of the south face or north face of the reader). The side
+          method is quicker, although, the bottom method is somewhat more accurate, depending on the skill level of the
+          surveyor. Both methods are described below. Therefore, the angle from the Disto to the ATRs being measured
+          should be 15 degrees or greater (referenced to the horizon). With this limitation in mind, depending on the installed
+          height of the ATR7000 readers, one will be able to survey anywhere between 2-5 systems per Leica 3D Disto
+          location using the bottom method or up to 10 systems using the side method before needing to relocate the Disto.
+          The steps involved with using a Leica 3D Disto for ATR7000 installation are outlined below:
+          1. Leica 3D Disto Familiarization. Please refer to the extensive documentation and manuals available in the
+
+               included CD with the Leica 3D Disto system or online
+               (https://lasers.leica-geosystems.com/blog/3d-disto-manuals-documents) to gain familiarity with the Leica 3D
+               Disto tool and procedures, and the operation of its software. Once the system documentation has been
+               reviewed, it is highly recommended to practice with the system and software to gain further familiarity before
+               heading to a live site where the system will be used.
+          2. X,Y,Z (0,0,0) Origin Point. The first step in surveying a newly installed deployment is establishing the site
+               origin. The first point that the Leica 3D Disto system will measure is the z,y,z origin (0,0,0) point defined during
+               the requirements phase. It is also important to have define the +x and +y directions used in the facility (which
+               defines the reference "north" direction, etc. The 0,0,0 origin point should preferably be a "hard" building
+               reference point (landmark) that cannot be moved, such as the corner of a building.
+
+                                                                  52
+                                        Appendix: Leica 3D Instructions for ATR7000
+
+3. Defining the X-axis. The next point that the Leica 3D Disto system will measure defines the +x axis and
+    direction. Measuring clockwise along a wall or floor from the origin point will be defined as the +x direction within
+    the Leica software, and measuring counter-clockwise from the point of origin will be define as the -x direction in
+    the Leica software. Note that it will be quite common to end up with a reversed coordinate system within the
+    Leica software if it's not possible to survey in the preferred direction. This is not an issue and can simply be
+    post-processed later.
+
+4. Relocating the Leica 3D Disto System
+
+    a. While 3 secure points are the bare minimum for a system relocation, it is highly recommended to use 4-5
+        secure points every time, both for the best possible relocation accuracy and as a safeguard against having
+        an issue with a secure point that results in a failed re-location and then having to recover.
+
+    b. The secure points, by definition, need to be visible to the system in both the previous and the relocated
+        position.
+
+    c. It is advantages in locations with higher ceilings to define several secure points on ceiling beams and
+        structures, as these can easily be seen up high, and away from ground level structures and obstacles that
+        can complicate the relocation procedure.
+
+    d. The Leica #780967 self-adhesive target note will stick to most building surfaces, although some surfaces
+        might need to be wiped down first.
+
+    e. Although the Leica 3D Disto system can be used by a single person, a two-person surveying team, each
+        familiar with the 3D Disto, will allow one to drive the 3D Disto system while the other counts ahead to set
+        additional secure points for relocating the system as the surveying progresses through the facility. The extra
+        team member can also help to spot alignment to secure points as the system measures them for relocation.
+
+5. ATR System Measurement
+
+    a. In the bottom method, aim the Leica 3D DIsto system at the bottom center of the antenna radome and note
+        the x-y-z location. The x-y-z location is given by the actual measurement, however, the z location needs to
+        be compensated. The reference z-axis height of the reader is defined as the position of the antenna ground
+        plane relative to ground level. This position is located at the seam where the top cover meets the antenna
+        radome, approximately 4.2" from the bottom of the radome. Thus, one will need to use the vertical offset tool
+        in the Leica 3D Disto software. Measuring the bottom center of the radome and setting a -4.2" (-0.35') z-axis
+        vertical offset will properly define and measure the z location of the ATR reader.
+
+    b. The ATR7000 readers can also be surveyed from their sides. Locate the Leica 3D Disto system such that
+        the South facing side of multiple ATR7000 readers can be observed from the survey point. Aim the Leica
+        surveying system at a point exactly in the middle of the South side of the ATR7000 reader at the seam
+        where the top cover meets the antenna radome. As before, this represents the position of the antenna
+        ground plane and the true z-axis reference point of the reader. Next, use the offset tool of the Leica system
+        software to compensate for the 9.5" difference between the south face of the reader and its center point (i.e.
+        add +9.5" to the measured y-position of the south face). This will require greater care to spot accurately,
+        however, it should allow a greater number of ATR7000 readers to be surveyed per location and allow more
+        complete use of the Leica 3D Disto's long range capability. The same process can be applied, if needed, to
+        then work from North to South along the next rows of ATR7000 readers, but this time targeting the direct
+        North face of each system, and then applying a -9.5" y-axis offset to record the true center location. This
+        method can also be used along the East-West axis of the system if the site layout favors this approach.
+        Accordingly using a 9.5" offset in the +x or -x-axis direction to measure the system center as appropriate, as
+        opposed to +/- y-axis offsets if surveying along the North-South axis.
+
+                                                         53
+                                        Appendix: Leica 3D Instructions for ATR7000
+Figure 18 Reference Orientation of the ATR7000 Reader
+
+6. Repeat steps 4-5 until all secure points, ATR7000 overhead readers, and permanent reference tags have
+    been measured. Also, capture x-y-z locations of temporary static tags and walking test endpoints used for
+    post-installation validation. Figure X illustrates the output of the Leica 3D Disto Software in Snapshot View after
+    the entire facility has been surveyed.
+
+7. Update the Equipment Manifest and Tag Reference File. After surveying is complete, all measurements
+    must be captured.
+    a. View the recorded point for each ATR7000 reader and enter its x, y, and z-axis position into the Equipment
+        Manifest file. This can be done through the graphical interface.
+    b. If the Leica system had been recorded negative x and y-axis positions for the ATR7000 readers due to its
+        software limitations, simply reverse their polarity back to positive by hand, if appropriate, while entering them
+        into the manifest.
+    c. Manifest example file:
+
+Figure 19 Manifest File
+
+    d. View the recorded point for each reference tag and enter its x,y, and z-axis position into the tag reference
+        file.
+
+                                                         54
+                                        Appendix: Leica 3D Instructions for ATR7000
+The steps described in this Appendix also apply to reference tags, temporary tags, dynamic test endpoints, etc.
+Figure 20 Leica 3D Disto Software Snapshot View with Additional Text Annotations
+
+                                                         55
+Appendix: RFID Tag Board
+for ATR7000 Installation
+and Validation
+
+Introduction
+
+          This appendix describes tag placement for testing the performance of an ATR upon installation.
+
+Tag Board Construction Guidelines
+
+          In Preliminary Validation of the ATR7000 Readers and Basic Operational Verification (Optional) a test method was
+          described that utilizes a tag board to ensure that readers are performing as expected after being installed when
+          first powered up. The figure below illustrates one example of a tag board that will enable such testing.
+          Figure 21 Tag Board
+
+          In the figure above, the tag board is comprised of ZBR4000 tags (see Table 2) built on a ULINE S-11249
+          telescoping 16 x 16 x 40-74" box. The tags are placed in a pattern on the side of the box and placed approximately
+
+                                                                  56
+                          Appendix: RFID Tag Board for ATR7000 Installation and Validation
+three feet off the floor to ensure that a 45 degree beam from an ATR system will read the tags at the boundary of
+the reader's coverage area. Tags should be placed in alternating orientations (polarizations) and separated
+approximately 4-6 inches away from each other to avoid de-tuning the tags.
+Tags used for individual element (400-413) testing must be placed 6-10 feet directly below the ATR reader being
+tested (see Preliminary Validation of the ATR7000 Readers); the top mounted tags serve this purpose. Both the
+top and side mounted tags are used for North/South/East/West testing of the ATR readers (see Basic Operational
+Verification (Optional)).
+
+                                                         57
+www.zebra.com
+

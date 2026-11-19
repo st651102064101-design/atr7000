@@ -1,2 +1,7 @@
 rfid-bridge/raw_payloads.jsonl
 __pycache__/
+# firmware package, 198 MB (over the GitHub 100 MB file limit)
+*.zip
+# internal training deck (contains demo credentials) and text extracted from it
+RFID ATR.pdf
+notes/

@@ -1,0 +1,721 @@
+FX RFID
+READER SERIES
+
+Embedded SDK
+Sample Application
+
+User Guide
+
+            MN000539A01
+FX RFID READER SERIES EMBEDDED SDK
+    SAMPLE APPLICATIONS USER GUIDE
+
+                                                  MN000539A01
+                                                       Revision A
+
+                                                 December 2017
+Copyright
+
+          © 2017 ZIH Corp. and/or its affiliates. All rights reserved. ZEBRA and the stylized Zebra head are
+          trademarks of ZIH Corp., registered in many jurisdictions worldwide. All other trademarks are the property
+          of their respective owners.
+
+          COPYRIGHTS & TRADEMARKS: For complete copyright and trademark information, go to
+          www.zebra.com/copyright.
+
+          WARRANTY: For complete warranty information, go to www.zebra.com/warranty.
+
+          END USER LICENSE AGREEMENT: For complete EULA information, go to www.zebra.com/eula.
+
+   For Australia Only
+
+          For Australia Only. This warranty is given by Zebra Technologies Asia Pacific Pte. Ltd., 71 Robinson Road,
+          #05-02/03, Singapore 068895, Singapore. Our goods come with guarantees that cannot be excluded under
+          the Australia Consumer Law. You are entitled to a replacement or refund for a major failure and
+          compensation for any other reasonably foreseeable loss or damage. You are also entitled to have the
+          goods repaired or replaced if the goods fail to be of acceptable quality and the failure does not amount to
+          a major failure.
+
+          Zebra Technologies Corporation Australia's limited warranty above is in addition to any rights and
+          remedies you may have under the Australian Consumer Law. If you have any queries, please call Zebra
+          Technologies Corporation at +65 6858 0722. You may also visit our website: www.zebra.com for the most
+          updated warranty terms.
+
+Terms of Use
+
+                · Proprietary Statement
+                     This manual contains proprietary information of Zebra Technologies Corporation and its
+                     subsidiaries ("Zebra Technologies"). It is intended solely for the information and use of parties
+                     operating and maintaining the equipment described herein. Such proprietary information may not
+                     be used, reproduced, or disclosed to any other parties for any other purpose without the express,
+                     written permission of Zebra Technologies.
+
+                · Product Improvements
+                     Continuous improvement of products is a policy of Zebra Technologies. All specifications and
+                     designs are subject to change without notice.
+
+                · Liability Disclaimer
+                     Zebra Technologies takes steps to ensure that its published Engineering specifications and
+                     manuals are correct; however, errors do occur. Zebra Technologies reserves the right to correct
+                     any such errors and disclaims liability resulting therefrom.
+
+                · Limitation of Liability
+
+                     In no event shall Zebra Technologies or anyone else involved in the creation, production, or
+                     delivery of the accompanying product (including hardware and software) be liable for any damages
+                     whatsoever (including, without limitation, consequential damages including loss of business
+                     profits, business interruption, or loss of business information) arising out of the use of, the results
+                     of use of, or inability to use such product, even if Zebra Technologies has been advised of the
+                     possibility of such damages. Some jurisdictions do not allow the exclusion or limitation of
+                     incidental or consequential damages, so the above limitation or exclusion may not apply to you.
+
+                                                                   3
+Revision History
+
+          Changes to the original manual are listed below:
+
+   Change     Date                                             Description
+-01 Rev A  12/2017
+                    Initial release
+
+                                                            4
+Table of Contents
+
+              Copyright ......................................................................................................................................... 3
+                   For Australia Only ..................................................................................................................... 3
+
+              Terms of Use ................................................................................................................................... 3
+              Revision History .............................................................................................................................. 4
+
+         About This Guide
+         Introduction ............................................................................................................................................ 6
+         Chapter Descriptions .............................................................................................................................6
+         Notational Conventions .........................................................................................................................6
+         Related Documents and Software ........................................................................................................ 7
+         Service Information ............................................................................................................................... 7
+
+         Setting Up SDK for Debugging
+              Introduction ..................................................................................................................................... 8
+
+         C and C++ Sample Application
+              Introduction ................................................................................................................................... 16
+              Connecting to the FX Series RFID Reader ................................................................................. 17
+              Compiling the C and C++ Sample Application ........................................................................... 20
+              Debugging the C and C++ Sample Application .......................................................................... 23
+
+         Embedded Java Application
+              Introduction ................................................................................................................................... 29
+              Connecting to the FX Series RFID Reader ................................................................................. 30
+              Building the Java Sample Application ........................................................................................ 36
+              Debugging the Java Sample Application ................................................................................... 39
+
+                                                                   5
+ABOUT THIS GUIDE
+
+Introduction
+
+          This guide describes how to use the sample applications of the FX Series RFID Reader Embedded SDK.
+
+Chapter Descriptions
+
+          Topics covered in this guide are as follows:
+
+              · Setting Up SDK for Debugging describes how to set up the SDK to enable remote application
+
+                     debugging.
+
+              · C and C++ Sample Application describes how to compile and debug the C and C++ sample
+
+                     applications.
+
+              · Embedded Java Application describes how to compile and debug the Java sample application.
+
+Notational Conventions
+
+          The following conventions are used in this document:
+
+              · FX Series RFID reader refers to the FX7500 and FX9600 RFID readers.
+              · Bullets (·) indicate:
+
+                   · Action items
+                   · Lists of alternatives
+                   · Lists of required steps that are not necessarily sequential.
+              · Sequential lists (e.g., those that describe step-by-step procedures) appear as numbered lists.
+
+                                                                   6
+                                                       About This Guide
+
+Related Documents and Software
+
+          The following documents provide more information about the reader.
+
+              · FX Series RFID Reader Integrator Guide, p/n MN000026Axx
+              · FX7500 RFID Reader Quick Start Guide, p/n MN000070A01
+              · FX7500 RFID Reader Regulatory Information, p/n MN000027Axx
+              · FX9600 RFID Reader Quick Start Guide, p/n MN-003087-xx
+              · FX Series Reader Software Interface Control Guide, p/n 72E-131718-xx
+              · RFID Demo Applications User Guide, p/n 72E-160038-xx
+              · FX Series Embedded SDK Installation Guide, p/n MN000537Axx
+              · FX Series Embedded SDK Programmer's Guide, p/n MN000540Axx
+              · Application Guide for Zebra Enterprise Mobility Devices, p/n 72E-68902-xx
+              · RFID 3 API
+              · EPCglobal Low Level Reader Protocol (LLRP) Standard
+
+          For the latest version of these guides and software, visit: www.zebra.com/support.
+
+Service Information
+
+          If you have a problem with your equipment, contact Zebra Global Customer Support for your region.
+          Contact information is available at: www.zebra.com/support.
+          When contacting support, please have the following information available:
+
+              · Serial number of the unit
+              · Model number or product name
+              · Software type and version number.
+
+          Zebra responds to calls by email, telephone or fax within the time limits set forth in support agreements.
+          If your problem cannot be solved by Zebra Customer Support, you may need to return your equipment for
+          servicing and will be given specific directions. Zebra is not responsible for any damages incurred during
+          shipment if the approved shipping container is not used. Shipping the units improperly can possibly void
+          the warranty.
+          If you purchased your Zebra business product from a Zebra business partner, contact that business
+          partner for support.
+
+                                                                   7
+Setting Up SDK for
+Debugging
+
+Introduction
+
+          This chapter describes how to set up the SDK to enable remote application debugging. This is required
+          only once to prepare the FX Series RFID Reader for remote debugging of the sample applications.
+
+                   NOTE: The instructions in this chapter show Microsoft Windows 7 screens. This procedure was not
+
+                        tested on Microsoft Windows 8. The installation was reported as working on Microsoft Windows 8, but is
+                        currently not officially supported.
+
+                   NOTE: Screen captures are for example use only. Actual screens may vary upon product and software
+
+                        release.
+          To set up the SDK for remote debugging of the sample applications:
+          1. Execute the shortcut FX Series RFID Reader (the FX7500 is used as an example only) Embedded SDK
+
+                from the desktop to start the SDK.
+          Figure 1 Workspace Launcher
+
+                                                                   8
+                                     Setting Up SDK for Debugging
+
+2. Select the workspace path of one of the sample applications. For example, to select the C sample
+     application, browse the Workspace Launcher window.
+
+         NOTE: The install path of the FX Series Embedded SDK in this example is C:\Zebra-FXSeries
+
+            -Embedded-SDK. The sample applications are in the following workspace folders:
+            - C sample application: [INSTALL PATH]\samples\C\CodeSourcery
+            - C++ sample application: [INSTALL PATH]\samples\C++\CodeSourcery
+            - Java sample application: [INSTALL PATH]\samples\Java.
+3. Select OK.
+4. Select the Remote System Explorer button in the top-right corner of the main window, or select
+     Windows > Open Perspective > Other....
+Figure 2 Selecting Remote System Explorer
+
+5. Right-click on FX Series in the left window and select Properties.
+
+                                                          9
+                                     Setting Up SDK for Debugging
+
+Figure 3 FX Series Properties
+
+6. Select Host.
+
+                                                         10
+                                     Setting Up SDK for Debugging
+
+Figure 4 Host Properties
+
+7. Enter the Host name of the FX Series RFID Reader (example: FX7500 + last 6 digits of the mac address
+     or IP address).
+
+8. In the Default User ID field, enter rfidadm.
+9. Select OK.
+10. Expand the FX Series entry.
+
+                                                         11
+                                     Setting Up SDK for Debugging
+
+Figure 5 FX Series Expanded Selection
+
+11. Expand My Home. If the Enter Password window appears, leave the Password field blank and check
+     Save password.
+
+Figure 6 Enter Password Window
+
+12. Select OK.
+13. Select Yes or OK on any warning message windows regarding authentication and missing folders for
+
+     SSH handling.
+14. In File Explorer, navigate to the samples folder in the SDK installation folder ([INSTALL
+
+     PATH]\samples).
+15. Right-click the files gdbserver and samples.sh and select Copy.
+
+                                                         12
+                                     Setting Up SDK for Debugging
+
+Figure 7 Copying Sample Files
+
+16. Return to the Remote System Explorer, right-click My Home, and select Paste.
+
+         NOTE: Copying gdbserver and samples.sh is only required the first time you are using a new FX Series
+
+            RFID reader for remote debugging of the sample applications.
+Figure 8 Pasting Sample Files
+
+17. Right-click on Ssh Terminals and select Launch Terminal.
+
+                                                         13
+                                     Setting Up SDK for Debugging
+
+Figure 9 Selecting Launch Terminal
+
+18. A terminal window opens at the bottom of the main window with a prompt in the Home directory.
+
+                                                         14
+                                     Setting Up SDK for Debugging
+
+Figure 10 Remote System Details
+
+19. Execute sh samples.sh in the terminal window. This creates debug folders for the sample applications,
+     the debug script for the Java sample application, and prepares the gdbserver application.
+
+Figure 11 Debug Information
+
+20. Return to previous perspective by selecting the C/C++ button or Java button in the top-right corner of
+     the main window, or by selecting the perspective through Windows > Open Perspective > Other... .
+
+21. Select File > Exit to close the SDK.
+
+                                                         15
+C and C++ Sample
+Application
+
+Introduction
+
+          This chapter describes how to compile and debug the C and C++ sample applications.
+
+                   NOTE: The instructions in this chapter show Microsoft Windows 7 screens. This procedure was not
+
+                        tested on Microsoft Windows 8. The installation was reported as working on Microsoft Windows 8, but is
+                        currently not officially supported.
+          The procedures for both sample applications are identical except for the workspace selected.
+
+                   NOTE: If using a new FX Series RFID Reader, follow the instructions in Setting Up SDK for Debugging
+
+                        before performing the procedures in this chapter.
+
+                   NOTE: Screen captures are for example use only. Actual screens may vary upon product and software
+
+                        release.
+
+                                                                  16
+                                              C and C++ Sample Application
+
+Connecting to the FX Series RFID Reader
+
+          Perform this only if the connection (FX7500 reference only) was not changed or if using a different
+          FX Series RFID Reader. If the connection reference is correct, skip this section.
+          1. Execute the shortcut FX Series RFID Reader Embedded SDK from the desktop to start the SDK.
+          Figure 12 Workspace Launcher
+
+          2. Select the workspace path of the C or C++ sample application by clicking Browse... in the Workspace
+                Launcher window.
+
+                   NOTE: The install path of the FX7500 Embedded SDK in this example is
+
+                        C:\Zebra-FXSeries-Embedded-SDK. The sample applications are in the following workspace folders:
+                        - C sample application: [INSTALL PATH]\samples\C\CodeSourcery
+                        - C++ sample application: [INSTALL PATH]\samples\C++\CodeSourcery
+          3. Select OK.
+          4. Select the Remote System Explorer button in the top-right corner of the main window, or select
+                Windows > Open Perspective > Other....
+          Figure 13 Selecting Remote System Explorer
+
+          5. Right-click on FX Series in the left window and select Properties.
+
+                                                                  17
+                                     C and C++ Sample Application
+
+Figure 14 FX7500 Properties
+
+6. Select Host.
+
+                                                         18
+                                     C and C++ Sample Application
+
+Figure 15 Host Properties
+
+7. Enter the Host name of the FX7500 (FX7500 + last 6 digits of the mac address or IP address).
+8. In the Default User ID field, enter rfidadm.
+9. Select OK.
+10. Return to previous perspective by selecting the C/C++ button in the top-right corner of the main
+
+     window, or by selecting Windows > Open Perspective > Other... .
+
+                                                         19
+                                              C and C++ Sample Application
+
+Compiling the C and C++ Sample Application
+
+          1. Execute the shortcut FX Series RFID Reader (the FX7500 is used as an example only) Embedded SDK
+
+                           from the desktop to start the SDK.
+          Figure 16 Workspace Launcher
+
+          2. Select the workspace path of the C or C++ sample application by clicking Browse... in the Workspace
+                Launcher window.
+
+                   NOTE: The install path of the FX7500 Embedded SDK in this example is
+
+                        C:\Zebra-FXSeries-Embedded-SDK. The sample applications are in the following workspace folders:
+                        - C sample application: [INSTALL PATH]\samples\C\CodeSourcery
+                        - C++ sample application: [INSTALL PATH]\samples\C++\CodeSourcery
+          3. Select OK.
+          4. To compile the application select Build All or Build Project from the Project menu, or right-click the
+                project name RFIDSample4App in the Project Explorer on the left side of the main window and select
+                Build Project.
+
+                                                                  20
+                                     C and C++ Sample Application
+
+Figure 17 Building the Project
+
+After the successful compilation, the Console window at the bottom of the main window displays the
+compile and linking commands and information.
+
+                                                         21
+                                     C and C++ Sample Application
+
+Figure 18 Compile and Linking Commands and Information
+
+                                                         22
+C and C++ Sample Application
+
+Debugging the C and C++ Sample Application
+
+          To debug the sample application:
+
+1. Click the debug symbol down arrow    , located at the top of the window near the menus.
+2. Select 1 RFIDSample4App.
+
+Figure 19 Selecting Sample Application
+
+3. If the Enter Password window appears, leave the Password field blank and check Save password.
+Figure 20 Enter Password Window
+
+4. Select OK.
+5. Select Yes or OK on any warning message windows regarding authentication and missing folders for
+
+     SSH handling.
+     The Console window at the bottom of the main window indicates that remote debugging is in progress.
+     The Confirm Perspective Switch window may open.
+
+                                                         23
+                                     C and C++ Sample Application
+
+Figure 21 Confirm Perspective Switch Window
+
+         NOTE: Ensure port 2345 is not blocked by the firewall.
+
+6. Select Yes to open the Debug perspective.
+
+                                                         24
+                                     C and C++ Sample Application
+
+Figure 22 Debug Window
+
+NOTE: To switch between the compile perspective and the debug perspective, select the appropriate
+
+button at the top right section of the main window, or select Windows > Open Perspective > Other.
+
+NOTE: If the following error condition occurs, select the Go button  at the top of the main window to
+
+continue. This issue should not impact the debugging and is believed to be an issue with the gdbserver
+
+on the device which needs further investigation. Report if the execution of the program is not possible as
+
+explained in this procedure.
+
+                              25
+                                     C and C++ Sample Application
+
+Figure 23 Debug ErrorContinue debugging by selecting Go at the top of the main window.
+
+         NOTE: Debugging stops at the main function by default. Change the debug settings to alter this if
+
+            desired.
+     The Console window at the bottom of the main window shows the application output, which is a menu
+     offering various functions.
+
+                                                         26
+                                     C and C++ Sample Application
+
+Figure 24 Application Output
+
+7. Select 5. Exit or the stop debug button  to complete the debug session.
+
+NOTE: This debug procedure assumes that the GDB debugger executable arm-none-linux-gnueabi.exe
+
+resides in a directory path that the IDE (environment variables) can locate. If the IDE experiences
+problems finding the GDB debugger application, add full path information to the setting as shown in
+Figure 25.
+
+                                            27
+                                     C and C++ Sample Application
+
+Figure 25 GDB Debugger Path Information
+
+                                                         28
+Embedded Java
+Application
+
+Introduction
+
+          This chapter describes how to compile and debug the Java sample application.
+
+                   NOTE: The instructions in this chapter show Microsoft Windows 7 screens. This procedure was not
+
+                        tested on Microsoft Windows 8. The installation was reported as working on Microsoft Windows 8, but is
+                        currently not officially supported.
+
+                   NOTE: If using a new FX Series RFID Reader, follow the instructions in Setting Up SDK for Debugging
+
+                        before performing the procedures in this chapter.
+
+                   NOTE: Screen captures are for example use only. Actual screens may vary upon product and software
+
+                        release.
+
+                                                                  29
+                                               Embedded Java Application
+
+Connecting to the FX Series RFID Reader
+
+          Perform this only if the connection (FX7500 reference only) was not changed or if using a different FX
+          Series RFID Reader. If the connection reference is correct, skip this section.
+          1. Execute the shortcut FX RFID Reader Embedded SDK from the desktop to start the SDK.
+          Figure 26 Workspace Launcher
+
+          2. Select the workspace path of the Java sample application by clicking Browse... in the Workspace
+                Launcher window.
+
+                   NOTE: The install path of the FX7500 Embedded SDK in this example is
+
+                        C:\Zebra-FXSeries-Embedded-SDK\. The Java sample application is in the following workspace folder:
+                        [INSTALL PATH]\samples\Java
+          3. Select OK.
+          4. Select the Remote System Explorer button in the top-right corner of the main window, or select
+                Windows > Open Perspective > Other....
+          Figure 27 Selecting Remote System Explorer
+
+          5. Right-click on FX7500 in the left window and select Properties.
+
+                                                                  30
+                                      Embedded Java Application
+
+Figure 28 FX7500 Properties
+
+6. Select Host.
+
+                                                         31
+                                      Embedded Java Application
+
+Figure 29 Host Properties
+
+7. Enter the Host name of the FX7500 (FX7500 + last 6 digits of the mac address or IP address).
+8. In the Default User ID field, enter rfidadm.
+9. Select OK.
+10. Return to previous perspective by selecting the Java button in the top-right corner of the main window,
+
+     or by selecting Windows > Open Perspective > Other... .
+11. Right-click on RFIDSample4App in the Package Explorer window and select Debug As > Debug
+
+     Configurations.
+
+                                                         32
+                                      Embedded Java Application
+
+Figure 30 Selecting Debug Configurations
+
+12. Select RFIDSample4App under Remote Java Application.
+
+                                                         33
+                                      Embedded Java Application
+
+Figure 31 Selecting RFIDSample4App
+
+13. Enter the Host name of the FX7500 (FX7500 + last 6 digits of the mac address or IP address) and click
+     Apply.
+
+                                                         34
+                                      Embedded Java Application
+
+Figure 32 Entering Host Name
+
+14. Select Close.
+
+                                                         35
+                                               Embedded Java Application
+
+Building the Java Sample Application
+
+          15. Execute the shortcut FX Series RFID Reader Embedded SDK from the desktop to start the SDK.
+          Figure 33 Workspace Launcher
+
+          16. Select the workspace path of the Java sample application by clicking Browse... in the Workspace
+                Launcher window.
+
+                   NOTE: The install path of the FX7500 Embedded SDK in this example is
+
+                        C:\Zebra-FXSeries-Embedded-SDK. The Java sample application is in the following workspace folder:
+                        [INSTALL PATH]\samples\Java
+          17. Select OK.
+          18. To compile the application select Build All or Build Project from the Project menu, or right-click the
+                project name RFIDSample4App in the Project Explorer on the left side of the main window and select
+                Build Project.
+
+                                                                  36
+                                      Embedded Java Application
+
+Figure 34 Building the Application
+
+After the successful compilation, the Problems window at the bottom of the main window does not show
+any errors.
+
+                                                         37
+                                      Embedded Java Application
+
+Figure 35 Problems Window
+
+                                                         38
+                                               Embedded Java Application
+
+Debugging the Java Sample Application
+
+          1. In the Package Explorer, open RFIDSample4App.java under RFIDSample4App > src > org > zebra >
+                RFIDSample4App.
+
+          Figure 36 Opening RFID Sample Application
+
+          2. Set a breakpoint in the main window by double-clicking the location of the blue circle at the source
+                code line (the blue circle indicates the breakpoint is active).
+
+          3. Select the Remote System Explorer button in the top-right corner of the main window, or select
+                Windows > Open Perspective > Other.
+
+          Figure 37 Selecting Remote System Explorer
+
+          4. Expand the FX7500 entry.
+
+                                                                  39
+                                      Embedded Java Application
+
+Figure 38 Expanding FX Series Selection
+5. Right-click on Ssh Terminals and select Launch Terminal.
+Figure 39 Launching Terminal
+
+6. If the Enter Password window appears, leave the Password field blank and check Save password.
+
+                                                         40
+                                      Embedded Java Application
+
+Figure 40 Enter Password Window
+
+7. Select OK.
+8. Select Yes or OK on any warning message windows regarding authentication and missing folders for
+
+     SSH handling. A window opens at the bottom of the main window with a prompt in the Home directory.
+Figure 41 FX7500 Window
+
+9. Return to the Java perspective by selecting the Java button in the top-right corner of the main window
+     or by selecting Windows > Open Perspective > Other....
+
+10. Select Windows > Show View > Other... to open the Terminal window.
+11. Select Remote Systems > Terminals.
+
+                                                         41
+                                      Embedded Java Application
+
+12. Select OK.
+13. In the Terminal window, enter cd samples/Java/RFIDSample4App and select Enter to open the folder
+
+     ~/samples/Java/RFIDSample4App.
+14. In the Terminal window, enter sh ../RFIDSample4App_debug.sh and select Enter to start the debug
+
+     session on the device. After few seconds the Terminal window indicates the remote debug session has
+     started.
+
+         NOTE: RFIDSample4App_debug.sh is created by the samples.sh as described in earlier, and configures
+
+            the Java debug environment and starts the debug session on the device. To re-use
+            RFIDSample4App_debug.sh to debug a new Java application, replace the Zebra sample app name
+            org.Zebra.RFIDSample4App.RFIDSampleApp with the new application Java class file name.
+
+Figure 42 Renaming Sample Application
+
+NOTE: Ensure port 8998 is not blocked by the firewall.
+
+15. Click the debug symbol down arrow  , located at the top of the window near the menus.
+16. Select 1 RFIDSample4App.
+
+                                       42
+                                      Embedded Java Application
+
+Figure 43 Selecting Sample Application
+
+17. If the Enter Password window appears, leave the Password field blank and check Save password.
+Figure 44 Enter Password Window
+
+18. Select OK.
+19. Select Yes or OK on any warning message windows regarding authentication and missing folders for
+
+     SSH handling.
+
+                                                         43
+                                      Embedded Java Application
+
+Figure 45 Confirm Perspective Switch Message
+
+20. Select Yes to open the Debug perspective.
+Figure 46 Debug Window
+
+         NOTE: To switch between the build perspective and the debug perspective, select the appropriate
+
+            button at the top right section of the main window, or select Windows > Open Perspective > Other.
+21. Select Windows > Show View > Other... to open the Terminal window.
+
+                                                         44
+                                      Embedded Java Application
+
+22. Select Remote Systems > Terminals.
+23. Select OK.
+Figure 47 Terminals Window
+
+24. Continue debugging by selecting the Go button at the top of the main window.
+
+         NOTE: Debugging stops at the main function due to breakpoint.
+
+     The Terminals window at the bottom of the main window shows the application output, which is a
+     menu offering various functions.
+
+                                                         45
+                                      Embedded Java Application
+
+Figure 48 Application Output
+
+25. Select 5. Exit to stop the application or the suspend debug button  to interrupt the debug session.
+
+46
+www.zebra.com
+
