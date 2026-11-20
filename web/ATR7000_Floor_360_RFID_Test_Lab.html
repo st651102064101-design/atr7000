@@ -335,13 +335,17 @@ setInterval(upd,300);a.addEventListener('click',()=>setTimeout(upd,60));n.addEve
 const sw=$('focusSw'),st=$('focusState');let last=null,n=0;
 const send=bs=>{try{if(ws&&ws.readyState===1){ws.send(JSON.stringify({cmd:'focus',beams:bs}));return true}}catch(e){}return false};
 const targets=()=>{const t=new Set(Object.keys(pins));if(selEpc)t.add(selEpc);return [...t].slice(0,2)};
-const beamsFor=()=>{const by=recentByTag(2500),out=[],tg=targets();for(const k of tg){const a=by[k];if(!a||!a.length)continue;const pw={},c={};a.forEach(e=>{pw[e.beam_id]=(pw[e.beam_id]||0)+Math.pow(10,e.rssi/10);c[e.beam_id]=(c[e.beam_id]||0)+1});
-Object.keys(pw).map(b=>[+b,pw[b]/c[b]]).sort((x,y)=>y[1]-x[1]).slice(0,3).forEach(x=>out.push(x[0]))}return {beams:[...new Set(out)].slice(0,6),tags:tg.length}};
+const ids=[];for(let i=301;i<=397;i++)ids.push(i);
+const beamsFor=()=>{const out=[],tg=targets(),now=Date.now();let seen=false;for(const k of tg){const T=trk[k];if(!T||T.az==null||T.el==null)continue;seen=true;const e=rad(T.el),a=rad(T.az),v=[Math.sin(e)*Math.sin(a),Math.sin(e)*Math.cos(a),Math.cos(e)];
+const sc=[];ids.forEach(id=>{const bi=beamInfoFor(id);if(!bi||bi.az==null)return;const be=rad(bi.elev),ba=rad(bi.az),u=[Math.sin(be)*Math.sin(ba),Math.sin(be)*Math.cos(ba),Math.cos(be)];sc.push([id,v[0]*u[0]+v[1]*u[1]+v[2]*u[2]])});
+sc.sort((x,y)=>y[1]-x[1]).slice(0,tg.length>1?5:6).forEach(x=>out.push(x[0]))}return {beams:[...new Set(out)].slice(0,12),tags:tg.length,seen}};
 const tick=()=>{if(!sw)return;if(!ws||ws.readyState!==1){setText('focusState','ยังไม่เชื่อมต่อ bridge');return}
-if(window.__focusReset){window.__focusReset=false;last=null}const r=on&&!document.hidden?beamsFor():{beams:[],tags:0},key=r.beams.slice().sort((a,b)=>a-b).join(',');
-const prev=(last||'').split(',').filter(Boolean).map(Number),shared=r.beams.filter(b=>prev.includes(b)).length;
-if(key!==last&&!(prev.length&&r.beams.length&&shared>=Math.min(2,r.beams.length,prev.length))){if(send(r.beams))last=key}
-setText('focusState',!on?'ปิดอยู่ — สแกนทุก beam เท่ากัน':(r.beams.length?'กำลังโฟกัส '+r.tags+' แท็ก · beam '+r.beams.join(', '):'พร้อม — เลือกหรือปักหมุดแท็กเพื่อเริ่ม'))};
+if(window.__focusReset){window.__focusReset=false;last=null}
+const r=on&&!document.hidden?beamsFor():{beams:[],tags:0,seen:false};const prev=(last||'').split(',').filter(Boolean).map(Number);
+let want=r.beams;if(on&&!r.beams.length&&r.tags&&prev.length)want=prev;/* tag momentarily unread: keep the current focus */
+const shared=want.filter(b=>prev.includes(b)).length,same=want.length===prev.length&&shared===want.length,mostlyKept=prev.length&&want.length&&shared>=Math.ceil(Math.min(want.length,prev.length)/2);
+if(!same&&!mostlyKept){if(send(want))last=want.slice().sort((a,b)=>a-b).join(',')}
+setText('focusState',!on?'ปิดอยู่ — สแกนทุก beam เท่ากัน':(prev.length?'กำลังโฟกัส '+r.tags+' แท็ก · beam '+prev.join(', '):'พร้อม — เลือกหรือปักหมุดแท็กเพื่อเริ่ม'))};
 if(sw){sw.checked=on;sw.addEventListener('change',()=>{on=sw.checked;try{localStorage.setItem('atr_focus',on?'1':'0')}catch(e){}last=null;tick()})}
 setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(document.hidden){send([]);last=''}})})();
 setMode('MOCK');navSetup();render();openWs(true);})();

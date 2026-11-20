@@ -85,6 +85,9 @@ def build_rospec(antennas, rospec_id=ROSPEC_ID, dwell_ms=None):
     return tlv(P_ROSPEC, struct.pack("!IBB", rospec_id, 0, 0) + boundary + ai + rep)
 
 
+SWAP_MIN_S = 6.0   # a reinstall restarts the sweep; swapping faster than ~2 sweeps starves the late beams
+
+
 def build_plan(base, focus, extra_cap=60):
     """Antenna order for one sweep. `focus` beams are repeated several times through the
     sweep (the reader visits antennas in list order and accepts repeats), so a tracked
@@ -198,7 +201,7 @@ class LlrpClient:
         return True, ""
 
     async def _maybe_swap(self):
-        if self.want == self.focus or time.time() - self.last_swap < 1.5:
+        if self.want == self.focus or time.time() - self.last_swap < SWAP_MIN_S:
             return
         plan = build_plan(self.base, list(self.want))
         ok, why = await self._install(plan)
