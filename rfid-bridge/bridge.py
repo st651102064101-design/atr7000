@@ -334,6 +334,11 @@ async def main():
         if sess is not None:
             llrp.SESSION = int(sess)
             print("  LLRP session  : S%d (--session N, default = the reader's own setting)" % llrp.SESSION)
+        ph = arg("--phase")
+        if ph is not None:
+            llrp.PHASE_FLAGS = int(ph, 0)
+            llrp.DEBUG_CUSTOM = "--phase-debug" in sys.argv
+            print("  LLRP phase    : MotoTagReportContentSelector flags 0x%02x (--phase HEX, experimental)" % llrp.PHASE_FLAGS)
         if "--flip" in sys.argv:
             llrp.QUERY_FLIP = bytes([0, 1])
             print("  LLRP A/B flip : on (--flip)")

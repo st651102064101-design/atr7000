@@ -50,6 +50,10 @@ TV_ANTENNA, TV_FIRST_UTC, TV_PEAK_RSSI, TV_EPC96, TV_CHANNEL = 1, 2, 6, 13, 7
 
 ROSPEC_ID = 1
 
+SUB_TAG_CONTENT, SUB_TAG_PHASE = 708, 709   # MotoTagReportContentSelector / MotoTagPhase
+DEBUG_CUSTOM, DEBUG_SEEN = False, []
+PHASE_FLAGS = None   # None = off; int = first octet of the 708 flag word (experimental: S bit mask)
+
 
 def tlv(ptype, body=b""):
     return struct.pack("!HH", ptype, 4 + len(body)) + body
@@ -92,7 +96,8 @@ def build_rospec(antennas, rospec_id=ROSPEC_ID, dwell_ms=None):
              + b"".join(struct.pack("!H", a) for a in antennas) + ai_stop + inv)
     flags = (1 << 12) | (1 << 10) | (1 << 9)                      # AntennaID, PeakRSSI, FirstSeenUTC
     sel = tlv(P_TAGSELECTOR, struct.pack("!H", flags))
-    rep = tlv(P_ROREPORT, struct.pack("!BH", 1, 1) + sel)         # upon N=1 tags
+    extra = custom(VENDOR_ZEBRA, SUB_TAG_CONTENT, bytes([PHASE_FLAGS & 255, 0, 0, 0])) if PHASE_FLAGS is not None else b""
+    rep = tlv(P_ROREPORT, struct.pack("!BH", 1, 1) + sel + extra)  # upon N=1 tags
     return tlv(P_ROSPEC, struct.pack("!IBB", rospec_id, 0, 0) + boundary + ai + rep)
 
 
@@ -151,7 +156,7 @@ def parse_report(body, on_unknown=None):
     for t, is_tv, val in parse_params(body):
         if is_tv or t != P_TAGREPORT:
             continue
-        rec = {"epc": None, "antenna": None, "rssi": None, "ts": None}
+        rec = {"epc": None, "antenna": None, "rssi": None, "ts": None, "phase": None}
         for st, stv, sv in parse_params(val):
             if sv is None:
                 if on_unknown:
@@ -166,6 +171,14 @@ def parse_report(body, on_unknown=None):
                     rec["rssi"] = struct.unpack("!b", sv)[0]
                 elif st == TV_FIRST_UTC:
                     rec["ts"] = struct.unpack("!Q", sv)[0]
+            elif st == P_CUSTOM and DEBUG_CUSTOM and len(sv) >= 8 and struct.unpack_from("!I", sv, 4)[0] != SUB_TAG_PHASE:
+                k = "sub%d" % struct.unpack_from("!I", sv, 4)[0]
+                if k not in DEBUG_SEEN:
+                    DEBUG_SEEN.append(k); print("[llrp] other custom param in tag report", k, sv.hex())
+            elif st == P_CUSTOM and len(sv) >= 10 and struct.unpack_from("!II", sv)[0] == VENDOR_ZEBRA and struct.unpack_from("!I", sv, 4)[0] == SUB_TAG_PHASE:
+                rec["phase"] = struct.unpack_from("!h", sv, 8)[0]
+                if DEBUG_CUSTOM and len(DEBUG_SEEN) < 12:
+                    DEBUG_SEEN.append(sv.hex()); print("[llrp] phase param raw", sv.hex())
             elif st == P_EPCDATA and len(sv) >= 2:
                 bits = struct.unpack_from("!H", sv)[0]
                 rec["epc"] = sv[2:2 + (bits + 7) // 8].hex()
@@ -287,9 +300,12 @@ class LlrpClient:
                        if ts else datetime.now().astimezone().isoformat())
                 self.reports += 1
                 self.last_report = now
-                self.emit({"type": "tag_read", "epc": r["epc"], "beam_id": r["antenna"],
-                           "rssi": float(r["rssi"]), "timestamp": iso,
-                           "bridge_ts": round(now * 1000, 3), "via": "llrp"})
+                ev = {"type": "tag_read", "epc": r["epc"], "beam_id": r["antenna"],
+                      "rssi": float(r["rssi"]), "timestamp": iso,
+                      "bridge_ts": round(now * 1000, 3), "via": "llrp"}
+                if r.get("phase") is not None:
+                    ev["phase"] = round(r["phase"] * 180.0 / 32768.0, 2)   # degrees, -180..180
+                self.emit(ev)
         elif mtype == KEEPALIVE:
             self.writer.write(message(KEEPALIVE_ACK, mid))
         elif mtype == ERROR_MESSAGE:

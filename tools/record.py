@@ -25,7 +25,7 @@ async def main():
                 o = json.loads(p)
                 for x in (o if isinstance(o, list) else [o]):
                     if x.get("type") == "tag_read":
-                        f.write(json.dumps({"t": round(now, 4), "epc": x["epc"], "beam": x["beam_id"], "rssi": x["rssi"]}) + "\n"); n += 1
+                        f.write(json.dumps({"t": round(now, 4), "epc": x["epc"], "beam": x["beam_id"], "rssi": x["rssi"], **({"phase": x["phase"]} if "phase" in x else {})}) + "\n"); n += 1
             except Exception:
                 pass
     w.close()
