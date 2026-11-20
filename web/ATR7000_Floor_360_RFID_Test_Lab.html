@@ -336,17 +336,21 @@ setInterval(upd,300);a.addEventListener('click',()=>setTimeout(upd,60));n.addEve
 (function(){let on=true;try{on=localStorage.getItem('atr_focus')!=='0'}catch(e){}
 const sw=$('focusSw'),st=$('focusState');let last=null,n=0;
 const send=bs=>{try{if(ws&&ws.readyState===1){ws.send(JSON.stringify({cmd:'focus',beams:bs}));return true}}catch(e){}return false};
-const targets=()=>{const t=new Set(Object.keys(pins));if(selEpc)t.add(selEpc);return [...t].slice(0,2)};
+const targets=()=>{/* the selected tag first, then the pinned tags that are being read right now (max 2 in total) */
+const by=recentByTag(5000),sc=k=>by[k]?by[k].length:0,out=[];if(selEpc)out.push(selEpc);
+Object.keys(pins).filter(k=>k!==selEpc).sort((x,y)=>sc(y)-sc(x)).forEach(k=>{if(out.length<2&&sc(k)>0)out.push(k)});return out.slice(0,2)};
 const ids=[];for(let i=301;i<=397;i++)ids.push(i);
-const beamsFor=()=>{const out=[],tg=targets(),now=Date.now();let seen=false;for(const k of tg){const T=trk[k];if(!T||T.az==null||T.el==null)continue;seen=true;const e=rad(T.el),a=rad(T.az),v=[Math.sin(e)*Math.sin(a),Math.sin(e)*Math.cos(a),Math.cos(e)];
+const beamsFor=()=>{const out=[],hots=[],tg=targets(),now=Date.now();let seen=false;for(const k of tg){const T=trk[k];if(!T||T.az==null||T.el==null)continue;seen=true;const e=rad(T.el),a=rad(T.az),v=[Math.sin(e)*Math.sin(a),Math.sin(e)*Math.cos(a),Math.cos(e)];
 const sc=[];ids.forEach(id=>{const bi=beamInfoFor(id);if(!bi||bi.az==null)return;const be=rad(bi.elev),ba=rad(bi.az),u=[Math.sin(be)*Math.sin(ba),Math.sin(be)*Math.cos(ba),Math.cos(be)];sc.push([id,v[0]*u[0]+v[1]*u[1]+v[2]*u[2]])});
-sc.sort((x,y)=>y[1]-x[1]).slice(0,tg.length>1?5:6).forEach(x=>out.push(x[0]))}return {beams:[...new Set(out)].slice(0,12),tags:tg.length,seen}};
+const hot=(()=>{const rr=recentByTag(2500)[k];if(!rr||!rr.length)return null;const pw={};rr.forEach(e=>{(pw[e.beam_id]=pw[e.beam_id]||[]).push(Math.pow(10,e.rssi/10))});let bb=null,bp=0;for(const b in pw){const m=pw[b].reduce((p,q)=>p+q,0)/pw[b].length;if(m>bp){bp=m;bb=+b}}return bb})();
+if(hot!=null){out.push(hot);hots.push(hot)}sc.sort((x,y)=>y[1]-x[1]).slice(0,tg.length>1?4:5).forEach(x=>out.push(x[0]))}return {beams:[...new Set(out)].slice(0,12),tags:tg.length,seen,hots}};
 const tick=()=>{if(!sw)return;if(!ws||ws.readyState!==1){setText('focusState','ยังไม่เชื่อมต่อ bridge');return}
 if(window.__focusReset){window.__focusReset=false;last=null}
-const r=on&&!document.hidden?beamsFor():{beams:[],tags:0,seen:false};const prev=(last||'').split(',').filter(Boolean).map(Number);
+const r=on&&!document.hidden?beamsFor():{beams:[],tags:0,seen:false,hots:[]};const prev=(last||'').split(',').filter(Boolean).map(Number);
 let want=r.beams;if(on&&!r.beams.length&&r.tags&&prev.length)want=prev;/* tag momentarily unread: keep the current focus */
 const shared=want.filter(b=>prev.includes(b)).length,same=want.length===prev.length&&shared===want.length,mostlyKept=prev.length&&want.length&&shared>=Math.ceil(Math.min(want.length,prev.length)/2);
-if(!same&&!mostlyKept){if(send(want))last=want.slice().sort((a,b)=>a-b).join(',')}
+const lostHot=(r.hots||[]).some(h=>!prev.includes(h));
+if(!same&&(!mostlyKept||lostHot)){if(send(want))last=want.slice().sort((a,b)=>a-b).join(',')}
 setText('focusState',!on?'ปิดอยู่ — สแกนทุก beam เท่ากัน':(prev.length?'กำลังโฟกัส '+r.tags+' แท็ก · beam '+prev.join(', '):'พร้อม — เลือกหรือปักหมุดแท็กเพื่อเริ่ม'))};
 if(sw){sw.checked=on;sw.addEventListener('change',()=>{on=sw.checked;try{localStorage.setItem('atr_focus',on?'1':'0')}catch(e){}last=null;tick()})}
 setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(document.hidden){send([]);last=''}})})();
