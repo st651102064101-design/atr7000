@@ -218,7 +218,12 @@ class Lock:
         return (self.az, self.el)
 
 
-ALGOS = {"current": Current, "lock": Lock}
+class LockFast(Lock):
+    """Same memory, but decides 'it moved' from a 1 s window with fewer beams and a shorter hold."""
+    SHORT, SIG_MIN, SIG_DB, MOVE_HOLD, NEW_WITHIN, NEW_LEAD = 1.0, 4, 6.5, 0.3, 5.0, 8.0
+
+
+ALGOS = {"current": Current, "lock": Lock, "fast": LockFast}
 
 
 # ---------------------------------------------------------------- scoring
