@@ -200,6 +200,22 @@ def handle_page_command(payload):
             if llrp_client is not None:
                 llrp_client.set_scan(ants, sess, flip, dwell)
             return
+        if isinstance(msg, dict) and msg.get("cmd") == "reader":
+            # reader management over LLRP: {"cmd":"reader","op":"info"} or {"cmd":"reader","op":"power","dbm":10..36,"ants":[301..397]|null}
+            op = msg.get("op")
+            if op == "info":
+                if llrp_client is not None:
+                    llrp_client.request_op({"op": "info"})
+            elif op == "power":
+                dbm = msg.get("dbm")
+                ants = msg.get("ants")
+                if isinstance(dbm, bool) or not isinstance(dbm, (int, float)) or not 10 <= dbm <= 36:
+                    return
+                if ants is not None and (not isinstance(ants, list) or not (1 <= len(ants) <= 97) or not all(isinstance(b, int) and not isinstance(b, bool) and 301 <= b <= 397 for b in ants)):
+                    return
+                if llrp_client is not None:
+                    llrp_client.request_op({"op": "power", "dbm": float(dbm), "ants": ants})
+            return
         if not isinstance(msg, dict) or msg.get("cmd") != "focus":
             return
         beams = msg.get("beams", [])

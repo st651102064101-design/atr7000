@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 # message types
 GET_READER_CAPABILITIES, GET_READER_CAPABILITIES_RESPONSE = 1, 11
 SET_READER_CONFIG, SET_READER_CONFIG_RESPONSE = 3, 13
+GET_READER_CONFIG, GET_READER_CONFIG_RESPONSE = 2, 12
 ADD_ROSPEC, ADD_ROSPEC_RESPONSE = 20, 30
 DELETE_ROSPEC, DELETE_ROSPEC_RESPONSE = 21, 31
 START_ROSPEC, START_ROSPEC_RESPONSE = 22, 32
@@ -37,6 +38,8 @@ P_ROSPEC, P_ROBOUNDARY, P_START_TRIG, P_STOP_TRIG = 177, 178, 179, 182
 P_AISPEC, P_AISTOP, P_INVENTORY = 183, 184, 186
 P_ROREPORT, P_TAGSELECTOR, P_TAGREPORT, P_EPCDATA = 237, 238, 240, 241
 P_LLRPSTATUS = 287
+P_GENDEV, P_REGCAP, P_UHFBAND, P_POWERENTRY = 137, 143, 144, 145
+P_ANTCFG, P_RFTX = 222, 224
 P_ANT_CONFIG, P_C1G2_INV_CMD, P_CUSTOM = 222, 330, 1023
 # Zebra (vendor 161) custom parameters, ATR/FX LLRP Custom Extensions guide:
 # MotoAntennaConfig subtype 703 contains MotoAntennaStopCondition subtype 704
@@ -215,6 +218,10 @@ class LlrpClient:
         self.last_swap = 0.0
         self.swaps = 0
         self.pending_scan = None   # (ants, session, flip, dwell) requested at run time
+        self.pending_ops = []      # reader management requests from the page (info / power)
+        self.power_table = {}      # index -> dBm
+        self.ant_tx = {}           # antenna -> (hop table, channel index, power index)
+        self.info = {}
 
     def set_scan(self, ants=None, session="keep", flip=None, dwell=None):
         """Change what the reader scans while the bridge keeps running (applied by the read loop):
@@ -243,6 +250,80 @@ class LlrpClient:
             len(self.base), SESSION if SESSION is not None else "default", "on" if QUERY_FLIP else "off", self.dwell_ms, "ok" if ok else "REJECTED " + why))
         if not ok:
             raise RuntimeError("scan change rejected: %s" % why)
+
+    def request_op(self, op):
+        if len(self.pending_ops) < 8:
+            self.pending_ops.append(op)
+
+    async def _read_caps(self):
+        b = await self._rpc(GET_READER_CAPABILITIES, struct.pack("!B", 0), GET_READER_CAPABILITIES_RESPONSE)
+        info = {}
+        for t, tv, v in parse_params(b):
+            if tv or v is None:
+                continue
+            if t == P_GENDEV and len(v) >= 14:
+                mx, _fl, mfr, model = struct.unpack_from("!HHII", v)
+                ln = struct.unpack_from("!H", v, 12)[0]
+                info.update(max_antennas=mx, manufacturer_id=mfr, model_id=model, firmware=v[14:14 + ln].decode("utf-8", "replace"))
+            elif t == P_REGCAP:
+                for t2, tv2, v2 in parse_params(v[4:]):
+                    if t2 == P_UHFBAND and not tv2:
+                        for t3, tv3, v3 in parse_params(v2):
+                            if t3 == P_POWERENTRY and not tv3 and len(v3) >= 4:
+                                idx, cdbm = struct.unpack_from("!Hh", v3)
+                                self.power_table[idx] = cdbm / 100.0
+        if self.power_table:
+            info["power_dbm"] = {"min": min(self.power_table.values()), "max": max(self.power_table.values()), "steps": len(self.power_table)}
+        return info
+
+    async def _read_tx(self):
+        b = await self._rpc(GET_READER_CONFIG, struct.pack("!HBHH", 0, 3, 0, 0), GET_READER_CONFIG_RESPONSE)
+        self.ant_tx = {}
+        for t, tv, v in parse_params(b):
+            if tv or t != P_ANTCFG or v is None or len(v) < 2:
+                continue
+            ant = struct.unpack_from("!H", v)[0]
+            for t2, tv2, v2 in parse_params(v[2:]):
+                if not tv2 and t2 == P_RFTX and v2 is not None and len(v2) >= 6:
+                    self.ant_tx[ant] = struct.unpack_from("!HHH", v2)
+
+    def _tx_summary(self):
+        vals = sorted({self.power_table.get(p[2]) for p in self.ant_tx.values() if self.power_table.get(p[2]) is not None})
+        return {"antennas": len(self.ant_tx), "dbm_values": vals[:6]}
+
+    async def _do_op(self, op):
+        kind = op.get("op")
+        res = {"type": "reader_result", "op": kind, "ok": True, "msg": ""}
+        try:
+            if kind in ("info", "power"):
+                if kind == "power":
+                    if not self.power_table or not self.ant_tx:
+                        self.info.update(await self._read_caps())
+                        await self._read_tx()
+                    want = float(op["dbm"])
+                    idx = min(self.power_table, key=lambda i: abs(self.power_table[i] - want))
+                    targets = [a for a in (op.get("ants") or sorted(self.ant_tx)) if a in self.ant_tx]
+                    if not targets:
+                        raise RuntimeError("no antennas known to the reader")
+                    params = b""
+                    for a in targets:
+                        hop, ch, _p = self.ant_tx[a]
+                        params += tlv(P_ANTCFG, struct.pack("!H", a) + tlv(P_RFTX, struct.pack("!HHH", hop, ch, idx)))
+                    b = await self._rpc(SET_READER_CONFIG, struct.pack("!B", 0) + params, SET_READER_CONFIG_RESPONSE)
+                    code, desc = status_of(b)
+                    if code != 0:
+                        raise RuntimeError("reader rejected the power change: %r %s" % (code, desc))
+                    res["msg"] = "TX power set to %.1f dBm on %d beams" % (self.power_table[idx], len(targets))
+                    self.log("[llrp] " + res["msg"])
+                self.info.update(await self._read_caps())
+                await self._read_tx()
+                self.info["tx"] = self._tx_summary()
+        except (RuntimeError, ValueError, KeyError, asyncio.TimeoutError) as e:
+            res["ok"] = False
+            res["msg"] = str(e) or type(e).__name__
+            self.log("[llrp] op %s failed: %s" % (kind, res["msg"]))
+        self.emit(res)
+        self.emit({"type": "reader_info", "info": dict(self.info, reads=self.reports, connected=True, beams=len(self.base), dwell_ms=self.dwell_ms)})
 
     def set_focus(self, beams, ring=()):
         """Ask for these beams (and a wider ring) to be scanned more often. Applied by the read loop."""
@@ -358,6 +439,8 @@ class LlrpClient:
                 t, mid, b = await self._recv()
                 self._handle(t, mid, b)
                 await self.writer.drain()
+                if self.pending_ops:
+                    await self._do_op(self.pending_ops.pop(0))
                 if self.pending_scan:
                     await self._apply_scan()
                 elif self.want != self.focus:
