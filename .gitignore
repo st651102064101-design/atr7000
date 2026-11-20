@@ -5,3 +5,6 @@ __pycache__/
 # internal training deck (contains demo credentials) and text extracted from it
 RFID ATR.pdf
 notes/
+
+# reader admin login for the management panel (local only, never commit)
+rfid-bridge/reader.conf
