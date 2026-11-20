@@ -182,6 +182,24 @@ def handle_page_command(payload):
     """Only one command is accepted: focus a few beams. Input is validated strictly."""
     try:
         msg = json.loads(payload.decode("utf-8"))
+        if isinstance(msg, dict) and msg.get("cmd") == "scan":
+            # run-time scan lab: {"cmd":"scan","ants":[301..397],"session":null|0..3,"flip":bool,"dwell":10..50}
+            ants = msg.get("ants")
+            if ants is not None:
+                if not isinstance(ants, list) or not (1 <= len(ants) <= 97) or not all(isinstance(b, int) and not isinstance(b, bool) and 301 <= b <= 397 for b in ants):
+                    return
+            sess = msg.get("session", "keep")
+            if sess != "keep" and sess is not None and (not isinstance(sess, int) or isinstance(sess, bool) or not 0 <= sess <= 3):
+                return
+            flip = msg.get("flip")
+            if flip is not None and not isinstance(flip, bool):
+                return
+            dwell = msg.get("dwell")
+            if dwell is not None and (not isinstance(dwell, int) or isinstance(dwell, bool) or not 10 <= dwell <= 50):
+                return
+            if llrp_client is not None:
+                llrp_client.set_scan(ants, sess, flip, dwell)
+            return
         if not isinstance(msg, dict) or msg.get("cmd") != "focus":
             return
         beams = msg.get("beams", [])
@@ -312,6 +330,13 @@ async def main():
         print("  LLRP          : %s:%d (%s) antennas %s-%s  [--no-llrp to disable]" % (host, port, "TLS" if tls else "plain", a, b))
         dwell = int(arg("--dwell", "20"))
         print("  LLRP dwell    : %d ms per beam (--dwell N, 0 = reader default)" % dwell)
+        sess = arg("--session")
+        if sess is not None:
+            llrp.SESSION = int(sess)
+            print("  LLRP session  : S%d (--session N, default = the reader's own setting)" % llrp.SESSION)
+        if "--flip" in sys.argv:
+            llrp.QUERY_FLIP = bytes([0, 1])
+            print("  LLRP A/B flip : on (--flip)")
         client = llrp.LlrpClient(host, port, tls, ants, emit_sync, dwell_ms=dwell or None)
         global llrp_client
         llrp_client = client

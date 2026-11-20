@@ -223,7 +223,43 @@ class LockFast(Lock):
     SHORT, SIG_MIN, SIG_DB, MOVE_HOLD, NEW_WITHIN, NEW_LEAD = 1.0, 4, 6.5, 0.3, 5.0, 8.0
 
 
-ALGOS = {"current": Current, "lock": Lock, "fast": LockFast}
+class AzFast:
+    """Azimuth from the last ~0.6 s of reads (needs only the beams scanned right now), accepted when it
+    agrees with the current value or when 3 consecutive looks agree on a new one; tilt/distance still
+    come from the slow, steady Lock tracker."""
+    WIN, AGREE, NEED = 0.6, 20.0, 3
+    STEP = 0.1
+
+    def __init__(self):
+        self.lock = Lock()
+        self.az = None
+        self.cand = None
+        self.n = 0
+
+    def update(self, reads, now):
+        laz, lel = self.lock.update(reads, now)
+        win = [r for r in reads[-400:] if now - r[0] < self.WIN]
+        if len(win) < 3:
+            return (self.az if self.az is not None else laz, lel)
+        e = estimate(win, now, 0.0, gate=35, thr=0.4, flat=True)
+        if e is None or e["az"] is None:
+            return (self.az if self.az is not None else laz, lel)
+        if self.az is None:
+            self.az = e["az"]
+        elif abs(angdiff(e["az"], self.az)) < self.AGREE:
+            self.az = (self.az + angdiff(e["az"], self.az) * 0.35) % 360
+            self.cand, self.n = None, 0
+        else:
+            if self.cand is not None and abs(angdiff(e["az"], self.cand)) < self.AGREE:
+                self.n += 1
+            else:
+                self.cand, self.n = e["az"], 1
+            if self.n >= self.NEED:
+                self.az, self.cand, self.n = self.cand, None, 0
+        return (self.az, lel if lel is not None else 30.0)
+
+
+ALGOS = {"current": Current, "lock": Lock, "fast": LockFast, "azfast": AzFast}
 
 
 # ---------------------------------------------------------------- scoring
@@ -239,6 +275,7 @@ def load(path):
 
 def run(algo_cls, reads, t0, t1, step=0.3):
     a = algo_cls()
+    step = getattr(a, 'STEP', step)
     out = []
     t = t0
     idx = 0
@@ -270,7 +307,14 @@ def metrics(series):
     return {"jumps": int(jumps), "path": round(path), "azspan": round(azspan), "tiltspan": round(max(el) - min(el)), "n": len(series)}
 
 
-def teleport(by, algos, a_win=(15, 75), b_win=(15, 75), pairs=6, min_reads=150):
+AZ_ONLY = False
+
+
+def _dist(q, sb):
+    return abs(angdiff(q[1], sb[1])) if AZ_ONLY else math.hypot(angdiff(q[1], sb[1]), q[2] - sb[2])
+
+
+def teleport(by, algos, a_win=(15, 75), b_win=(15, 75), pairs=12, min_reads=150):
     """Synthetic move with real noise: tag X shows the reads of tag A for 60 s, then the reads of
     tag B. How long until the output reaches B's steady position?"""
     good = [(e, r) for e, r in by.items() if len(r) >= min_reads]
@@ -298,7 +342,7 @@ def teleport(by, algos, a_win=(15, 75), b_win=(15, 75), pairs=6, min_reads=150):
                     break
                 sb = steadyB[-1]
                 sa = steadyA[-1]
-                if math.hypot(angdiff(sb[1], sa[1]), sb[2] - sa[2]) < 40:
+                if _dist(sb, sa) < 40:
                     ok = False
                     break
                 ser = run(cls, X, a_win[0] + 30, switch + 25)
@@ -306,7 +350,7 @@ def teleport(by, algos, a_win=(15, 75), b_win=(15, 75), pairs=6, min_reads=150):
                 for k, (t, az, el) in enumerate(ser):
                     if t < switch:
                         continue
-                    close = lambda q: math.hypot(angdiff(q[1], sb[1]), q[2] - sb[2]) < 20
+                    close = lambda q: _dist(q, sb) < 20
                     if close((t, az, el)) and all(close(q) for q in ser[k:k + 7]):
                         t_reach = round(t - switch, 1)
                         break
@@ -323,6 +367,7 @@ def teleport(by, algos, a_win=(15, 75), b_win=(15, 75), pairs=6, min_reads=150):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--az-only", action="store_true", help="teleport test judges azimuth only (ring-only data has no tilt information)")
     ap.add_argument("--teleport", action="store_true", help="score how fast a move is followed (synthetic, from real reads)")
     ap.add_argument("file")
     ap.add_argument("--algo", action="append", choices=list(ALGOS), help="repeatable (default: all)")
@@ -333,6 +378,8 @@ def main():
     span = max(r[-1][0] for r in by.values())
     algos = args.algo or list(ALGOS)
     if args.teleport:
+        global AZ_ONLY
+        AZ_ONLY = args.az_only
         teleport(by, algos)
         return
     print("%s: %d tags, %.0f s; scoring from t=%.0f s (stationary set: lower is better)" % (args.file, len(by), span, args.warmup))

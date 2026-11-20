@@ -67,12 +67,17 @@ SUB_ANT_QUERY = 710        # MotoAntennaQueryConfig: EnableSLAll, EnableABFlip
 QUERY_FLIP = None          # None = off; bytes = encoding of the two booleans (experimental)
 
 
+P_SINGULATION = 336         # C1G2SingulationControl: Session, TagPopulation, TagTransitTime
+SESSION = None             # None = the reader's own default; 0..3 = Gen2 session sent with every antenna
+
+
 def antenna_config(ant, dwell_ms):
     stop = custom(VENDOR_ZEBRA, SUB_ANT_STOP, struct.pack("!BH", 0, dwell_ms))
     if QUERY_FLIP is not None:
         stop += custom(VENDOR_ZEBRA, SUB_ANT_QUERY, QUERY_FLIP)
     cfg = custom(VENDOR_ZEBRA, SUB_ANT_CONFIG, stop)
-    inv_cmd = tlv(P_C1G2_INV_CMD, struct.pack("!B", 0) + cfg)
+    sing = tlv(P_SINGULATION, struct.pack("!BHI", (SESSION & 3) << 6, 32, 0)) if SESSION is not None else b""
+    inv_cmd = tlv(P_C1G2_INV_CMD, struct.pack("!B", 0) + sing + cfg)
     return tlv(P_ANT_CONFIG, struct.pack("!H", ant) + inv_cmd)
 
 
@@ -196,6 +201,35 @@ class LlrpClient:
         self.want = ((), ())      # requested by the page
         self.last_swap = 0.0
         self.swaps = 0
+        self.pending_scan = None   # (ants, session, flip, dwell) requested at run time
+
+    def set_scan(self, ants=None, session="keep", flip=None, dwell=None):
+        """Change what the reader scans while the bridge keeps running (applied by the read loop):
+        ants = list of beam ids, session = None (reader default) or 0..3, flip = A/B flip on/off,
+        dwell = ms per beam."""
+        self.pending_scan = (ants, session, flip, dwell)
+
+    async def _apply_scan(self):
+        global SESSION, QUERY_FLIP
+        ants, session, flip, dwell = self.pending_scan
+        self.pending_scan = None
+        if ants:
+            self.base = list(ants)
+            self.antennas = list(ants)
+        if session != "keep":
+            SESSION = session
+        if flip is not None:
+            QUERY_FLIP = bytes([0, 1]) if flip else None
+        if dwell:
+            self.dwell_ms = int(dwell)
+        self.want = ((), ())
+        ok, why = await self._install(list(self.base))
+        self.last_swap = time.time()
+        self.focus = ((), ())
+        self.log("[llrp] scan changed: %d beams, session %s, A/B flip %s, dwell %s ms -> %s" % (
+            len(self.base), SESSION if SESSION is not None else "default", "on" if QUERY_FLIP else "off", self.dwell_ms, "ok" if ok else "REJECTED " + why))
+        if not ok:
+            raise RuntimeError("scan change rejected: %s" % why)
 
     def set_focus(self, beams, ring=()):
         """Ask for these beams (and a wider ring) to be scanned more often. Applied by the read loop."""
@@ -308,7 +342,9 @@ class LlrpClient:
                 t, mid, b = await self._recv()
                 self._handle(t, mid, b)
                 await self.writer.drain()
-                if self.want != self.focus:
+                if self.pending_scan:
+                    await self._apply_scan()
+                elif self.want != self.focus:
                     await self._maybe_swap()
         finally:
             try:
