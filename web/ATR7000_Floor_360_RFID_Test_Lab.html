@@ -358,9 +358,20 @@ E.mode=(now-(T.mv||0)<2500)?'move':'still';E.beamAz=T.az;E.elev=T.el;E.shown=!hi
 let frameId=0,frameDt=.016,lastF=0;const disp={};
 /* on-screen glide: critically damped spring (velocity is continuous), so a position that changes in one step (the tracker only updates when the reader has swept the beams) slides there instead of teleporting */
 const SMOOTH={move:.45,still:.7};
+// motion prediction: the tracker commits a new direction only after a sweep has seen it (~1 s late). While a tag keeps
+// moving the same way, lead the shown direction by the angular speed x PRED.t, fading out if the next step does not come.
+const PRED={on:true,t:.6,max:25,win:1400,minSpan:600,minMove:12};
+try{if(localStorage.getItem('atr_pred')==='0')PRED.on=false}catch(e){}
+function predLead(D,az,moving,now){if(!PRED.on||az==null||!moving){D.ph=null;return 0}
+const h=D.ph||(D.ph=[]);let u=az;if(h.length){const p=h[h.length-1];if(now-p[0]<80)u=null;else u=p[1]+angDiff(az,mod(p[1]))}
+if(u!=null){h.push([now,u]);while(h.length&&now-h[0][0]>PRED.win)h.shift()}
+if(h.length<5)return 0;const t0=h[0][0],span=h[h.length-1][0]-t0;if(span<PRED.minSpan)return 0;
+let sx=0,sy=0,sxx=0,sxy=0;const n=h.length;for(const p of h){const x=(p[0]-t0)/1000;sx+=x;sy+=p[1];sxx+=x*x;sxy+=x*p[1]}
+const den=n*sxx-sx*sx;if(den<1e-6)return 0;const v=(n*sxy-sx*sy)/den;if(Math.abs(v*span/1000)<PRED.minMove)return 0;
+return Math.max(-PRED.max,Math.min(PRED.max,v*PRED.t))}
 function smoothDamp(c,tg,v,st,dt){const om=2/st,x=om*dt,e=1/(1+x+.48*x*x+.235*x*x*x),ch=c-tg,tmp=(v+om*ch)*dt;return [tg+(ch+tmp)*e,(v-om*tmp)*e]}
 function dispOf(t){const D=disp[t.epc]||(disp[t.epc]={az:t.beamAz,el:t.elev,rs:t.rssiBest,va:0,ve:0,vr:0,f:-1});if(D.f!==frameId){D.f=frameId;const dt=Math.min(frameDt,.05),st=t.mode==='move'?SMOOTH.move:SMOOTH.still;
-if(t.beamAz!=null){if(D.az==null){D.az=t.beamAz;D.va=0}else{const r=smoothDamp(angDiff(D.az,t.beamAz),0,D.va,st,dt);D.az=mod(t.beamAz+r[0]);D.va=r[1]}}
+if(t.beamAz!=null){const tg=mod(t.beamAz+predLead(D,t.beamAz,t.mode==='move',Date.now()));if(D.az==null){D.az=t.beamAz;D.va=0}else{const r=smoothDamp(angDiff(D.az,tg),0,D.va,st,dt);D.az=mod(tg+r[0]);D.va=r[1]}}
 if(t.elev!=null){if(D.el==null){D.el=t.elev;D.ve=0}else{const r=smoothDamp(D.el,t.elev,D.ve,st,dt);D.el=r[0];D.ve=r[1]}}
 if(t.rssiBest!=null){if(D.rs==null){D.rs=t.rssiBest;D.vr=0}else{const r=smoothDamp(D.rs,t.rssiBest,D.vr,st*1.6,dt);D.rs=r[0];D.vr=r[1]}}}
 return {az:D.az==null?null:worldAz(D.az),el:D.el,rs:D.rs}}
