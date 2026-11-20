@@ -75,7 +75,7 @@ def build_rospec(antennas, rospec_id=ROSPEC_ID, dwell_ms=None):
     stop = tlv(P_STOP_TRIG, struct.pack("!BI", 0, 0))             # null
     boundary = tlv(P_ROBOUNDARY, start + stop)
     ai_stop = tlv(P_AISTOP, struct.pack("!BI", 0, 0))             # null: run until ROSpec stops
-    per_ant = b"".join(antenna_config(a, dwell_ms) for a in antennas) if dwell_ms else b""
+    per_ant = b"".join(antenna_config(a, dwell_ms) for a in dict.fromkeys(antennas)) if dwell_ms else b""
     inv = tlv(P_INVENTORY, struct.pack("!HB", 1, 1) + per_ant)    # id 1, EPC Gen2 (+ per-antenna dwell)
     ai = tlv(P_AISPEC, struct.pack("!H", len(antennas))
              + b"".join(struct.pack("!H", a) for a in antennas) + ai_stop + inv)
@@ -83,6 +83,21 @@ def build_rospec(antennas, rospec_id=ROSPEC_ID, dwell_ms=None):
     sel = tlv(P_TAGSELECTOR, struct.pack("!H", flags))
     rep = tlv(P_ROREPORT, struct.pack("!BH", 1, 1) + sel)         # upon N=1 tags
     return tlv(P_ROSPEC, struct.pack("!IBB", rospec_id, 0, 0) + boundary + ai + rep)
+
+
+def build_plan(base, focus, extra_cap=60):
+    """Antenna order for one sweep. `focus` beams are repeated several times through the
+    sweep (the reader visits antennas in list order and accepts repeats), so a tracked
+    tag is revisited every ~0.2-0.3 s while every other beam is still visited once."""
+    focus = [a for a in dict.fromkeys(focus) if a in set(base)]
+    if not focus:
+        return list(base)
+    m = max(2, min(10, extra_cap // len(focus)))
+    chunks = [base[i * len(base) // m:(i + 1) * len(base) // m] for i in range(m)]
+    plan = []
+    for ch in chunks:
+        plan += ch + focus
+    return plan
 
 
 def parse_params(buf):
@@ -161,6 +176,44 @@ class LlrpClient:
         self.reader = self.writer = None
         self.reports = 0
         self.last_report = 0.0
+        self.base = list(antennas)
+        self.focus = ()           # beams currently emphasised in the sweep
+        self.want = ()            # beams requested by the page
+        self.last_swap = 0.0
+        self.swaps = 0
+
+    def set_focus(self, beams):
+        """Ask for these beams to be scanned more often. Applied by the read loop."""
+        b = tuple(sorted(a for a in set(beams) if a in set(self.base)))[:12]
+        self.want = b
+
+    async def _install(self, antennas):
+        b = await self._rpc(DELETE_ROSPEC, struct.pack("!I", 0), DELETE_ROSPEC_RESPONSE)
+        b = await self._rpc(ADD_ROSPEC, build_rospec(antennas, dwell_ms=self.dwell_ms), ADD_ROSPEC_RESPONSE)
+        code, desc = status_of(b)
+        if code != 0:
+            return False, "%r %s" % (code, desc)
+        await self._rpc(ENABLE_ROSPEC, struct.pack("!I", ROSPEC_ID), ENABLE_ROSPEC_RESPONSE)
+        await self._rpc(START_ROSPEC, struct.pack("!I", ROSPEC_ID), START_ROSPEC_RESPONSE)
+        return True, ""
+
+    async def _maybe_swap(self):
+        if self.want == self.focus or time.time() - self.last_swap < 1.5:
+            return
+        plan = build_plan(self.base, list(self.want))
+        ok, why = await self._install(plan)
+        self.last_swap = time.time()
+        if ok:
+            self.focus = self.want
+            self.swaps += 1
+            self.log("[llrp] focus scan on %s (sweep %d entries)" % (list(self.focus) or "none", len(plan)))
+        else:
+            self.log("[llrp] focus plan rejected (%s); back to the full sweep" % why)
+            self.want = ()
+            ok2, why2 = await self._install(list(self.base))
+            self.focus = ()
+            if not ok2:
+                raise RuntimeError("could not restore the full sweep: %s" % why2)
 
     def _next(self):
         self.mid += 1
@@ -231,11 +284,15 @@ class LlrpClient:
             self.log("[llrp] START_ROSPEC status %r" % (status_of(b),))
             self.writer.write(message(ENABLE_EVENTS_AND_REPORTS, self._next()))
             await self.writer.drain()
+            self.focus = ()
+            self.last_swap = time.time()
             self.log("[llrp] streaming tag reports")
             while True:
                 t, mid, b = await self._recv()
                 self._handle(t, mid, b)
                 await self.writer.drain()
+                if self.want != self.focus:
+                    await self._maybe_swap()
         finally:
             try:
                 self.writer.close()

@@ -32,6 +32,7 @@ RAW_LOG = Path(__file__).with_name("raw_payloads.jsonl")
 WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 clients = set()
+llrp_client = None   # set in main(); the page can ask it for a focus scan
 recent = []
 stats = {"posts": 0, "tags": 0, "dropped_no_beam": 0, "started": time.time()}
 
@@ -158,6 +159,10 @@ async def ws_handler(reader, writer):
                 ln = struct.unpack("!Q", await reader.readexactly(8))[0]
             mask = await reader.readexactly(4) if b[1] & 0x80 else b""
             payload = await reader.readexactly(ln) if ln else b""
+            if op == 0x1:  # text frame from the page: {"cmd":"focus","beams":[...]}
+                if mask:
+                    payload = bytes(c ^ mask[i % 4] for i, c in enumerate(payload))
+                handle_page_command(payload)
             if op == 0x8:
                 break
             if op == 0x9:  # ping -> pong
@@ -168,7 +173,25 @@ async def ws_handler(reader, writer):
     finally:
         clients.discard(writer)
         print("[ws] client disconnected (%d left)" % len(clients))
+        if not clients and llrp_client is not None:
+            llrp_client.set_focus([])   # nobody is watching: back to the plain full sweep
         writer.close()
+
+
+def handle_page_command(payload):
+    """Only one command is accepted: focus a few beams. Input is validated strictly."""
+    try:
+        msg = json.loads(payload.decode("utf-8"))
+        if not isinstance(msg, dict) or msg.get("cmd") != "focus":
+            return
+        beams = msg.get("beams", [])
+        if not isinstance(beams, list) or len(beams) > 24:
+            return
+        beams = [b for b in beams if isinstance(b, int) and not isinstance(b, bool) and 1 <= b <= 9999]
+        if llrp_client is not None:
+            llrp_client.set_focus(beams)
+    except (ValueError, UnicodeDecodeError):
+        pass
 
 
 # ---------------- HTTP receiver ----------------
@@ -287,6 +310,8 @@ async def main():
         dwell = int(arg("--dwell", "20"))
         print("  LLRP dwell    : %d ms per beam (--dwell N, 0 = reader default)" % dwell)
         client = llrp.LlrpClient(host, port, tls, ants, emit_sync, dwell_ms=dwell or None)
+        global llrp_client
+        llrp_client = client
         tasks.append(client.run_forever())
     async with http, ws:
         await asyncio.gather(*tasks)

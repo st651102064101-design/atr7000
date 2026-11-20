@@ -19,6 +19,9 @@ Bridge endpoints: `POST /rfid`, `POST /simulate`, `GET /health`, `GET /last`. Ra
 
 Direction is estimated from the strongest LHCP beams (beam table in the ATR7000 Integration Guide, Table 4); resolution is about 15 degrees.
 
+## Focus scan (faster tracking for chosen tags)
+The reader sweeps all 93 beams in about 2.2 s, so a tag's direction can only refresh about every 2 s. The page can ask the bridge to repeat the strongest beams of the selected or pinned tags through the sweep (the reader accepts repeated antennas in the list), which revisits those beams about every 0.3 s while every other beam is still scanned once per sweep. The page sends `{"cmd":"focus","beams":[311,335,364]}` over the WebSocket (switch in the settings drawer); an empty list restores the plain sweep, and the bridge also restores it when the last page disconnects. Trade-off: the total read rate drops and other tags refresh a little slower.
+
 ## Repository layout
 - `rfid-bridge/` bridge (HTTP receiver + LLRP client + WebSocket)
 - `web/` browser pages (`ATR7000_Floor_360_RFID_Test_Lab.html`, `ATR7000_Monitoring_Dashboard.html`)
