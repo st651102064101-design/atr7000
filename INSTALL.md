@@ -96,11 +96,22 @@ curl http://localhost:8080/health
 curl http://localhost:8080/last
 ```
 
-Test without a reader (synthetic read):
+Test without a reader (synthetic read). The request needs a JSON body; without one the result is `tags: 0`.
+
+macOS / Linux:
+
+```bash
+curl -X POST http://localhost:8080/simulate -H "Content-Type: application/json" \
+  -d '{"epc":"E2801160600002054A3F1234","beam_id":10,"rssi":-50}'
+```
+
+Windows PowerShell (use `curl.exe`, and escape the quotes):
 
 ```powershell
-curl -X POST http://localhost:8080/simulate
+curl.exe -X POST http://localhost:8080/simulate -H "Content-Type: application/json" -d "{\"epc\":\"E2801160600002054A3F1234\",\"beam_id\":10,\"rssi\":-50}"
 ```
+
+Expected: `{"ok": true, "tags": 1}`
 
 ## 9. Troubleshooting
 
