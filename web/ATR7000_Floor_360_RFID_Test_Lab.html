@@ -188,7 +188,12 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
 <aside id="drawer" class="drawer" aria-hidden="true" aria-label="ตั้งค่า"><div class="drawer-head"><b style="display:inline-flex;align-items:center;gap:8px"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg> ตั้งค่า</b><button class="button small ghost" id="drawerClose" aria-label="ปิด"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="drawer-body">
 <section class="dsec"><h3>ตัวกรองสัญญาณ</h3><div style="display:grid;gap:9px"><label class="s-small" style="display:flex;justify-content:space-between;gap:8px">สัญญาณขั้นต่ำ <b id="fltMinVal">-90 dBm</b></label><input id="fltMin" type="range" min="-90" max="-20" step="1" value="-90"><label class="s-small" style="display:flex;justify-content:space-between;gap:8px">แสดงแท็กที่อ่านภายใน <b id="fltAgeVal">60 s</b></label><input id="fltAge" type="range" min="3" max="300" step="1" value="60"><div><button class="button small ghost" id="fltReset">ล้างตัวกรองทั้งหมด</button></div></div></section>
-<section class="dsec"><h3>ทิศอ้างอิง</h3><div class="callout" style="margin-top:12px">ทิศอ้างอิง 0° = ตำแหน่งที่คุณถือแท็กแล้วกด "ตั้งเป็น 0°" ถ้าย้ายแท็กตามเข็มนาฬิกาแล้วมุมลดลง ให้กด "สลับ Reverse"</div><div class="btn-grid"><button class="button primary" id="setZeroBtn"><svg class="ic" aria-hidden="true"><use href="#i-crosshair"/></svg> ตั้งทิศแท็กที่เลือกเป็น 0°</button><button class="button" id="revBtn"><svg class="ic" aria-hidden="true"><use href="#i-swap"/></svg> สลับ Reverse</button></div><div class="s-small" id="calibState" style="margin-top:8px"></div></section>
+<section class="dsec" id="orientSec"><h3>ปรับทิศซ้าย-ขวาให้ตรง</h3>
+<div class="s-small" style="line-height:1.7">1) คลิกเลือกแท็กในรายการ (ถือแท็กห่าง reader ≥ 1 ม.)<br>2) ยืนหันหน้าเข้าหา reader ถือแท็กไว้<b>ด้านหน้า</b> (นี่คือทิศ 0° ของคุณ) นิ่ง 2 วินาที แล้วกด "จับด้านหน้า"<br>3) ย้ายแท็กไป<b>ด้านขวามือ</b>ของคุณ นิ่ง 2 วินาที แล้วกด "จับด้านขวา"</div>
+<div class="s-small" id="calLive" style="margin:10px 0;font-family:IBM Plex Mono,monospace">—</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="button small" id="calFront">1 · จับด้านหน้า</button><button type="button" class="button small primary" id="calRight" disabled>2 · จับด้านขวา</button><button type="button" class="button small ghost" id="calUndo" disabled>ย้อนกลับ</button></div>
+<div class="s-small" id="calRes" style="margin-top:10px">ค่าตอนนี้: —</div></section>
+<section class="dsec"><h3>ทิศอ้างอิง (ตั้งเอง)</h3><div class="callout" style="margin-top:12px">ทิศอ้างอิง 0° = ตำแหน่งที่คุณถือแท็กแล้วกด "ตั้งเป็น 0°" ถ้าย้ายแท็กตามเข็มนาฬิกาแล้วมุมลดลง ให้กด "สลับ Reverse"</div><div class="btn-grid"><button class="button primary" id="setZeroBtn"><svg class="ic" aria-hidden="true"><use href="#i-crosshair"/></svg> ตั้งทิศแท็กที่เลือกเป็น 0°</button><button class="button" id="revBtn"><svg class="ic" aria-hidden="true"><use href="#i-swap"/></svg> สลับ Reverse</button></div><div class="s-small" id="calibState" style="margin-top:8px"></div></section>
 <section class="dsec"><h3>ระยะและสเกลเรดาร์</h3>
 <div class="seg" role="group" aria-label="วิธีคิดระยะ"><button type="button" class="seg-b" data-dist="rssi" aria-pressed="false">จากความแรงสัญญาณ</button><button type="button" class="seg-b" data-dist="geo" aria-pressed="false">จากมุม+ความสูง</button></div>
 <label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px">สเกลเรดาร์ (ขอบนอก)<select id="scaleSel" class="inpt" style="width:150px"><option value="auto">อัตโนมัติ</option><option value="3">3 เมตร</option><option value="5">5 เมตร</option><option value="10">10 เมตร</option><option value="15">15 เมตร</option><option value="max">สูงสุดของเครื่อง</option></select></label>
@@ -215,6 +220,7 @@ const PAGES=[['angle','360° Angle Test'],['beam','Beam Analysis'],['monitor','T
 const $=id=>document.getElementById(id), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),mod=x=>(x%360+360)%360, rad=d=>d*Math.PI/180,fmt=(n,d=1)=>Number(n).toFixed(d), time=ts=>new Date(ts).toLocaleTimeString('th-TH',{hour12:false});
 const EPC='';let page='angle',mode='MOCK',ws=null,events=[],sessions=[],lastTest=null,progress=0,animation=0,runTimer=null,history=[],sweepValue=[],liveCapture=[];
 const conf={az:0,distance:1,height:1.5,pol:'LHCP',duration:10,offset:252,reverse:true,tagOri:0,epc:EPC};
+try{const o=JSON.parse(localStorage.getItem('atr_orient')||'null');if(o&&Number.isFinite(o.offset)){conf.offset=((Math.round(o.offset)%360)+360)%360;conf.reverse=!!o.reverse}}catch(e){}
 try{sessions=JSON.parse(localStorage.getItem('atr_test_sessions_v1')||'[]');events=JSON.parse(localStorage.getItem('atr_test_events_v1')||'[]');if(!Array.isArray(events))events=[];if(!Array.isArray(sessions))sessions=[]}catch(e){sessions=[];events=[]}
 let pT=0;function persist(){if(pT)return;pT=setTimeout(()=>{pT=0;try{localStorage.setItem('atr_test_sessions_v1',JSON.stringify(sessions.slice(-1500)));localStorage.setItem('atr_test_events_v1',JSON.stringify(events.slice(-2500)));localStorage.setItem('atr_agg_v1',JSON.stringify(agg))}catch(e){}},1200)}
 events=events.filter(e=>e&&e.source!=='MOCK');sessions=sessions.filter(s=>s&&s.source!=='MOCK');
@@ -546,6 +552,31 @@ else if(t.id==='rpCsv')rpExport('csv');else if(t.id==='rpJson')rpExport('json');
 document.addEventListener('change',e=>{if(e.target.id==='bmTag'){bm.tag=e.target.value;bm.sel=null;bmRender()}else if(e.target.id==='cvTag'){cv.tag=e.target.value;cvDraw()}else if(e.target.id==='cvDots'){cv.dots=e.target.checked;cvDraw()}else if(e.target.id==='rpIdle'){rp.idle=e.target.checked;rpLast=0;rpRender()}});
 window.__np={bm:bmRender,cv:cvDraw,rp:rpRender};
 const cvc=$('cvCanvas');if(cvc){cvc.addEventListener('mousemove',cvHover);cvc.addEventListener('mouseleave',()=>setText('cvHover','เลื่อนเมาส์บนแผนที่เพื่อดูรายละเอียด'))}
+})();
+(function(){
+const live=$('calLive'),res=$('calRes'),bF=$('calFront'),bR=$('calRight'),bU=$('calUndo');if(!live||!bF)return;
+const save=()=>{try{localStorage.setItem('atr_orient',JSON.stringify({offset:conf.offset,reverse:conf.reverse}))}catch(e){}};
+const apply=(off,rev)=>{conf.offset=((Math.round(off)%360)+360)%360;conf.reverse=!!rev;$('offsetInput').value=conf.offset;const rt=$('reverseToggle');if(rt){rt.classList.toggle('on',conf.reverse);rt.setAttribute('aria-pressed',String(conf.reverse))}save();ltT=0;updateConfig();renderLive();drawRadar()};
+// initial UI state from what was saved / the defaults
+{const rt=$('reverseToggle');$('offsetInput').value=conf.offset;if(rt){rt.classList.toggle('on',conf.reverse);rt.setAttribute('aria-pressed',String(conf.reverse))}}
+const show=()=>{res.textContent='ค่าตอนนี้: Offset '+conf.offset+'° · Reverse '+(conf.reverse?'ON':'OFF')};show();
+// the page's own buttons (set 0 / reverse / offset field) must persist too
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#setZeroBtn,#revBtn,#reverseToggle'))setTimeout(()=>{save();show()},80)});
+const off=$('offsetInput');if(off)off.addEventListener('change',()=>setTimeout(()=>{save();show()},50));
+// samples of the selected tag's raw (un-offset) direction, to demand a steady tag before capturing
+const samp=[];let prev=null,front=null;
+const cur=()=>{const t=liveTags().find(x=>x.epc===selEpc);return t&&t.active&&t.beamAz!=null?t:null};
+setInterval(()=>{const now=Date.now(),t=cur();if(t){samp.push([now,t.beamAz,t.elev])}while(samp.length&&now-samp[0][0]>2200)samp.shift();
+if(page!=='angle'&&!$('drawer').classList.contains('open'))return;
+if(!selEpc){live.textContent='ยังไม่ได้เลือกแท็ก — คลิกแถวแท็กในรายการ'}else if(!t){live.textContent='แท็กที่เลือกยังไม่ถูกอ่าน'}else{const st=steady();live.textContent='ทิศดิบ '+fmt(t.beamAz,0)+'° · เงย '+fmt(t.elev,0)+'° · '+(st.ok?'นิ่งแล้ว ✓':st.why)}},300);
+function steady(){if(samp.length<4||Date.now()-samp[0][0]<1500)return {ok:false,why:'รอให้นิ่ง 2 วินาที…'};const az=samp.map(x=>x[1]),ref=az[az.length-1],dev=Math.max(...az.map(a=>Math.abs(angDiff(a,ref)))),el=samp[samp.length-1][2];if(dev>12)return {ok:false,why:'ยังขยับอยู่ (แกว่ง '+Math.round(dev)+'°)'};if(el!=null&&el<12)return {ok:false,why:'แท็กอยู่ใกล้ศูนย์กลางเกินไป ทิศไม่ชัด ย้ายห่างออก'};return {ok:true,az:ref}}
+function grab(){const t=cur();if(!t){res.textContent='เลือกแท็กและรอให้เครื่องอ่านก่อน';return null}const st=steady();if(!st.ok){res.textContent='ยังจับไม่ได้: '+st.why;return null}return st.az}
+bF.addEventListener('click',()=>{const a=grab();if(a==null)return;front=a;bR.disabled=false;res.textContent='จับด้านหน้าแล้ว: ทิศดิบ '+fmt(a,0)+'° → ตอนนี้ย้ายแท็กไปด้านขวา นิ่ง 2 วินาที แล้วกด "จับด้านขวา"'});
+bR.addEventListener('click',()=>{const b=grab();if(b==null||front==null)return;const sep=Math.abs(angDiff(b,front));if(sep<40){res.textContent='ด้านขวากับด้านหน้าต่างกันแค่ '+Math.round(sep)+'° ย้ายแท็กให้ห่างกว่านี้ (ควรราว 90°) แล้วกดใหม่';return}
+const rev=mod(b-front)>180;prev={offset:conf.offset,reverse:conf.reverse};apply(rev?front:-front,rev);bU.disabled=false;bR.disabled=true;
+res.textContent='ปรับแล้ว: Offset '+conf.offset+'° · Reverse '+(conf.reverse?'ON':'OFF')+' · ด้านขวาที่จับได้อยู่ที่ '+fmt(worldAz(b),0)+'° (ควรใกล้ 90°)'+(Math.abs(angDiff(worldAz(b),90))>35?' — ต่างจาก 90° มาก ลองทำซ้ำให้แท็กห่างและนิ่งกว่านี้':'');front=null});
+bU.addEventListener('click',()=>{if(!prev)return;apply(prev.offset,prev.reverse);bU.disabled=true;res.textContent='ย้อนกลับแล้ว: Offset '+conf.offset+'° · Reverse '+(conf.reverse?'ON':'OFF')});
+window.__orient={apply,save};
 })();
 setMode('MOCK');navSetup();render();openWs(true);})();
 </script>
