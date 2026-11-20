@@ -21,7 +21,7 @@ HEADER = ('<?xml version="1.0" encoding="UTF-8"?><rm:command epcglobal:creationD
           'epcglobal:schemaVersion="0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
           'xmlns:rm="urn:epcglobal:rm:xsd:1" xmlns:epcglobal="urn:epcglobal:xsd:1" xmlns:motorm="urn:motorfid:rm:xsd:1">')
 READ_ONLY = ("getReaderVersionInfo", "getName", "getModel", "getLocalTime", "getCPUUsage", "getRAMUsage",
-             "getActiveRegion", "isLLRPRunning", "getLLRPConfig")
+             "getActiveRegion", "isLLRPRunning", "getLLRPConfig", "getWatchdogStatus")
 
 
 class RMError(Exception):
@@ -146,5 +146,65 @@ def summary():
         "region": one("getActiveRegion", "regionName"),
         "llrp": {"running": one("isLLRPRunning", "LLRPStartStatus"), "port": one("getLLRPConfig", "portNum"),
                  "secure": one("getLLRPConfig", "IsSecure"), "validate_peer": one("getLLRPConfig", "ValidatePeerInSecureMode")},
-        "versions": vers,
+        "versions": vers, "watchdog": one("getWatchdogStatus", "enableWatchdog"),
     }
+
+
+# ---- writes (each one: login -> command -> saveConfigChanges -> logout). Region/LLRP/firmware/users are deliberately
+# not exposed here: they can cut the radio or this very link, or change legal frequency use - do those in the console.
+import re
+import time
+from datetime import datetime, timezone
+
+_HOST = re.compile(r"^[A-Za-z0-9]([A-Za-z0-9.\-]{0,62}[A-Za-z0-9])?$")
+
+
+def _with_session(fn):
+    rm = RM()
+    rm.login()
+    try:
+        fn(rm)
+    finally:
+        rm.logout()
+
+
+def _save(rm):
+    try:
+        rm._post("<motorm:saveConfigChanges/>")
+    except RMError as e:
+        if "noChangesCommit" not in str(e) and "No changes" not in str(e):
+            raise
+
+
+def write(op, arg=None):
+    """op: set_name | set_ntp | sync_time | set_watchdog | restart. Returns a short message."""
+    if op == "set_name":
+        if not isinstance(arg, str) or not 1 <= len(arg) <= 64 or any(ord(ch) < 32 for ch in arg):
+            raise RMError("ชื่อต้องยาว 1-64 ตัวอักษร")
+        _with_session(lambda rm: (rm._post("<motorm:setName><motorm:name>%s</motorm:name></motorm:setName>" % escape(arg)), _save(rm)))
+        return "ตั้งชื่อ reader เป็น \"%s\" แล้ว" % arg
+    if op == "set_ntp":
+        if not isinstance(arg, str) or not _HOST.match(arg):
+            raise RMError("ชื่อ/IP ของ NTP server ไม่ถูกต้อง")
+        _with_session(lambda rm: (rm._post("<motorm:setNTPConfig><motorm:Server>%s</motorm:Server></motorm:setNTPConfig>" % escape(arg)), _save(rm)))
+        return "ตั้ง NTP server เป็น %s แล้ว" % arg
+    if op == "sync_time":
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        _with_session(lambda rm: rm._post("<motorm:setLocalTime><motorm:dateTime>%s</motorm:dateTime></motorm:setLocalTime>" % now))
+        return "ตั้งเวลา reader เป็น %s (UTC) แล้ว" % now
+    if op == "set_watchdog":
+        if not isinstance(arg, bool):
+            raise RMError("ค่าไม่ถูกต้อง")
+        _with_session(lambda rm: (rm._post("<motorm:setWatchdogStatus><motorm:enableWatchdog>%s</motorm:enableWatchdog></motorm:setWatchdogStatus>" % ("true" if arg else "false")), _save(rm)))
+        return "%s watchdog แล้ว" % ("เปิด" if arg else "ปิด")
+    if op == "restart":
+        rm = RM()
+        rm.login()
+        try:
+            rm._post("<motorm:shutDown><motorm:restartNeeded>true</motorm:restartNeeded><motorm:forceShutdown>false</motorm:forceShutdown></motorm:shutDown>")
+        except RMError as e:
+            if "pendingChanges" in str(e):
+                raise RMError("มีการตั้งค่าที่ยังไม่ได้บันทึกบน reader — บันทึกหรือยกเลิกที่หน้าแอดมินก่อน")
+            raise
+        return "สั่งรีสตาร์ต reader แล้ว (ใช้เวลา 2-3 นาที bridge จะต่อกลับเอง)"
+    raise RMError("คำสั่งนี้ไม่อนุญาต")

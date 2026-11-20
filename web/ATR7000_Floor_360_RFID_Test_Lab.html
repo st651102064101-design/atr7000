@@ -268,6 +268,14 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <details style="margin-top:8px"><summary class="s-small" style="cursor:pointer">เวอร์ชันของส่วนต่าง ๆ</summary><div id="rmVers" class="s-small" style="margin-top:6px;line-height:1.7"></div></details>
 <div style="margin-top:10px"><button type="button" class="button small" id="rmRead">อ่านข้อมูลจาก reader</button></div>
 <div class="s-small" id="rmNote" style="margin-top:8px">ใช้ล็อกอินแอดมินจากไฟล์ reader.conf ในเครื่องคุณ อ่านอย่างเดียว ล็อกอินแล้วออกทันที <b>ถ้าเปิดหน้าแอดมินของ reader ค้างไว้ในเบราว์เซอร์ จะอ่านไม่ได้</b> (reader รับล็อกอินได้ทีละ session) ให้ออกจากระบบหน้านั้นก่อน</div></section>
+<section class="dsec" data-p="reader"><h3>ตั้งค่า reader (แอดมิน)</h3>
+<label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px">ชื่อ reader<input id="rmNameIn" class="inpt" type="text" maxlength="64" style="width:210px"></label>
+<div style="margin:8px 0 12px"><button type="button" class="button small" id="rmSetName">ตั้งชื่อ</button></div>
+<label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px">NTP server<input id="rmNtpIn" class="inpt" type="text" maxlength="63" placeholder="เช่น time.google.com" style="width:210px"></label>
+<div style="margin:8px 0 12px"><button type="button" class="button small" id="rmSetNtp">ตั้ง NTP</button> <button type="button" class="button small" id="rmSync">ตั้งเวลา reader ให้ตรงกับเครื่องนี้</button></div>
+<label class="sw-row" for="rmWd"><span>Watchdog (รีสตาร์ตเองถ้าระบบค้าง)</span><input id="rmWd" class="sw" type="checkbox" role="switch"></label>
+<div style="margin-top:14px"><button type="button" class="button small" id="rmRestart" style="color:#ff6b6b">รีสตาร์ต reader…</button></div>
+<div class="s-small" style="margin-top:8px">ตั้งแล้วเก็บถาวรบน reader · Region, ตั้งค่า LLRP, เฟิร์มแวร์, ผู้ใช้/รหัสผ่าน ไม่ได้อยู่ในหน้านี้โดยตั้งใจ (เสี่ยงทำให้วิทยุหรือการเชื่อมต่อนี้หลุด หรือกระทบกฎความถี่) ให้ตั้งที่หน้าแอดมินของ reader</div></section>
 <section class="dsec" data-p="reader"><div class="s-small" id="rdMsg">—</div></section>
 <section class="dsec" data-p="conn"><h3>การเชื่อมต่อ</h3><div class="s-small">Bridge เชื่อมต่ออัตโนมัติ (ws://localhost:8765) ลองใหม่ทุก 3 วินาที · สถานะดูที่ป้ายมุมบนขวา</div></section>
 <section class="dsec" data-p="adv"><h3>ทดสอบขั้นสูง</h3><details class="card drawer-adv"><summary style="cursor:pointer;padding:14px 18px;font-weight:700">Advanced · Guided test (optional — เก็บผลลง Test Report)</summary><div class="card config"><div class="panel-head"><span class="panel-title">Test setup</span><span class="panel-meta">01 / INPUT</span></div><div class="config-body"><div class="field"><div class="field-top"><label for="angleSlider">มุมวางแท็ก (Azimuth)</label><strong id="angleVal">0°</strong></div><input type="range" id="angleSlider" min="0" max="359" step="1" value="0"><div class="ticks"><span>0°</span><span>90°</span><span>180°</span><span>270°</span><span>359°</span></div><div class="flex-gap" style="margin-top:10px"><button class="button small ghost" data-angle="0">0°</button><button class="button small ghost" data-angle="90">90°</button><button class="button small ghost" data-angle="180">180°</button><button class="button small ghost" data-angle="270">270°</button><input id="angleNumeric" aria-label="มุมตัวเลข" class="inpt inline-mono" type="number" min="0" max="359" value="0" style="width:76px;padding:7px 7px"></div></div>
@@ -714,13 +722,19 @@ const p=i.power_dbm;if(p){const t=$('rdTx');t.min=p.min;t.max=p.max;if(!t.datase
 const v=i.tx&&i.tx.dbm_values;$('rdTxNow').textContent=v&&v.length?(v.length===1?v[0].toFixed(1)+' dBm (ทุกบีม)':v[0].toFixed(1)+'–'+v[v.length-1].toFixed(1)+' dBm (ต่างกันตามบีม)'):'—';
 const sm=$('sum-reader');if(sm)sm.textContent=v&&v.length?v[v.length-1].toFixed(1)+' dBm':(i.connected?'เชื่อมต่อแล้ว':'—')};
 const mb=n=>(n/1048576).toFixed(0)+' MB';
-const rmShow=o=>{const n=$('rmNote');if(!o.ok){n.textContent='✗ '+o.msg;return}const d=o.data;$('rmName').textContent=d.name||'—';$('rmRegion').textContent=d.region||'—';
+const rmShow=o=>{const n=$('rmNote');if(!o.ok){n.textContent='✗ '+o.msg;return}const d=o.data;$('rmName').textContent=d.name||'—';if(d.name&&document.activeElement!==$('rmNameIn'))$('rmNameIn').value=d.name;$('rmWd').checked=d.watchdog==='true';$('rmRegion').textContent=d.region||'—';
 const l=d.llrp||{};$('rmLlrp').textContent=(l.running==='true'?'ทำงาน':'ไม่ทำงาน')+' · พอร์ต '+(l.port||'?')+(l.secure==='true'?' · secure':'')+(l.validate_peer==='true'?' · ตรวจ peer':'');
 $('rmTime').textContent=d.time||'—';$('rmCpu').textContent=d.cpu&&d.cpu.user!=null?('user '+d.cpu.user+'% · system '+d.cpu.system+'%'):'—';
 $('rmRam').textContent=d.ram&&d.ram.total?mb(d.ram.used)+' / '+mb(d.ram.total):'—';
 $('rmVers').innerHTML=(d.versions||[]).map(v=>v[0].replace(/[<>&]/g,'')+' <b>'+v[1].replace(/[<>&]/g,'')+'</b>').join('<br>');n.textContent='✓ อ่านเมื่อ '+new Date().toLocaleTimeString()};
 $('rmRead').addEventListener('click',()=>{if(send({cmd:'reader',op:'rm_info'}))$('rmNote').textContent='กำลังล็อกอินและอ่านข้อมูล…'});
-window.__readerMsg=o=>{if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
+const rmw=(what,arg,extra)=>{if(send(Object.assign({cmd:'reader',op:'rm_write',what:what,arg:arg},extra||{})))$('rdMsg').textContent='กำลังส่งคำสั่งไปที่ reader…'};
+$('rmSetName').addEventListener('click',()=>{const v=$('rmNameIn').value.trim();if(!v){msg('ใส่ชื่อก่อน');return}if(confirm('ตั้งชื่อ reader เป็น "'+v+'"?'))rmw('set_name',v)});
+$('rmSetNtp').addEventListener('click',()=>{const v=$('rmNtpIn').value.trim();if(!v){msg('ใส่ชื่อหรือ IP ของ NTP server ก่อน');return}if(confirm('ตั้ง NTP server เป็น '+v+'?\n\nถ้า reader ติดต่อ server นี้ไม่ได้ เวลาของ reader จะไม่ซิงก์'))rmw('set_ntp',v)});
+$('rmSync').addEventListener('click',()=>{if(confirm('ตั้งเวลาของ reader ให้ตรงกับเวลาของเครื่องนี้ (UTC)?'))rmw('sync_time',null)});
+$('rmWd').addEventListener('change',e=>{const on=e.target.checked;if(!confirm((on?'เปิด':'ปิด')+' watchdog ของ reader?')){e.target.checked=!on;return}rmw('set_watchdog',on)});
+$('rmRestart').addEventListener('click',()=>{const t=prompt('รีสตาร์ต reader: การอ่านแท็กจะหยุดประมาณ 2-3 นาที bridge จะต่อกลับเอง\n\nพิมพ์ RESTART เพื่อยืนยัน');if(t===null)return;if(t.trim()!=='RESTART'){msg('ยกเลิก — พิมพ์ไม่ตรง');return}rmw('restart',null,{confirm:'RESTART'})});
+window.__readerMsg=o=>{if(o.type==='reader_rm_write'){msg((o.ok?'✓ ':'✗ ')+o.msg);if(o.ok&&o.what!=='restart')setTimeout(()=>send({cmd:'reader',op:'rm_info'}),1200);return}if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
 $('rdTx').addEventListener('input',()=>{$('rdTxVal').textContent=(+$('rdTx').value).toFixed(1)+' dBm'});
 $('rdRefresh').addEventListener('click',()=>{if(send({cmd:'reader',op:'info'}))msg('กำลังอ่านข้อมูลจาก reader…')});
 $('rdTxApply').addEventListener('click',()=>{const dbm=+$('rdTx').value,sc=$('rdTxScope').value,r=RINGS.find(x=>x[0]===sc),ants=r?range(r[2],r[3]):null;

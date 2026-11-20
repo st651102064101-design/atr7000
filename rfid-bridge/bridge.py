@@ -205,6 +205,28 @@ def start_rm_read():
     asyncio.ensure_future(run())
 
 
+def start_rm_write(what, arg):
+    """One admin write at a time (RM has a single session). Result goes back as reader_rm_write."""
+    if _rm_state["busy"]:
+        return
+    _rm_state["busy"] = True
+    loop = asyncio.get_running_loop()
+
+    async def run():
+        try:
+            m = await loop.run_in_executor(None, rm.write, what, arg)
+            obj = {"type": "reader_rm_write", "what": what, "ok": True, "msg": m}
+        except rm.RMError as e:
+            obj = {"type": "reader_rm_write", "what": what, "ok": False, "msg": str(e)}
+        except Exception as e:
+            obj = {"type": "reader_rm_write", "what": what, "ok": False, "msg": "ผิดพลาด: %s" % type(e).__name__}
+        finally:
+            _rm_state["busy"] = False
+            _rm_state["last"] = time.time()
+        await broadcast(obj)
+    asyncio.ensure_future(run())
+
+
 def handle_page_command(payload):
     """Only one command is accepted: focus a few beams. Input is validated strictly."""
     try:
@@ -232,6 +254,10 @@ def handle_page_command(payload):
             op = msg.get("op")
             if op == "rm_info":
                 start_rm_read()
+            elif op == "rm_write":
+                what, arg = msg.get("what"), msg.get("arg")
+                if what in ("set_name", "set_ntp", "sync_time", "set_watchdog", "restart") and (what != "restart" or msg.get("confirm") == "RESTART"):
+                    start_rm_write(what, arg)
             elif op == "info":
                 if llrp_client is not None:
                     llrp_client.request_op({"op": "info"})
