@@ -88,18 +88,24 @@ def build_rospec(antennas, rospec_id=ROSPEC_ID, dwell_ms=None):
 SWAP_MIN_S = 6.0   # a reinstall restarts the sweep; swapping faster than ~2 sweeps starves the late beams
 
 
-def build_plan(base, focus, extra_cap=60):
-    """Antenna order for one sweep. `focus` beams are repeated several times through the
-    sweep (the reader visits antennas in list order and accepts repeats), so a tracked
-    tag is revisited every ~0.2-0.3 s while every other beam is still visited once."""
-    focus = [a for a in dict.fromkeys(focus) if a in set(base)]
-    if not focus:
+def build_plan(base, focus, ring=(), extra_cap=48, ring_rep=2):
+    """Antenna order for one sweep. `focus` beams (nearest to the tracked tag) are repeated
+    several times through the sweep and `ring` beams (the wider neighbourhood, where the tag
+    goes next) a couple of times. The reader visits antennas in list order and accepts repeats,
+    so the tag is revisited every ~0.3 s and its neighbourhood every ~1 s, while every other
+    beam is still visited once per sweep."""
+    bs = set(base)
+    focus = [a for a in dict.fromkeys(focus) if a in bs]
+    ring = [a for a in dict.fromkeys(ring) if a in bs and a not in focus]
+    if not focus and not ring:
         return list(base)
-    m = max(2, min(10, extra_cap // len(focus)))
+    m = max(2, min(10, extra_cap // max(1, len(focus)))) if focus else ring_rep
     chunks = [base[i * len(base) // m:(i + 1) * len(base) // m] for i in range(m)]
     plan = []
-    for ch in chunks:
+    for i, ch in enumerate(chunks):
         plan += ch + focus
+        if ring and i % max(1, m // ring_rep) == 0 and sum(1 for j in range(i + 1) if j % max(1, m // ring_rep) == 0) <= ring_rep:
+            plan += ring
     return plan
 
 
@@ -180,15 +186,17 @@ class LlrpClient:
         self.reports = 0
         self.last_report = 0.0
         self.base = list(antennas)
-        self.focus = ()           # beams currently emphasised in the sweep
-        self.want = ()            # beams requested by the page
+        self.focus = ((), ())     # (focus beams, ring beams) currently emphasised in the sweep
+        self.want = ((), ())      # requested by the page
         self.last_swap = 0.0
         self.swaps = 0
 
-    def set_focus(self, beams):
-        """Ask for these beams to be scanned more often. Applied by the read loop."""
-        b = tuple(sorted(a for a in set(beams) if a in set(self.base)))[:12]
-        self.want = b
+    def set_focus(self, beams, ring=()):
+        """Ask for these beams (and a wider ring) to be scanned more often. Applied by the read loop."""
+        ok = set(self.base)
+        b = tuple(sorted(a for a in set(beams) if a in ok))[:12]
+        r = tuple(sorted(a for a in set(ring) if a in ok and a not in b))[:24]
+        self.want = (b, r)
 
     async def _install(self, antennas):
         b = await self._rpc(DELETE_ROSPEC, struct.pack("!I", 0), DELETE_ROSPEC_RESPONSE)
@@ -203,18 +211,18 @@ class LlrpClient:
     async def _maybe_swap(self):
         if self.want == self.focus or time.time() - self.last_swap < SWAP_MIN_S:
             return
-        plan = build_plan(self.base, list(self.want))
+        plan = build_plan(self.base, list(self.want[0]), list(self.want[1]))
         ok, why = await self._install(plan)
         self.last_swap = time.time()
         if ok:
             self.focus = self.want
             self.swaps += 1
-            self.log("[llrp] focus scan on %s (sweep %d entries)" % (list(self.focus) or "none", len(plan)))
+            self.log("[llrp] focus scan on %s ring %d (sweep %d entries)" % (list(self.focus[0]) or "none", len(self.focus[1]), len(plan)))
         else:
             self.log("[llrp] focus plan rejected (%s); back to the full sweep" % why)
-            self.want = ()
+            self.want = ((), ())
             ok2, why2 = await self._install(list(self.base))
-            self.focus = ()
+            self.focus = ((), ())
             if not ok2:
                 raise RuntimeError("could not restore the full sweep: %s" % why2)
 
@@ -287,7 +295,7 @@ class LlrpClient:
             self.log("[llrp] START_ROSPEC status %r" % (status_of(b),))
             self.writer.write(message(ENABLE_EVENTS_AND_REPORTS, self._next()))
             await self.writer.drain()
-            self.focus = ()
+            self.focus = ((), ())
             self.last_swap = time.time()
             self.log("[llrp] streaming tag reports")
             while True:

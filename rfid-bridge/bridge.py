@@ -174,7 +174,7 @@ async def ws_handler(reader, writer):
         clients.discard(writer)
         print("[ws] client disconnected (%d left)" % len(clients))
         if not clients and llrp_client is not None:
-            llrp_client.set_focus([])   # nobody is watching: back to the plain full sweep
+            llrp_client.set_focus([], [])   # nobody is watching: back to the plain full sweep
         writer.close()
 
 
@@ -187,9 +187,12 @@ def handle_page_command(payload):
         beams = msg.get("beams", [])
         if not isinstance(beams, list) or len(beams) > 24:
             return
-        beams = [b for b in beams if isinstance(b, int) and not isinstance(b, bool) and 1 <= b <= 9999]
+        clean = lambda xs: [b for b in xs if isinstance(b, int) and not isinstance(b, bool) and 1 <= b <= 9999]
+        ring = msg.get("ring", [])
+        if not isinstance(ring, list) or len(ring) > 48:
+            ring = []
         if llrp_client is not None:
-            llrp_client.set_focus(beams)
+            llrp_client.set_focus(clean(beams), clean(ring))
     except (ValueError, UnicodeDecodeError):
         pass
 
