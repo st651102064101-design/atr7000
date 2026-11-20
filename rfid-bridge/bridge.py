@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import llrp
+import rm
 
 HTTP_PORT = 8080
 WS_PORT = 8765
@@ -178,6 +179,32 @@ async def ws_handler(reader, writer):
         writer.close()
 
 
+_rm_state = {"busy": False, "last": 0.0}
+
+
+def start_rm_read():
+    """Read-only admin facts over RM (login -> read -> logout) off the event loop; one at a time, at most every 3 s."""
+    if _rm_state["busy"] or time.time() - _rm_state["last"] < 3:
+        return
+    _rm_state["busy"] = True
+    _rm_state["last"] = time.time()
+    loop = asyncio.get_running_loop()
+
+    async def run():
+        try:
+            data = await loop.run_in_executor(None, rm.summary)
+            obj = {"type": "reader_rm", "ok": True, "data": data}
+        except rm.RMError as e:
+            obj = {"type": "reader_rm", "ok": False, "msg": str(e)}
+        except Exception as e:
+            obj = {"type": "reader_rm", "ok": False, "msg": "ผิดพลาด: %s" % type(e).__name__}
+        finally:
+            _rm_state["busy"] = False
+            _rm_state["last"] = time.time()
+        await broadcast(obj)
+    asyncio.ensure_future(run())
+
+
 def handle_page_command(payload):
     """Only one command is accepted: focus a few beams. Input is validated strictly."""
     try:
@@ -203,7 +230,9 @@ def handle_page_command(payload):
         if isinstance(msg, dict) and msg.get("cmd") == "reader":
             # reader management over LLRP: {"cmd":"reader","op":"info"} or {"cmd":"reader","op":"power","dbm":10..36,"ants":[301..397]|null}
             op = msg.get("op")
-            if op == "info":
+            if op == "rm_info":
+                start_rm_read()
+            elif op == "info":
                 if llrp_client is not None:
                     llrp_client.request_op({"op": "info"})
             elif op == "power":

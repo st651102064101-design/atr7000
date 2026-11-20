@@ -262,6 +262,12 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">เวลาต่อบีม (dwell)<select id="rdDwell" class="inpt" style="width:110px"><option value="10">10 ms</option><option value="15">15 ms</option><option value="20" selected>20 ms</option><option value="30">30 ms</option><option value="50">50 ms</option></select></label>
 <div style="margin-top:10px"><button type="button" class="button small primary" id="rdScanApply">ใช้การสแกนนี้</button></div>
 <div class="s-small" id="rdScanNote" style="margin-top:8px">เลือกอย่างน้อย 1 วง ยิ่งน้อยวง รอบสแกนยิ่งสั้น แต่ได้ทิศน้อยลง</div></section>
+<section class="dsec" data-p="reader"><h3>ข้อมูลจากแอดมินของ reader (RM)</h3>
+<div class="rd-kv"><span>ชื่อ</span><b id="rmName">—</b></div><div class="rd-kv"><span>Region</span><b id="rmRegion">—</b></div><div class="rd-kv"><span>LLRP</span><b id="rmLlrp">—</b></div>
+<div class="rd-kv"><span>เวลาของ reader</span><b id="rmTime">—</b></div><div class="rd-kv"><span>CPU</span><b id="rmCpu">—</b></div><div class="rd-kv"><span>RAM</span><b id="rmRam">—</b></div>
+<details style="margin-top:8px"><summary class="s-small" style="cursor:pointer">เวอร์ชันของส่วนต่าง ๆ</summary><div id="rmVers" class="s-small" style="margin-top:6px;line-height:1.7"></div></details>
+<div style="margin-top:10px"><button type="button" class="button small" id="rmRead">อ่านข้อมูลจาก reader</button></div>
+<div class="s-small" id="rmNote" style="margin-top:8px">ใช้ล็อกอินแอดมินจากไฟล์ reader.conf ในเครื่องคุณ อ่านอย่างเดียว ล็อกอินแล้วออกทันที <b>ถ้าเปิดหน้าแอดมินของ reader ค้างไว้ในเบราว์เซอร์ จะอ่านไม่ได้</b> (reader รับล็อกอินได้ทีละ session) ให้ออกจากระบบหน้านั้นก่อน</div></section>
 <section class="dsec" data-p="reader"><div class="s-small" id="rdMsg">—</div></section>
 <section class="dsec" data-p="conn"><h3>การเชื่อมต่อ</h3><div class="s-small">Bridge เชื่อมต่ออัตโนมัติ (ws://localhost:8765) ลองใหม่ทุก 3 วินาที · สถานะดูที่ป้ายมุมบนขวา</div></section>
 <section class="dsec" data-p="adv"><h3>ทดสอบขั้นสูง</h3><details class="card drawer-adv"><summary style="cursor:pointer;padding:14px 18px;font-weight:700">Advanced · Guided test (optional — เก็บผลลง Test Report)</summary><div class="card config"><div class="panel-head"><span class="panel-title">Test setup</span><span class="panel-meta">01 / INPUT</span></div><div class="config-body"><div class="field"><div class="field-top"><label for="angleSlider">มุมวางแท็ก (Azimuth)</label><strong id="angleVal">0°</strong></div><input type="range" id="angleSlider" min="0" max="359" step="1" value="0"><div class="ticks"><span>0°</span><span>90°</span><span>180°</span><span>270°</span><span>359°</span></div><div class="flex-gap" style="margin-top:10px"><button class="button small ghost" data-angle="0">0°</button><button class="button small ghost" data-angle="90">90°</button><button class="button small ghost" data-angle="180">180°</button><button class="button small ghost" data-angle="270">270°</button><input id="angleNumeric" aria-label="มุมตัวเลข" class="inpt inline-mono" type="number" min="0" max="359" value="0" style="width:76px;padding:7px 7px"></div></div>
@@ -707,7 +713,14 @@ const show=()=>{const i=info||{};$('rdConn').textContent=i.connected?'เชื�
 const p=i.power_dbm;if(p){const t=$('rdTx');t.min=p.min;t.max=p.max;if(!t.dataset.set){t.value=Math.min(27,p.max);t.dataset.set='1'}$('rdTxVal').textContent=(+t.value).toFixed(1)+' dBm'}
 const v=i.tx&&i.tx.dbm_values;$('rdTxNow').textContent=v&&v.length?(v.length===1?v[0].toFixed(1)+' dBm (ทุกบีม)':v[0].toFixed(1)+'–'+v[v.length-1].toFixed(1)+' dBm (ต่างกันตามบีม)'):'—';
 const sm=$('sum-reader');if(sm)sm.textContent=v&&v.length?v[v.length-1].toFixed(1)+' dBm':(i.connected?'เชื่อมต่อแล้ว':'—')};
-window.__readerMsg=o=>{if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
+const mb=n=>(n/1048576).toFixed(0)+' MB';
+const rmShow=o=>{const n=$('rmNote');if(!o.ok){n.textContent='✗ '+o.msg;return}const d=o.data;$('rmName').textContent=d.name||'—';$('rmRegion').textContent=d.region||'—';
+const l=d.llrp||{};$('rmLlrp').textContent=(l.running==='true'?'ทำงาน':'ไม่ทำงาน')+' · พอร์ต '+(l.port||'?')+(l.secure==='true'?' · secure':'')+(l.validate_peer==='true'?' · ตรวจ peer':'');
+$('rmTime').textContent=d.time||'—';$('rmCpu').textContent=d.cpu&&d.cpu.user!=null?('user '+d.cpu.user+'% · system '+d.cpu.system+'%'):'—';
+$('rmRam').textContent=d.ram&&d.ram.total?mb(d.ram.used)+' / '+mb(d.ram.total):'—';
+$('rmVers').innerHTML=(d.versions||[]).map(v=>v[0].replace(/[<>&]/g,'')+' <b>'+v[1].replace(/[<>&]/g,'')+'</b>').join('<br>');n.textContent='✓ อ่านเมื่อ '+new Date().toLocaleTimeString()};
+$('rmRead').addEventListener('click',()=>{if(send({cmd:'reader',op:'rm_info'}))$('rmNote').textContent='กำลังล็อกอินและอ่านข้อมูล…'});
+window.__readerMsg=o=>{if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
 $('rdTx').addEventListener('input',()=>{$('rdTxVal').textContent=(+$('rdTx').value).toFixed(1)+' dBm'});
 $('rdRefresh').addEventListener('click',()=>{if(send({cmd:'reader',op:'info'}))msg('กำลังอ่านข้อมูลจาก reader…')});
 $('rdTxApply').addEventListener('click',()=>{const dbm=+$('rdTx').value,sc=$('rdTxScope').value,r=RINGS.find(x=>x[0]===sc),ants=r?range(r[2],r[3]):null;
