@@ -300,14 +300,14 @@ function drawHeatmap(){window.__np&&__np.cv()}function _lgHeat(){drawCanvas('hea
 function drawReport(){}function _lgRep(){drawCanvas('reportChart',(c,w,h)=>{const pad=34,W=w-55,H=h-70,x=pad,y=20;for(let i=0;i<=4;i++){c.strokeStyle='#213a4c';c.beginPath();c.moveTo(x,y+H*i/4);c.lineTo(x+W,y+H*i/4);c.stroke();c.fillStyle='#6b90a3';c.font='10px IBM Plex Mono,monospace';c.fillText(String(100-i*25)+'%',0,y+H*i/4+4)}const bins=Array.from({length:360},()=>[]);sessions.filter(q=>q.source!=='MOCK').forEach(s=>bins[Math.round(mod(s.angle))%360].push(s.ratio));bins.forEach((v,i)=>{if(!v.length)return;const avg=v.reduce((a,b)=>a+b,0)/v.length,xx=x+W*i/360;const grd=c.createLinearGradient(0,y,0,y+H);grd.addColorStop(0,'#48edc8');grd.addColorStop(1,'#15516d');c.fillStyle=grd;c.fillRect(xx,y+H*(1-avg/100),Math.max(1,W/360),H*avg/100)});for(let i=0;i<=12;i++){c.fillStyle='#6f92a4';c.textAlign='center';c.font='10px IBM Plex Mono,monospace';c.fillText((i*30)+'°',x+W*i/12,h-15)}if(!sessions.some(q=>q.source!=='MOCK')){c.fillStyle='#7293a7';c.font='13px IBM Plex Mono,monospace';c.fillText('No test sessions yet · Start a test or Sweep 360°',x+W/2,y+H/2)}})}
 const LK={longTau:40000,anchorRatio:2,anchorHold:2000,gate:35,thr:.4,interval:100,
   /* tags read >= 3 times/s follow quickly; rarely read tags need slower, stricter move detection or they flip on noise (measured: 19 vs 3 big jumps in 30 s) */
-  fast:{short:1000,sigDb:6.5,sigMin:4,moveHold:150,newWithin:5,newLead:8},slow:{short:2600,sigDb:6,sigMin:6,moveHold:1000,newWithin:4,newLead:6}};
-const lks={};
+  fast:{short:1000,sigDb:6.5,sigMin:4,moveHold:150,newWithin:5,newLead:8},slow:{short:2000,sigDb:6,sigMin:6,moveHold:400,newWithin:4,newLead:6}};
+const lks={};window.__lks=lks;
 const lkDb=x=>10*Math.log10(x);
 function lkMeans(list,now,tau){const pw={},wt={};for(const e of list){const k=tau?Math.exp(-(now-e.rx)/tau):1,b=e.beam_id;pw[b]=(pw[b]||0)+k*Math.pow(10,e.rssi/10);wt[b]=(wt[b]||0)+k}return {pw,wt}}
 /* 'lock': a long per-beam memory gives a steady reference position; it is held while the last 2.6 s still match the memory
    (the tag is stationary) and dropped when new strong beams appear or the picture changes for >= 1 s (the tag moved). */
 function lockUpdate(k,now){const L=lks[k]||(lks[k]={az:null,el:null,anchor:null,ch:null,mvSince:null,epoch:0,t:0,movedAt:0});if(now-L.t<LK.interval)return L;L.t=now;
-const recent=(hist[k]||[]).filter(e=>e.rx>=L.epoch&&now-e.rx<120000);if(recent.length<3)return L;const rate30=recent.filter(e=>now-e.rx<30000).length/30,P=rate30>=3?LK.fast:LK.slow;
+const recent=(hist[k]||[]).filter(e=>e.rx>=L.epoch&&now-e.rx<120000);if(recent.length<3)return L;const rate30=recent.filter(e=>now-e.rx<30000).length/30,P=(rate30>=3||pins[k]||k===selEpc)?LK.fast:LK.slow;   /* tags you follow (selected / pinned) always get the quick settings */
 let short=recent.filter(e=>now-e.rx<P.short);if(!short.length)short=recent.slice(-8);
 const sm=lkMeans(short,now,0),lm=lkMeans(recent,now,LK.longTau),sdb={};for(const b in sm.pw)sdb[b]=lkDb(sm.pw[b]/sm.wt[b]);
 const older=recent.filter(e=>now-e.rx>=P.short),ldb={};let rw;
