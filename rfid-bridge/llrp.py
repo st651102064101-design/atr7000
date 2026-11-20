@@ -63,8 +63,14 @@ def custom(vendor, subtype, body=b""):
     return tlv(P_CUSTOM, struct.pack("!II", vendor, subtype) + body)
 
 
+SUB_ANT_QUERY = 710        # MotoAntennaQueryConfig: EnableSLAll, EnableABFlip
+QUERY_FLIP = None          # None = off; bytes = encoding of the two booleans (experimental)
+
+
 def antenna_config(ant, dwell_ms):
     stop = custom(VENDOR_ZEBRA, SUB_ANT_STOP, struct.pack("!BH", 0, dwell_ms))
+    if QUERY_FLIP is not None:
+        stop += custom(VENDOR_ZEBRA, SUB_ANT_QUERY, QUERY_FLIP)
     cfg = custom(VENDOR_ZEBRA, SUB_ANT_CONFIG, stop)
     inv_cmd = tlv(P_C1G2_INV_CMD, struct.pack("!B", 0) + cfg)
     return tlv(P_ANT_CONFIG, struct.pack("!H", ant) + inv_cmd)
