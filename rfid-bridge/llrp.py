@@ -219,6 +219,7 @@ class LlrpClient:
         self.swaps = 0
         self.pending_scan = None   # (ants, session, flip, dwell) requested at run time
         self.pending_ops = []      # reader management requests from the page (info / power)
+        self.q = None              # message queue fed by _pump once streaming
         self.power_table = {}      # index -> dBm
         self.ant_tx = {}           # antenna -> (hop table, channel index, power index)
         self.info = {}
@@ -392,12 +393,30 @@ class LlrpClient:
         elif mtype == ERROR_MESSAGE:
             self.log("[llrp] ERROR_MESSAGE: %r" % (status_of(body),))
 
+    async def _get(self):
+        """next message: from the pump queue once the stream loop runs, else straight from the socket"""
+        if self.q is None:
+            return await self._recv()
+        item = await self.q.get()
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    async def _pump(self):
+        try:
+            while True:
+                self.q.put_nowait(await self._recv())
+        except asyncio.CancelledError:
+            raise
+        except BaseException as e:
+            self.q.put_nowait(e)
+
     async def _rpc(self, mtype, body, expect):
         mid = self._next()
         self.writer.write(message(mtype, mid, body))
         await self.writer.drain()
         while True:
-            t, rid, b = await asyncio.wait_for(self._recv(), 15)
+            t, rid, b = await asyncio.wait_for(self._get(), 15)
             if t == expect:
                 return b
             self._handle(t, rid, b)
@@ -435,10 +454,15 @@ class LlrpClient:
             self.focus = ((), ())
             self.last_swap = time.time()
             self.log("[llrp] streaming tag reports")
+            self.q = asyncio.Queue()
+            pump = asyncio.ensure_future(self._pump())
             while True:
-                t, mid, b = await self._recv()
-                self._handle(t, mid, b)
-                await self.writer.drain()
+                try:
+                    t, mid, b = await asyncio.wait_for(self._get(), 2)
+                    self._handle(t, mid, b)
+                    await self.writer.drain()
+                except asyncio.TimeoutError:
+                    pass          # no traffic: still serve page commands (e.g. undo a scan setting that silenced the reader)
                 if self.pending_ops:
                     await self._do_op(self.pending_ops.pop(0))
                 if self.pending_scan:
@@ -446,6 +470,11 @@ class LlrpClient:
                 elif self.want != self.focus:
                     await self._maybe_swap()
         finally:
+            self.q = None
+            try:
+                pump.cancel()
+            except NameError:
+                pass
             try:
                 self.writer.close()
             except Exception:

@@ -244,7 +244,7 @@ def handle_page_command(payload):
             if flip is not None and not isinstance(flip, bool):
                 return
             dwell = msg.get("dwell")
-            if dwell is not None and (not isinstance(dwell, int) or isinstance(dwell, bool) or not 10 <= dwell <= 50):
+            if dwell is not None and (not isinstance(dwell, int) or isinstance(dwell, bool) or not 15 <= dwell <= 50):
                 return
             if llrp_client is not None:
                 llrp_client.set_scan(ants, sess, flip, dwell)
