@@ -113,6 +113,7 @@ QUERY_FLIP = None          # None = off; bytes = encoding of the two booleans (e
 
 
 P_SINGULATION = 336         # C1G2SingulationControl: Session, TagPopulation, TagTransitTime
+RF_MODE = 19              # measured fastest on this reader (M4, 80 kHz BLF): ~36 reads/s vs ~24 default. None = reader default; else UHFC1G2RFModeTable ModeIdentifier sent as C1G2RFControl
 SESSION = None             # None = the reader's own default; 0..3 = Gen2 session sent with every antenna
 ONLY_EPC = None            # None = read every tag; hex string = Gen2 Select mask so ONLY this tag answers (fast tracking of one tag)
 P_C1G2_FILTER = 331
@@ -137,8 +138,9 @@ def antenna_config(ant, dwell_ms):
     if QUERY_FLIP is not None:
         stop += custom(VENDOR_ZEBRA, SUB_ANT_QUERY, QUERY_FLIP)
     cfg = custom(VENDOR_ZEBRA, SUB_ANT_CONFIG, stop)
+    rfc = tlv(335, struct.pack("!HH", RF_MODE, 0)) if RF_MODE is not None else b""
     sing = tlv(P_SINGULATION, struct.pack("!BHI", (SESSION & 3) << 6, 32, 0)) if SESSION is not None else b""
-    inv_cmd = tlv(P_C1G2_INV_CMD, struct.pack("!B", 0) + only_filter() + sing + cfg)
+    inv_cmd = tlv(P_C1G2_INV_CMD, struct.pack("!B", 0) + only_filter() + rfc + sing + cfg)
     return tlv(P_ANT_CONFIG, struct.pack("!H", ant) + inv_cmd)
 
 
@@ -292,10 +294,11 @@ class LlrpClient:
         # one tag answering alone: Gen2 session 0 lets it answer on every visit instead of waiting for its flag to reset
         self.pending_scan = (None, 0 if epc else getattr(self, "_sess_before", "keep"), None, None)
 
-    def set_scan(self, ants=None, session="keep", flip=None, dwell=None):
+    def set_scan(self, ants=None, session="keep", flip=None, dwell=None, rfmode="keep"):
         """Change what the reader scans while the bridge keeps running (applied by the read loop):
         ants = list of beam ids, session = None (reader default) or 0..3, flip = A/B flip on/off,
         dwell = ms per beam."""
+        self.pending_rf = rfmode
         self.pending_scan = (ants, session, flip, dwell)
 
     async def _apply_scan(self):
@@ -312,6 +315,11 @@ class LlrpClient:
             QUERY_FLIP = bytes([0, 1]) if flip else None
         if dwell:
             self.dwell_ms = int(dwell)
+        global RF_MODE
+        rf = getattr(self, "pending_rf", "keep")
+        self.pending_rf = "keep"
+        if rf != "keep":
+            RF_MODE = rf
         self.want = ((), ())
         ok, why = await self._install(list(self.base))
         self.last_swap = time.time()
@@ -320,7 +328,9 @@ class LlrpClient:
             save_settings(scan={"ants": list(self.base), "dwell": self.dwell_ms})
         self.log("[llrp] scan changed: %d beams, session %s, A/B flip %s, dwell %s ms -> %s" % (
             len(self.base), SESSION if SESSION is not None else "default", "on" if QUERY_FLIP else "off", self.dwell_ms, "ok" if ok else "REJECTED " + why))
+        self.log("[llrp] rf mode %s" % (RF_MODE if RF_MODE is not None else "default"))
         if not ok:
+            RF_MODE = None
             global ONLY_EPC
             ONLY_EPC = None        # never let a rejected filter keep the reader from starting
             SESSION = getattr(self, "_sess_before", None)
@@ -369,6 +379,13 @@ class LlrpClient:
                 for t2, tv2, v2 in parse_params(v[4:]):
                     if t2 == P_UHFBAND and not tv2:
                         for t3, tv3, v3 in parse_params(v2):
+                            if t3 == 328 and not tv3:
+                                modes = []
+                                for t4, tv4, v4 in parse_params(v3):
+                                    if t4 == 329 and not tv4 and v4 is not None and len(v4) >= 28:
+                                        mid, fl, m, flm, smi, bdr, pie, mint, maxt, stept = struct.unpack_from("!IBBBBIIIII", v4)
+                                        modes.append({"id": mid, "M": [1, 2, 4, 8][m & 3], "blf_khz": bdr // 1000, "tari_ns": [mint, maxt], "pie": pie})
+                                info["rf_modes"] = modes
                             if t3 == P_POWERENTRY and not tv3 and len(v3) >= 4:
                                 idx, cdbm = struct.unpack_from("!Hh", v3)
                                 self.power_table[idx] = cdbm / 100.0

@@ -250,8 +250,11 @@ def handle_page_command(payload):
             dwell = msg.get("dwell")
             if dwell is not None and (not isinstance(dwell, int) or isinstance(dwell, bool) or not 15 <= dwell <= 50):
                 return
+            rfm = msg.get("rfmode", "keep")
+            if rfm != "keep" and rfm is not None and (not isinstance(rfm, int) or isinstance(rfm, bool) or not 0 <= rfm <= 65535):
+                return
             if llrp_client is not None:
-                llrp_client.set_scan(ants, sess, flip, dwell)
+                llrp_client.set_scan(ants, sess, flip, dwell, rfm)
             return
         if isinstance(msg, dict) and msg.get("cmd") == "only":
             # {"cmd":"only","epc":"<hex>"|null}: the reader answers only this tag (fast tracking); null = all tags again
