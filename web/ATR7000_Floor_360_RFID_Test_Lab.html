@@ -897,16 +897,16 @@ btn.addEventListener('click',()=>{V.on=!V.on;save();apply()});
 // the zoom buttons drive the 3D camera while it is on
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#zIn,#zOut,#zReset');if(!b||!V.on)return;e.stopImmediatePropagation();e.preventDefault();if(b.id==='zIn')V.zoom=clamp(V.zoom*1.25,.4,6);else if(b.id==='zOut')V.zoom=clamp(V.zoom/1.25,.4,6);else{V.zoom=1;V.yaw=-35;V.pitch=28;save()}$('zVal').textContent=V.zoom.toFixed(1)+'×'},true);
 let drag=null;cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw:V.yaw,pitch:V.pitch,q:F3D?-1:1};cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'});
-cv.addEventListener('pointermove',e=>{if(!drag)return;V.yaw=drag.yaw+drag.q*(e.clientX-drag.x)*.45;V.pitch=clamp(drag.pitch+drag.q*(e.clientY-drag.y)*.35,-5,89)});
+cv.addEventListener('pointermove',e=>{if(!drag){const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let bk=null,bd=18;(V.pts||[]).forEach(o=>{const dd=Math.hypot(o.p.sx-mx,o.p.sy-my);if(dd<bd){bd=dd;bk=o.t.epc}});V.hov=bk;return}V.yaw=drag.yaw+drag.q*(e.clientX-drag.x)*.45;V.pitch=clamp(drag.pitch+drag.q*(e.clientY-drag.y)*.35,-5,89)});
 const end=e=>{if(drag){drag=null;cv.style.cursor='grab';save()}};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
 cv.addEventListener('wheel',e=>{e.preventDefault();V.zoom=clamp(V.zoom*(e.deltaY<0?1.1:1/1.1),.4,6);$('zVal').textContent=V.zoom.toFixed(1)+'×'},{passive:false});
 cv.addEventListener('dblclick',()=>{V.zoom=1;V.yaw=-35;V.pitch=28;save();$('zVal').textContent='1.0×'});
 const hex=/^#[0-9a-f]{6}$/i;
 V.draw=function(){drawCanvas('radar3d',(c,w,h)=>{const nP=performance.now();frameDt=clamp((nP-lastF)/1000,.001,.1);lastF=nP;frameId++;
 const tags=liveTags().filter(t=>t.shown),pts=[];let mh=0;
-tags.forEach(t=>{const d=dispOf(t);if(!d||d.az==null||d.el==null)return;const q=rangeOf({elev:d.el},d.rs);if(!q)return;const az=rad(d.az),el=rad(d.el),hh=q.s*Math.sin(el),z=q.s*Math.cos(el);pts.push({t:t,x:hh*Math.sin(az),y:hh*Math.cos(az),z:(MOUNT==='down'?-z:z),h:hh,s:q.s});mh=Math.max(mh,hh,z)});
-let M;if(scaleSel==='max')M=niceScale(dMaxM());else if(scaleSel!=='auto'&&isFinite(+scaleSel))M=+scaleSel;else{const tg=niceScale(Math.max(mh*1.15,1.5));if(tg>V.M){V.M=tg;V.mLow=0}else if(tg<V.M){if(!V.mLow)V.mLow=Date.now();if(Date.now()-V.mLow>12000){V.M=tg;V.mLow=0}}else V.mLow=0;M=V.M}
-const cx=w*.5,cy=h*.56,sc=Math.min(w,h)*.38/M*V.zoom,ya=rad(V.yaw),pa=rad(V.pitch),cyw=Math.cos(ya),syw=Math.sin(ya),cp=Math.cos(pa),sp=Math.sin(pa);
+tags.forEach(t=>{const d=dispOf(t);if(!d||d.az==null||d.el==null)return;const q=rangeOf({elev:d.el},d.rs);if(!q)return;const az=rad(d.az),el=rad(d.el),hh=q.s*Math.sin(el),z=q.s*Math.cos(el);pts.push({t:t,az:d.az,x:hh*Math.sin(az),y:hh*Math.cos(az),z:(MOUNT==='down'?-z:z),h:hh,s:q.s});mh=Math.max(mh,hh,z)});
+let M;if(scaleSel==='max')M=niceScale(dMaxM());else if(scaleSel!=='auto'&&isFinite(+scaleSel))M=+scaleSel;else{const ex=pts.map(o=>Math.max(o.h,Math.abs(o.z))).sort((a,b)=>a-b),pc=ex.length?ex[Math.min(ex.length-1,Math.floor(ex.length*.85))]:0;/* fit most tags big; a few far outliers may sit outside the grid */const tg=niceScale(Math.max(Math.min(mh,pc*1.3)*1.1,1.5));if(tg>V.M){V.M=tg;V.mLow=0}else if(tg<V.M){if(!V.mLow)V.mLow=Date.now();if(Date.now()-V.mLow>12000){V.M=tg;V.mLow=0}}else V.mLow=0;M=V.M}
+const cx=w*.5,cy=h*.6,sc=Math.min(w*.44,h*.5)/M*V.zoom,ya=rad(V.yaw),pa=rad(V.pitch),cyw=Math.cos(ya),syw=Math.sin(ya),cp=Math.cos(pa),sp=Math.sin(pa);
 const FL=F3D?-1:1,ZS=MOUNT==='down'?-1:1;const P=(x,y,z)=>{const x1=x*cyw-y*syw,y1=x*syw+y*cyw,y2=y1*cp-z*sp,z2=y1*sp+z*cp;return {sx:cx+FL*x1*sc,sy:cy-FL*z2*sc,d:y2}};
 c.lineWidth=1;c.font='10px IBM Plex Mono,monospace';
 // floor grid (z = 0): distance rings and compass spokes
@@ -921,7 +921,7 @@ c.strokeStyle='rgba(180,230,235,.22)';c.setLineDash([3,3]);c.beginPath();c.moveT
 c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(o.f.sx,o.f.sy,4,2,0,0,7);c.fill();
 const sel=k===selEpc,r=(sel?6.5:4.6)*clamp(1-o.p.d*sc/900,.7,1.3);c.globalAlpha=t.active?1:.45;c.shadowColor=col;c.shadowBlur=sel?16:7;c.fillStyle=col;c.beginPath();c.arc(o.p.sx,o.p.sy,r,0,7);c.fill();c.shadowBlur=0;
 if(sel){c.strokeStyle='#63a8ff';c.lineWidth=2;c.beginPath();c.arc(o.p.sx,o.p.sy,r+4,0,7);c.stroke();c.lineWidth=1}
-if(sel||pins[k]||names[k]){c.fillStyle=col;c.font='11px Inter,Kanit,sans-serif';c.fillText(String(nameOf(k)).slice(0,14)+'  z '+o.z.toFixed(1)+' m'+(MOUNT==='down'?' (ใต้ reader)':''),o.p.sx+r+5,o.p.sy+4);c.font='10px IBM Plex Mono,monospace'}c.globalAlpha=1});
+c.globalAlpha=1;if(sel||pins[k]||names[k]||k===V.hov){const tx=String(nameOf(k)).slice(0,14)+(k===V.hov||sel?'  ทิศ '+Math.round(o.az)+'° · ห่าง '+o.h.toFixed(1)+' m · สูง '+o.z.toFixed(1)+' m':'')+(MOUNT==='down'?' (ใต้)':'');c.font='11px Inter,Kanit,sans-serif';const tw=c.measureText(tx).width,lx=Math.min(o.p.sx+r+6,w-tw-12),ly=o.p.sy-4;c.fillStyle='rgba(8,20,30,.88)';c.fillRect(lx-4,ly-11,tw+8,16);c.strokeStyle=col;c.strokeRect(lx-4.5,ly-11.5,tw+9,17);c.fillStyle='#eaf8fa';c.fillText(tx,lx,ly+1);c.font='10px IBM Plex Mono,monospace'}});V.pts=pts;
 const P0=P(0,0,0);c.strokeStyle='#36dfcf';c.lineWidth=2;c.beginPath();c.arc(P0.sx,P0.sy,9,0,7);c.stroke();c.fillStyle='rgba(54,223,207,.25)';c.fill();c.lineWidth=1;c.fillStyle='#bff5ee';c.fillText('ATR',P0.sx-9,P0.sy-13);
 c.fillStyle='rgba(160,190,200,.7)';c.fillText('3D · '+pts.length+' แท็ก · x/y จากทิศ+ระยะ, z = สูงเหนือ reader (ประมาณ ±)',12,h-12)})};
 apply()})();
