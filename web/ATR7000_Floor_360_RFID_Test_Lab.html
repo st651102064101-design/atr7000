@@ -315,7 +315,7 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <div class="st-row"><div class="st-txt"><b>พลิกภาพเรดาร์ 2D กลับหัว</b><small>หมุนภาพ 180° ตัวหนังสือยังอ่านได้ปกติ</small></div><input id="flip2d" class="sw" type="checkbox" role="switch" aria-label="พลิก 2D"></div>
 <div class="st-row"><div class="st-txt"><b>พลิกภาพ 3D กลับหัว</b><small>หมุนกล้อง 180° รอบแกนมอง (บนกลายเป็นล่าง)</small></div><input id="flip3d" class="sw" type="checkbox" role="switch" aria-label="พลิก 3D"></div>
 <div class="s-small" style="margin-top:8px">เปลี่ยนการติดตั้งแล้ว ซ้าย-ขวาอาจกลับด้าน ให้ใช้ตัวช่วย "ปรับทิศซ้าย-ขวาให้ตรง" ด้านบนอีกรอบ</div></section>
-<section class="dsec" data-p="orient"><h3>ทิศอ้างอิง (ตั้งเอง)</h3><div class="callout" style="margin-top:12px">ทิศอ้างอิง 0° = ตำแหน่งที่คุณถือแท็กแล้วกด "ตั้งเป็น 0°" ถ้าย้ายแท็กตามเข็มนาฬิกาแล้วมุมลดลง ให้กด "สลับ Reverse"</div><div class="btn-grid"><button class="button primary" id="setZeroBtn"><svg class="ic" aria-hidden="true"><use href="#i-crosshair"/></svg> ตั้งทิศแท็กที่เลือกเป็น 0°</button><button class="button" id="revBtn"><svg class="ic" aria-hidden="true"><use href="#i-swap"/></svg> สลับ Reverse</button></div><div class="s-small" id="calibState" style="margin-top:8px"></div></section>
+<section class="dsec" data-p="orient"><h3>ทิศอ้างอิง (ตั้งเอง)</h3><div class="callout" style="margin-top:12px">ทิศอ้างอิง 0° = ตำแหน่งที่คุณถือแท็กแล้วกด "ตั้งเป็น 0°" ถ้าย้ายแท็กตามเข็มนาฬิกาแล้วมุมลดลง ให้กด "สลับ Reverse"</div><div class="btn-grid"><button class="button primary" id="setZeroBtn"><svg class="ic" aria-hidden="true"><use href="#i-crosshair"/></svg> ตั้งทิศแท็กที่เลือกเป็น 0°</button><button class="button" id="revBtn"><svg class="ic" aria-hidden="true"><use href="#i-swap"/></svg> สลับ Reverse</button></div><div class="btn-grid" style="margin-top:8px;grid-template-columns:repeat(4,1fr)"><button class="button" data-rot="-90">−90°</button><button class="button" data-rot="90">+90°</button><button class="button" data-rot="180">180°</button><label class="s-small" style="display:flex;align-items:center;gap:6px">หมุน <input id="rotNum" type="number" step="1" style="width:64px"></label></div><div class="s-small" id="calibState" style="margin-top:8px"></div></section>
 <section class="dsec" data-p="dist"><h3>ระยะและสเกลเรดาร์</h3>
 <div class="seg" role="group" aria-label="วิธีคิดระยะ"><button type="button" class="seg-b" data-dist="rssi" aria-pressed="false">จากความแรงสัญญาณ</button><button type="button" class="seg-b" data-dist="geo" aria-pressed="false">จากมุม+ความสูง</button></div>
 <label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px">สเกลเรดาร์ (ขอบนอก)<select id="scaleSel" class="inpt" style="width:150px"><option value="auto">อัตโนมัติ</option><option value="3">3 เมตร</option><option value="5">5 เมตร</option><option value="10">10 เมตร</option><option value="15">15 เมตร</option><option value="max">สูงสุดของเครื่อง</option></select></label>
@@ -737,6 +737,14 @@ else if(t.id==='rpCsv')rpExport('csv');else if(t.id==='rpJson')rpExport('json');
 document.addEventListener('change',e=>{if(e.target.id==='bmTag'){bm.tag=e.target.value;bm.sel=null;bmRender()}else if(e.target.id==='cvTag'){cv.tag=e.target.value;cvDraw()}else if(e.target.id==='cvDots'){cv.dots=e.target.checked;cvDraw()}else if(e.target.id==='rpIdle'){rp.idle=e.target.checked;rpLast=0;rpRender()}});
 window.__np={bm:bmRender,cv:cvDraw,rp:rpRender};
 const cvc=$('cvCanvas');if(cvc){cvc.addEventListener('mousemove',cvHover);cvc.addEventListener('mouseleave',()=>setText('cvHover','เลื่อนเมาส์บนแผนที่เพื่อดูรายละเอียด'))}
+})();
+(function(){const off=$('offsetInput'),num=$('rotNum');if(!off||!num)return;
+const get=()=>((Math.round(Number(off.value)||0)%360)+360)%360;
+const set=v=>{const o=((Math.round(v)%360)+360)%360;off.value=o;num.value=o;try{const c=JSON.parse(localStorage.getItem('atr_orient')||'{}');localStorage.setItem('atr_orient',JSON.stringify({offset:o,reverse:!!c.reverse}))}catch(e){}off.dispatchEvent(new Event('input',{bubbles:true}));off.dispatchEvent(new Event('change',{bubbles:true}));ltT=0;try{renderLive();drawRadar()}catch(e){}};
+num.value=get();
+document.querySelectorAll('[data-rot]').forEach(b=>b.addEventListener('click',()=>set(get()+Number(b.dataset.rot))));
+num.addEventListener('change',()=>set(Number(num.value)||0));
+off.addEventListener('change',()=>{num.value=get()});
 })();
 (function(){
 const live=$('calLive'),res=$('calRes'),bF=$('calFront'),bR=$('calRight'),bU=$('calUndo');if(!live||!bF)return;
