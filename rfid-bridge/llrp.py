@@ -340,11 +340,8 @@ class LlrpClient:
                         self.dwell_ms = dw
                     ok, why = await self._install(list(self.base))
                     self.log("[llrp] restored saved scan: %d beams, %s ms -> %s" % (len(self.base), self.dwell_ms, "ok" if ok else "REJECTED " + why))
-            for e in st.get("power", []) if isinstance(st.get("power"), list) else []:
-                dbm = e.get("dbm")
-                ants = e.get("ants")
-                if isinstance(dbm, (int, float)) and 10 <= dbm <= 36 and (ants is None or (isinstance(ants, list) and all(isinstance(a, int) and 301 <= a <= 397 for a in ants))):
-                    await self._do_op({"op": "power", "dbm": float(dbm), "ants": ants, "persist": False})
+            # always start at the reader's maximum TX power (longest range); a lower value chosen on the page lasts until the next reconnect
+            await self._do_op({"op": "power", "dbm": 99.0, "ants": None, "persist": False})   # nearest table entry = the maximum
         except (RuntimeError, ConnectionError, OSError, asyncio.TimeoutError) as ex:
             self.log("[llrp] could not restore saved settings: %s" % ex)
 
