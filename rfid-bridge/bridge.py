@@ -411,7 +411,7 @@ async def main():
     if "--no-llrp" not in sys.argv:
         a, b = arg("--ants", "301-397").split("-")
         ants = list(range(int(a), int(b) + 1))
-        host = arg("--llrp-host", "192.168.1.10")
+        host = arg("--llrp-host", "192.168.3.222")
         port = int(arg("--llrp-port", "5085"))
         tls = "--llrp-plain" not in sys.argv
         print("  LLRP          : %s:%d (%s) antennas %s-%s  [--no-llrp to disable]" % (host, port, "TLS" if tls else "plain", a, b))
