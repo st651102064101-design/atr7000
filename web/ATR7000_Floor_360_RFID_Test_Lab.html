@@ -275,7 +275,7 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <div class="mobile-nav" id="mobileNav"></div>
 <div class="shell">
 <aside class="sidebar"><div class="brand"><div class="brand-mark"></div><div><div class="brand-title">ATR7000<span style="color:var(--cyan)"> / LAB</span></div><div class="brand-sub">RFID FIELD TEST SYSTEM</div></div></div><div class="nav-title">TEST WORKSPACE</div><nav class="nav" id="nav"></nav><div class="sidebar-footer"><div class="flex-gap"><span class="status-point" id="sideLight"></span><strong id="sideMode">SIMULATOR ACTIVE</strong></div><p class="s-small">Floor-up test configuration<br>Interface v1.0 · 5 modules<br><span style="color:#e4bd85">Real reads only · connect the bridge</span></p></div></aside>
-<main class="content"><div class="topbar"><div class="tb-left"><button class="sb-toggle" id="sbToggle" type="button" aria-label="ซ่อน/แสดงแถบข้าง" aria-expanded="true" title="ซ่อน/แสดงแถบข้าง (Ctrl/⌘ + B)"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="15" height="13" rx="3"/><path d="M7.5 3.5v13"/></svg></button><div class="breadcrumb"><span>RFID TEST LAB</span><span class="line"></span><span id="crumb">360° ANGLE TEST</span></div></div><div class="top-actions"><button class="button small" id="settingsBtn" aria-controls="drawer"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg> ตั้งค่า</button><span class="pill warn" id="modeBadge">● MOCK DATA</span><span class="pill">FLOOR-UP / RADOME ↑</span><span class="pill" id="clock"></span></div></div>
+<main class="content"><div class="topbar"><div class="tb-left"><button class="sb-toggle" id="sbToggle" type="button" aria-label="ซ่อน/แสดงแถบข้าง" aria-expanded="true" title="ซ่อน/แสดงแถบข้าง (Ctrl/⌘ + B)"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="15" height="13" rx="3"/><path d="M7.5 3.5v13"/></svg></button><div class="breadcrumb"><span>RFID TEST LAB</span><span class="line"></span><span id="crumb">360° ANGLE TEST</span></div></div><div class="top-actions"><button class="button small" id="settingsBtn" aria-controls="drawer"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg> ตั้งค่า</button><span class="pill warn" id="modeBadge">● MOCK DATA</span><span class="pill" id="mountPill">FLOOR-UP / RADOME ↑</span><span class="pill" id="clock"></span></div></div>
 <section class="view active" id="view-angle">
 <div class="heading"><div><div class="eyebrow">01 / REAL-TIME DIRECTION</div><h1 class="h1">Live Tag Direction</h1><p class="lead">แสดงทิศ (Azimuth) และมุมเงยของทุกแท็กที่ ATR7000 อ่านเจอแบบ real-time จาก beam ที่สัญญาณแรงสุด ไม่ต้องตั้งค่ามุมหรือระยะ แท็กใหม่จะปรากฏเองทันที</p></div><span class="code-chip">AZ 0–359° &nbsp; | &nbsp; TILT 0–90°</span></div>
 <div class="kpis"><div class="card kpi"><div class="kpi-label">MEASURED AZIMUTH</div><div class="kpi-value" id="kAngle">0°</div><div class="kpi-foot">ทิศของแท็กที่เลือก (หลังชดเชย Offset)</div></div><div class="card kpi"><div class="kpi-label">BEAM TILT</div><div class="kpi-value yellow" id="kTilt">53.1°</div><div class="kpi-foot">มุมเงยจากแนวดิ่งของ beam ที่แรงสุด</div></div><div class="card kpi"><div class="kpi-label">ACTIVE TAGS</div><div class="kpi-value green" id="kReads">—</div><div class="kpi-foot">แท็กที่อ่านเจอใน 3 วินาทีล่าสุด</div></div><div class="card kpi"><div class="kpi-label">STRONGEST PORT</div><div class="kpi-value blue" id="kBeam">—</div><div class="kpi-foot">พอร์ต/beam ที่แรงสุดของแท็กที่เลือก</div></div></div>
@@ -298,6 +298,12 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <div class="s-small" id="calLive" style="margin:10px 0;font-family:IBM Plex Mono,monospace">—</div>
 <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="button small" id="calFront">1 · จับด้านหน้า</button><button type="button" class="button small primary" id="calRight" disabled>2 · จับด้านขวา</button><button type="button" class="button small ghost" id="calUndo" disabled>ย้อนกลับ</button></div>
 <div class="s-small" id="calRes" style="margin-top:10px">ค่าตอนนี้: —</div></section>
+<section class="dsec" data-p="orient"><h3>การติดตั้งและการพลิกภาพ</h3>
+<div class="st-txt" style="margin-bottom:8px"><b>เครื่อง ATR7000 ติดตั้งแบบไหน</b><small>หงาย = วางพื้น/โดมหันขึ้น · คว่ำ = ติดเพดาน/โดมหันลง (แท็กอยู่ใต้เครื่อง)</small></div>
+<div class="seg" role="group" aria-label="การติดตั้ง"><button type="button" class="seg-b" data-mount="up">หงาย ↑</button><button type="button" class="seg-b" data-mount="down">คว่ำ ↓ (ติดเพดาน)</button></div>
+<div class="st-row"><div class="st-txt"><b>พลิกภาพเรดาร์ 2D กลับหัว</b><small>หมุนภาพ 180° ตัวหนังสือยังอ่านได้ปกติ</small></div><input id="flip2d" class="sw" type="checkbox" role="switch" aria-label="พลิก 2D"></div>
+<div class="st-row"><div class="st-txt"><b>พลิกภาพ 3D กลับหัว</b><small>หมุนกล้อง 180° รอบแกนมอง (บนกลายเป็นล่าง)</small></div><input id="flip3d" class="sw" type="checkbox" role="switch" aria-label="พลิก 3D"></div>
+<div class="s-small" style="margin-top:8px">เปลี่ยนการติดตั้งแล้ว ซ้าย-ขวาอาจกลับด้าน ให้ใช้ตัวช่วย "ปรับทิศซ้าย-ขวาให้ตรง" ด้านบนอีกรอบ</div></section>
 <section class="dsec" data-p="orient"><h3>ทิศอ้างอิง (ตั้งเอง)</h3><div class="callout" style="margin-top:12px">ทิศอ้างอิง 0° = ตำแหน่งที่คุณถือแท็กแล้วกด "ตั้งเป็น 0°" ถ้าย้ายแท็กตามเข็มนาฬิกาแล้วมุมลดลง ให้กด "สลับ Reverse"</div><div class="btn-grid"><button class="button primary" id="setZeroBtn"><svg class="ic" aria-hidden="true"><use href="#i-crosshair"/></svg> ตั้งทิศแท็กที่เลือกเป็น 0°</button><button class="button" id="revBtn"><svg class="ic" aria-hidden="true"><use href="#i-swap"/></svg> สลับ Reverse</button></div><div class="s-small" id="calibState" style="margin-top:8px"></div></section>
 <section class="dsec" data-p="dist"><h3>ระยะและสเกลเรดาร์</h3>
 <div class="seg" role="group" aria-label="วิธีคิดระยะ"><button type="button" class="seg-b" data-dist="rssi" aria-pressed="false">จากความแรงสัญญาณ</button><button type="button" class="seg-b" data-dist="geo" aria-pressed="false">จากมุม+ความสูง</button></div>
@@ -361,7 +367,7 @@ let pT=0;function persist(){if(pT)return;pT=setTimeout(()=>{pT=0;try{localStorag
 events=events.filter(e=>e&&e.source!=='MOCK');sessions=sessions.filter(s=>s&&s.source!=='MOCK');
 let agg={};try{agg=JSON.parse(localStorage.getItem('atr_agg_v1')||'{}')||{}}catch(e){agg={}}
 const isReal=e=>e&&e.source!=='MOCK';
-let UPD_C=30,INST=false,focusAuto='',selEpc=null,trk={},hid={},lat=null,evCount=0,evRate=0,ltC=null,ltT=0;const flt={q:'',min:-90,active:false,maxAge:60};
+let F2D=false,F3D=false,MOUNT='up',UPD_C=30,INST=false,focusAuto='',selEpc=null,trk={},hid={},lat=null,evCount=0,evRate=0,ltC=null,ltT=0;const flt={q:'',min:-90,active:false,maxAge:60};
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};let names=ld('atr_tag_names',{}),pins=ld('atr_tag_pins',{}),colors=ld('atr_tag_colors',{});for(const k in colors)if(!/^#[0-9a-f]{6}$/i.test(colors[k]))delete colors[k];
 const svTags=()=>{try{localStorage.setItem('atr_tag_names',JSON.stringify(names));localStorage.setItem('atr_tag_pins',JSON.stringify(pins));localStorage.setItem('atr_tag_colors',JSON.stringify(colors))}catch(e){}};
 const escH=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -407,7 +413,12 @@ setTimeout(()=>{progress=0;$('timeProgress').style.width='0%'},600);resolve()}
 },100)})}
 async function sweepTest(){if(runTimer)return;if(mode!=='LIVE'){alert('ต้องเชื่อมต่อ Bridge ก่อน (หน้า Tag Monitor > Connect bridge)');return}const step=Number($('sweepStep').value)||45,steps=Math.round(360/step);if(!confirm('Guided sweep: '+steps+' ตำแหน่ง ทุก '+step+'° ตำแหน่งละ '+conf.duration+' วินาที\nมุม 0° = ตำแหน่งอ้างอิงของคุณ (ตำแหน่ง "บน")\nกด OK เพื่อเริ่ม'))return;for(let i=0;i<steps;i++){const az=i*step;$('angleSlider').value=az;updateConfig();if(!confirm('ตำแหน่ง '+(i+1)+'/'+steps+': ย้ายแท็กไปที่ '+az+'° (ห่าง '+fmt(conf.distance)+' ม. สูง '+fmt(conf.height)+' ม.) ถือให้นิ่ง แล้วกด OK เพื่อเก็บข้อมูล '+conf.duration+' วินาที\n(Cancel = หยุด)'))break;await startTest()}render();show('report')}
 function calibrate(){const S=sessions.filter(x=>x.source==='LIVE'&&x.obs_beam_az!=null&&x.reads>0);if(S.length<3){alert('ต้องมีผลทดสอบจริงอย่างน้อย 3 ตำแหน่ง (คนละมุม) — ตอนนี้มี '+S.length+' · ใช้ Start Test หรือ Guided Sweep ก่อน');return}const fit=rev=>{const offs=S.map(x=>mod(rev?x.angle+x.obs_beam_az:x.angle-x.obs_beam_az));let sx=0,sy=0;offs.forEach(o=>{sx+=Math.sin(rad(o));sy+=Math.cos(rad(o))});const m=mod(Math.atan2(sx,sy)*180/Math.PI);const rms=Math.sqrt(offs.reduce((q,o)=>q+Math.pow(angDiff(o,m),2),0)/offs.length);return {rev,off:Math.round(m),rms}};const A=fit(false),B=fit(true),best=B.rms<A.rms?B:A;conf.reverse=best.rev;conf.offset=best.off;$('offsetInput').value=best.off;$('reverseToggle').classList.toggle('on',conf.reverse);$('reverseToggle').setAttribute('aria-pressed',String(conf.reverse));updateConfig();render();alert('Auto-calibrate จาก '+S.length+' ตำแหน่ง\nReverse = '+(best.rev?'เปิด':'ปิด')+' · Offset = '+best.off+'°\nความคลาดเฉลี่ย (RMS) = '+fmt(best.rms,1)+'°  (อีกแบบ: '+fmt((best.rev?A:B).rms,1)+'°)')}
-function drawCanvas(id,fn){const cv=$(id);if(!cv)return;const rect=cv.getBoundingClientRect();if(!rect.width)return;const w=Math.max(300,Math.round(rect.width)),h=Math.max(190,Math.round(rect.height));const dpr=Math.min(window.devicePixelRatio||1,2);if(cv.width!==Math.floor(w*dpr)||cv.height!==Math.floor(h*dpr)){cv.width=Math.floor(w*dpr);cv.height=Math.floor(h*dpr)}const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);fn(ctx,w,h)}
+function drawCanvas(id,fn){const cv=$(id);if(!cv)return;const rect=cv.getBoundingClientRect();if(!rect.width)return;const w=Math.max(300,Math.round(rect.width)),h=Math.max(190,Math.round(rect.height));const dpr=Math.min(window.devicePixelRatio||1,2);if(cv.width!==Math.floor(w*dpr)||cv.height!==Math.floor(h*dpr)){cv.width=Math.floor(w*dpr);cv.height=Math.floor(h*dpr)}const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+if(!ctx.__ft)ctx.__ft=ctx.fillText;
+if(id==='radarCanvas'&&F2D){ctx.translate(w/2,h/2);ctx.rotate(Math.PI);ctx.translate(-w/2,-h/2);
+ctx.fillText=function(t,x,y,mw){const m=ctx.getTransform(),p=m.transformPoint(new DOMPoint(x,y)),al=ctx.textAlign;ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.textAlign=(al==='left'||al==='start')?'right':(al==='right'||al==='end')?'left':al;if(mw!=null)ctx.__ft.call(ctx,t,p.x/dpr,p.y/dpr,mw);else ctx.__ft.call(ctx,t,p.x/dpr,p.y/dpr);ctx.restore()}}
+else ctx.fillText=ctx.__ft;
+fn(ctx,w,h)}
 let zoom=1,panX=0,panY=0,tagH=(()=>{try{return +localStorage.getItem('atr_tag_h')||1.5}catch(e){return 1.5}})();
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}};
 let distMode=lsGet('atr_dist_mode','rssi'),P1=parseFloat(lsGet('atr_p1','-42')),scaleSel=lsGet('atr_scale','auto'),autoScale=3,autoLow=0;if(!isFinite(P1))P1=-42;
@@ -538,9 +549,9 @@ $('settingsBtn').addEventListener('click',()=>open(!d.classList.contains('open')
 (function(){const cv=$('radarCanvas'),th=$('tagH');if(th){th.value=tagH;th.addEventListener('input',()=>{const v=Number(th.value);if(v>=.2&&v<=30){tagH=v;try{localStorage.setItem('atr_tag_h',String(v))}catch(e){}ltT=0;renderLive()}})}
 const setZ=(nz,mx,my)=>{nz=clamp(nz,.5,8);const r=cv.getBoundingClientRect(),cx=r.width*.5+panX,cy=r.height*.52+panY,k=nz/zoom;if(mx!=null){panX=mx-r.width*.5-(mx-cx)*k;panY=my-r.height*.52-(my-cy)*k}zoom=nz;setText('zVal',zoom.toFixed(1)+'×')};
 const reset=()=>{zoom=1;panX=0;panY=0;setText('zVal','1.0×')};
-cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect();setZ(zoom*Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;setZ(zoom*Math.exp(-e.deltaY*.0015),F2D?r.width-mx:mx,F2D?r.height-my:my)},{passive:false});
 let drag=null;cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,px:panX,py:panY};cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'});
-cv.addEventListener('pointermove',e=>{if(!drag)return;panX=drag.px+e.clientX-drag.x;panY=drag.py+e.clientY-drag.y});
+cv.addEventListener('pointermove',e=>{if(!drag)return;const q=F2D?-1:1;panX=drag.px+q*(e.clientX-drag.x);panY=drag.py+q*(e.clientY-drag.y)});
 const end=()=>{drag=null;cv.style.cursor='grab'};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('dblclick',reset);
 $('zIn').addEventListener('click',()=>setZ(zoom*1.3));$('zOut').addEventListener('click',()=>setZ(zoom/1.3));$('zReset').addEventListener('click',reset)})();(function(){const b=$('sbToggle');if(!b)return;const KEY='atr_sidebar_collapsed';const apply=c=>{document.body.classList.toggle('sb-collapsed',c);b.setAttribute('aria-expanded',String(!c));try{localStorage.setItem(KEY,c?'1':'0')}catch(e){}setTimeout(()=>window.dispatchEvent(new Event('resize')),260)};
 let init=false;try{init=localStorage.getItem(KEY)==='1'}catch(e){}if(init){document.body.classList.add('sb-collapsed');b.setAttribute('aria-expanded','false')}
@@ -858,24 +869,24 @@ const apply=()=>{cv.style.display=V.on?'block':'none';c2.style.visibility=V.on?'
 btn.addEventListener('click',()=>{V.on=!V.on;save();apply()});
 // the zoom buttons drive the 3D camera while it is on
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#zIn,#zOut,#zReset');if(!b||!V.on)return;e.stopImmediatePropagation();e.preventDefault();if(b.id==='zIn')V.zoom=clamp(V.zoom*1.25,.4,6);else if(b.id==='zOut')V.zoom=clamp(V.zoom/1.25,.4,6);else{V.zoom=1;V.yaw=-35;V.pitch=28;save()}$('zVal').textContent=V.zoom.toFixed(1)+'×'},true);
-let drag=null;cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw:V.yaw,pitch:V.pitch};cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'});
-cv.addEventListener('pointermove',e=>{if(!drag)return;V.yaw=drag.yaw+(e.clientX-drag.x)*.45;V.pitch=clamp(drag.pitch+(e.clientY-drag.y)*.35,-5,89)});
+let drag=null;cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw:V.yaw,pitch:V.pitch,q:F3D?-1:1};cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'});
+cv.addEventListener('pointermove',e=>{if(!drag)return;V.yaw=drag.yaw+drag.q*(e.clientX-drag.x)*.45;V.pitch=clamp(drag.pitch+drag.q*(e.clientY-drag.y)*.35,-5,89)});
 const end=e=>{if(drag){drag=null;cv.style.cursor='grab';save()}};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
 cv.addEventListener('wheel',e=>{e.preventDefault();V.zoom=clamp(V.zoom*(e.deltaY<0?1.1:1/1.1),.4,6);$('zVal').textContent=V.zoom.toFixed(1)+'×'},{passive:false});
 cv.addEventListener('dblclick',()=>{V.zoom=1;V.yaw=-35;V.pitch=28;save();$('zVal').textContent='1.0×'});
 const hex=/^#[0-9a-f]{6}$/i;
 V.draw=function(){drawCanvas('radar3d',(c,w,h)=>{const nP=performance.now();frameDt=clamp((nP-lastF)/1000,.001,.1);lastF=nP;frameId++;
 const tags=liveTags().filter(t=>t.shown),pts=[];let mh=0;
-tags.forEach(t=>{const d=dispOf(t);if(!d||d.az==null||d.el==null)return;const q=rangeOf({elev:d.el},d.rs);if(!q)return;const az=rad(d.az),el=rad(d.el),hh=q.s*Math.sin(el),z=q.s*Math.cos(el);pts.push({t:t,x:hh*Math.sin(az),y:hh*Math.cos(az),z:z,h:hh,s:q.s});mh=Math.max(mh,hh,z)});
+tags.forEach(t=>{const d=dispOf(t);if(!d||d.az==null||d.el==null)return;const q=rangeOf({elev:d.el},d.rs);if(!q)return;const az=rad(d.az),el=rad(d.el),hh=q.s*Math.sin(el),z=q.s*Math.cos(el);pts.push({t:t,x:hh*Math.sin(az),y:hh*Math.cos(az),z:(MOUNT==='down'?-z:z),h:hh,s:q.s});mh=Math.max(mh,hh,z)});
 let M;if(scaleSel==='max')M=niceScale(dMaxM());else if(scaleSel!=='auto'&&isFinite(+scaleSel))M=+scaleSel;else{const tg=niceScale(Math.max(mh*1.15,1.5));if(tg>V.M){V.M=tg;V.mLow=0}else if(tg<V.M){if(!V.mLow)V.mLow=Date.now();if(Date.now()-V.mLow>12000){V.M=tg;V.mLow=0}}else V.mLow=0;M=V.M}
 const cx=w*.5,cy=h*.56,sc=Math.min(w,h)*.38/M*V.zoom,ya=rad(V.yaw),pa=rad(V.pitch),cyw=Math.cos(ya),syw=Math.sin(ya),cp=Math.cos(pa),sp=Math.sin(pa);
-const P=(x,y,z)=>{const x1=x*cyw-y*syw,y1=x*syw+y*cyw,y2=y1*cp-z*sp,z2=y1*sp+z*cp;return {sx:cx+x1*sc,sy:cy-z2*sc,d:y2}};
+const FL=F3D?-1:1,ZS=MOUNT==='down'?-1:1;const P=(x,y,z)=>{const x1=x*cyw-y*syw,y1=x*syw+y*cyw,y2=y1*cp-z*sp,z2=y1*sp+z*cp;return {sx:cx+FL*x1*sc,sy:cy-FL*z2*sc,d:y2}};
 c.lineWidth=1;c.font='10px IBM Plex Mono,monospace';
 // floor grid (z = 0): distance rings and compass spokes
 const steps=M<=3?1:M<=8?2:M<=15?5:10;for(let r=steps;r<=M+1e-6;r+=steps){c.strokeStyle='rgba(120,200,210,.16)';c.beginPath();for(let a=0;a<=72;a++){const p=P(r*Math.sin(a*Math.PI/36),r*Math.cos(a*Math.PI/36),0);a?c.lineTo(p.sx,p.sy):c.moveTo(p.sx,p.sy)}c.stroke();const lp=P(0,r,0);c.fillStyle='rgba(150,200,210,.55)';c.fillText(r+' m',lp.sx+3,lp.sy-2)}
 for(let a=0;a<360;a+=30){const p0=P(0,0,0),p1=P(M*Math.sin(rad(a)),M*Math.cos(rad(a)),0);c.strokeStyle='rgba(120,200,210,.10)';c.beginPath();c.moveTo(p0.sx,p0.sy);c.lineTo(p1.sx,p1.sy);c.stroke();const lp=P(M*1.08*Math.sin(rad(a)),M*1.08*Math.cos(rad(a)),0);c.fillStyle=a%90?'rgba(150,200,210,.4)':'rgba(190,235,240,.8)';c.fillText(a+'°',lp.sx-8,lp.sy+3)}
 // vertical axis (height above the reader)
-{const a0=P(0,0,0),a1=P(0,0,M);c.strokeStyle='rgba(150,220,230,.35)';c.beginPath();c.moveTo(a0.sx,a0.sy);c.lineTo(a1.sx,a1.sy);c.stroke();for(let z=steps;z<=M+1e-6;z+=steps){const p=P(0,0,z);c.strokeStyle='rgba(150,220,230,.35)';c.beginPath();c.moveTo(p.sx-3,p.sy);c.lineTo(p.sx+3,p.sy);c.stroke();c.fillStyle='rgba(150,200,210,.55)';c.fillText('z '+z+' m',p.sx+6,p.sy+3)}}
+{const a0=P(0,0,0),a1=P(0,0,ZS*M);c.strokeStyle='rgba(150,220,230,.35)';c.beginPath();c.moveTo(a0.sx,a0.sy);c.lineTo(a1.sx,a1.sy);c.stroke();for(let z=steps;z<=M+1e-6;z+=steps){const p=P(0,0,ZS*z);c.strokeStyle='rgba(150,220,230,.35)';c.beginPath();c.moveTo(p.sx-3,p.sy);c.lineTo(p.sx+3,p.sy);c.stroke();c.fillStyle='rgba(150,200,210,.55)';c.fillText('z '+(ZS*z)+' m',p.sx+6,p.sy+3)}}
 // tags, far to near
 pts.sort((a,b)=>b.p?0:0);pts.forEach(o=>{o.p=P(o.x,o.y,o.z);o.f=P(o.x,o.y,0)});pts.sort((a,b)=>b.p.d-a.p.d);
 pts.forEach(o=>{const t=o.t,k=t.epc,col=hex.test(colors[k]||'')?colors[k]:pins[k]?(t.active?'#ffc857':'#8a7a4d'):(t.active?'#0adac4':'#5b6b73');
@@ -883,10 +894,19 @@ c.strokeStyle='rgba(180,230,235,.22)';c.setLineDash([3,3]);c.beginPath();c.moveT
 c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(o.f.sx,o.f.sy,4,2,0,0,7);c.fill();
 const sel=k===selEpc,r=(sel?6.5:4.6)*clamp(1-o.p.d*sc/900,.7,1.3);c.globalAlpha=t.active?1:.45;c.shadowColor=col;c.shadowBlur=sel?16:7;c.fillStyle=col;c.beginPath();c.arc(o.p.sx,o.p.sy,r,0,7);c.fill();c.shadowBlur=0;
 if(sel){c.strokeStyle='#63a8ff';c.lineWidth=2;c.beginPath();c.arc(o.p.sx,o.p.sy,r+4,0,7);c.stroke();c.lineWidth=1}
-if(sel||pins[k]||names[k]){c.fillStyle=col;c.font='11px Inter,Kanit,sans-serif';c.fillText(String(nameOf(k)).slice(0,14)+'  z '+o.z.toFixed(1)+' m',o.p.sx+r+5,o.p.sy+4);c.font='10px IBM Plex Mono,monospace'}c.globalAlpha=1});
+if(sel||pins[k]||names[k]){c.fillStyle=col;c.font='11px Inter,Kanit,sans-serif';c.fillText(String(nameOf(k)).slice(0,14)+'  z '+o.z.toFixed(1)+' m'+(MOUNT==='down'?' (ใต้ reader)':''),o.p.sx+r+5,o.p.sy+4);c.font='10px IBM Plex Mono,monospace'}c.globalAlpha=1});
 const P0=P(0,0,0);c.strokeStyle='#36dfcf';c.lineWidth=2;c.beginPath();c.arc(P0.sx,P0.sy,9,0,7);c.stroke();c.fillStyle='rgba(54,223,207,.25)';c.fill();c.lineWidth=1;c.fillStyle='#bff5ee';c.fillText('ATR',P0.sx-9,P0.sy-13);
 c.fillStyle='rgba(160,190,200,.7)';c.fillText('3D · '+pts.length+' แท็ก · x/y จากทิศ+ระยะ, z = สูงเหนือ reader (ประมาณ ±)',12,h-12)})};
 apply()})();
+(function(){const lg=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}};
+MOUNT=lg('atr_mount','up')==='down'?'down':'up';F2D=lg('atr_flip2d','0')==='1';F3D=lg('atr_flip3d','0')==='1';
+const bs=[...document.querySelectorAll('[data-mount]')],f2=$('flip2d'),f3=$('flip3d'),pill=$('mountPill');
+const show=()=>{bs.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mount===MOUNT)));if(f2)f2.checked=F2D;if(f3)f3.checked=F3D;if(pill)pill.textContent=MOUNT==='down'?'CEILING / RADOME ↓':'FLOOR-UP / RADOME ↑';try{drawRadar()}catch(e){}};
+const sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+bs.forEach(b=>b.addEventListener('click',()=>{MOUNT=b.dataset.mount;sv('atr_mount',MOUNT);show()}));
+if(f2)f2.addEventListener('change',()=>{F2D=f2.checked;sv('atr_flip2d',F2D?'1':'0');show()});
+if(f3)f3.addEventListener('change',()=>{F3D=f3.checked;sv('atr_flip3d',F3D?'1':'0');show()});
+show()})();
 setMode('MOCK');navSetup();render();openWs(true);})();
 </script>
 </body></html>
