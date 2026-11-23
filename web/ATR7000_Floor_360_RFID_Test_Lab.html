@@ -344,6 +344,7 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <div style="margin-top:10px"><button type="button" class="btn btn-primary" id="rdTxApply">ใช้ค่ากำลังส่ง</button></div>
 <div class="s-small" id="rdTxNote" style="margin-top:8px">ลดกำลังส่ง = ระยะอ่านสั้นลง ใช้เมื่อแท็กอยู่ใกล้และอ่านชนกัน ค่านี้เป็นค่าชั่วคราวของ reader (กลับเป็นเดิมเมื่อรีสตาร์ต)</div></section>
 <section class="dsec" data-p="reader"><h3>บีมที่สแกน</h3>
+<div class="st-txt" style="margin-bottom:8px"><b>ชุดสแกนสำเร็จรูป</b><small>ยิ่งบีมน้อย แท็กที่ขยับยิ่งตามไว (ครบ 97 บีม ≈ 2 วินาที/รอบ)</small></div><div class="seg" role="group" aria-label="ชุดสแกน"><button type="button" class="seg-b" id="rdPrFull">ครบ ≈2 วิ</button><button type="button" class="seg-b" id="rdPr2">เร็ว ≈0.7 วิ</button><button type="button" class="seg-b" id="rdPr3">เร็วสุด ≈0.5 วิ</button></div>
 <div class="rd-chk" id="rdRings"></div>
 <label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">เวลาต่อบีม (dwell)<select id="rdDwell" class="inpt" style="width:110px"><option value="15">15 ms</option><option value="20" selected>20 ms</option><option value="30">30 ms</option><option value="50">50 ms</option></select></label>
 <div style="margin-top:10px"><button type="button" class="btn btn-primary" id="rdScanApply">ใช้การสแกนนี้</button></div>
@@ -848,6 +849,11 @@ $('rdTx').addEventListener('input',()=>{$('rdTxVal').textContent=(+$('rdTx').val
 $('rdRefresh').addEventListener('click',()=>go({cmd:'reader',op:'info'},'กำลังอ่านข้อมูลจาก reader…'));
 $('rdTxApply').addEventListener('click',()=>{const dbm=+$('rdTx').value,sc=$('rdTxScope').value,r=RINGS.find(x=>x[0]===sc),ants=r?range(r[2],r[3]):null;
 ask({title:'ตั้งกำลังส่ง',text:'ตั้งเป็น '+dbm.toFixed(1)+' dBm บน '+(r?r[1]+' ('+(r[3]-r[2]+1)+' บีม)':'ทุกบีม')+'\nกำลังต่ำลง = ระยะอ่านสั้นลง ค่านี้กลับเป็นเดิมเมื่อ reader รีสตาร์ต',ok:'ตั้งกำลังส่ง'}).then(y=>{if(y)go({cmd:'reader',op:'power',dbm:dbm,ants:ants},'กำลังตั้งกำลังส่งที่ reader… (รอจนกว่า reader ยืนยัน)')})});
+const sparse=n=>RINGS.flatMap(r=>r[2]===r[3]?[r[2]]:range(r[2],r[3]).filter((_,i)=>i%n===0));
+const preset=(ants,dw,lab)=>{$('rdDwell').value=String(dw);RS();if(go({cmd:'scan',ants:ants,dwell:dw},'กำลังเปลี่ยนเป็นชุด'+lab+' · '+ants.length+' บีม · '+dw+' ms…'))setTimeout(()=>{if(!$('rdLoad').hidden)idle('✓ ใช้ชุด'+lab+' แล้ว ('+ants.length+' บีม · รอบ ≈'+(ants.length*dw/1000).toFixed(1)+' วินาที)')},3500)};
+$('rdPrFull').addEventListener('click',()=>{document.querySelectorAll('[data-ring]').forEach(c=>c.checked=true);preset(RINGS.flatMap(r=>range(r[2],r[3])),20,'ครบ')});
+$('rdPr2').addEventListener('click',()=>{document.querySelectorAll('[data-ring]').forEach(c=>c.checked=true);preset(sparse(2),15,'เร็ว')});
+$('rdPr3').addEventListener('click',()=>{document.querySelectorAll('[data-ring]').forEach(c=>c.checked=true);preset(sparse(3),15,'เร็วสุด')});
 $('rdScanApply').addEventListener('click',()=>{const on=[...document.querySelectorAll('[data-ring]')].filter(c=>c.checked).map(c=>RINGS.find(r=>r[0]===c.dataset.ring));if(!on.length){msg('เลือกอย่างน้อย 1 วง');return}
 const ants=on.flatMap(r=>range(r[2],r[3]));if(go({cmd:'scan',ants:ants,dwell:+$('rdDwell').value},'กำลังเปลี่ยนการสแกนเป็น '+ants.length+' บีม · '+$('rdDwell').value+' ms ต่อบีม…'))setTimeout(()=>{if(!$('rdLoad').hidden)idle('✓ ส่งคำสั่งสแกนแล้ว ('+ants.length+' บีม · '+$('rdDwell').value+' ms)')},3500)});
 setInterval(()=>{const d=$('drawer');if(d&&d.classList.contains('open')&&document.querySelector('.drawer-body').dataset.view==='reader')send({cmd:'reader',op:'info'})},4000);
