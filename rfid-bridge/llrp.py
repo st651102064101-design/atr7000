@@ -548,6 +548,7 @@ class LlrpClient:
             self.log("[llrp] streaming tag reports")
             self.connected = True
             await self._restore()
+            self.emit({"type": "reader_info", "info": dict(self.info, reads=self.reports, connected=True, paused=self.paused, beams=len(self.base), dwell_ms=self.dwell_ms)})
             self.q = asyncio.Queue()
             pump = asyncio.ensure_future(self._pump())
             while True:
@@ -567,6 +568,8 @@ class LlrpClient:
                 elif self.want != self.focus and not self.paused:
                     await self._maybe_swap()
         finally:
+            if self.connected:
+                self.emit({"type": "reader_info", "info": {"connected": False}})
             self.connected = False
             self.q = None
             try:
