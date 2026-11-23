@@ -189,6 +189,52 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 @keyframes rdspin{to{transform:rotate(360deg)}}
 .dsec[data-p="reader"].rd-wait{opacity:.55;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.rd-spin{animation-duration:2.4s}}
+
+/* ===== 2026 controls: one button system, setting rows, status chip, toasts, in-app dialogs ===== */
+.btn{--b:#2b4a5c;--bg:#12293a;--fg:#e3f4f6;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:12px;border:1px solid var(--b);background:var(--bg);color:var(--fg);font:600 13px var(--font);letter-spacing:.1px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,transform .08s,box-shadow .15s;position:relative}
+.btn svg{width:16px;height:16px;flex:none}
+.btn:hover{background:#18364b;border-color:#3b6a80}
+.btn:active{transform:scale(.97)}
+.btn:focus-visible{outline:2px solid #4ce7d7;outline-offset:2px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-primary{--b:#39e8d4;--fg:#04222a;background:linear-gradient(135deg,#34e3d0,#18a8a6);box-shadow:0 6px 18px -8px rgba(52,227,208,.7)}
+.btn-primary:hover{background:linear-gradient(135deg,#4aefdd,#1fb6b3);border-color:#7ff5e8}
+.btn-warn{--b:#6a4b1f;--fg:#ffcf8a;background:rgba(237,189,106,.08)}.btn-warn:hover{background:rgba(237,189,106,.16);border-color:#9a6f2e}
+.btn-danger{--b:#6e2c37;--fg:#ff9aa8;background:rgba(255,119,138,.08)}.btn-danger:hover{background:rgba(255,119,138,.17);border-color:#a3404f}
+.btn.is-load{color:transparent!important}
+.btn.is-load::after{content:"";position:absolute;width:16px;height:16px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:rdspin .7s linear infinite}
+.st-card{display:flex;flex-direction:column}
+.st-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-top:1px solid #1d3547}
+.st-row:first-of-type{border-top:0;padding-top:2px}
+.st-txt{min-width:0;display:flex;flex-direction:column;gap:3px}
+.st-txt b{font:600 14px var(--font);color:#eaf6f8}
+.st-txt small{font:400 12px/1.45 var(--font);color:#7f9bab}
+.st-field{display:flex;flex-direction:column;gap:8px;padding:13px 0;border-top:1px solid #1d3547}
+.st-field:first-of-type{border-top:0;padding-top:2px}
+.st-field .st-in{display:flex;gap:8px}
+.st-field input.inpt{flex:1;min-width:0;height:40px;border-radius:12px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font:600 12px var(--font);background:#122a39;color:#a9c3d1;border:1px solid #23455a}
+.chip::before{content:"";width:8px;height:8px;border-radius:50%;background:#6b8797}
+.chip[data-s="run"]{color:#8df3cf;border-color:#1f6b57;background:rgba(75,221,174,.09)}.chip[data-s="run"]::before{background:#4bddae;box-shadow:0 0 0 0 rgba(75,221,174,.6);animation:chipPulse 1.8s infinite}
+.chip[data-s="pause"]{color:#ffd48a;border-color:#7a5a24;background:rgba(237,189,106,.09)}.chip[data-s="pause"]::before{background:#edbd6a}
+@keyframes chipPulse{70%{box-shadow:0 0 0 7px rgba(75,221,174,0)}100%{box-shadow:0 0 0 0 rgba(75,221,174,0)}}
+.dsec:has(#rdMsg){display:none!important}
+#toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,440px)}
+.toast{pointer-events:auto;display:flex;align-items:flex-start;gap:10px;width:100%;padding:12px 14px;border-radius:14px;background:rgba(14,30,44,.96);border:1px solid #2a4a5c;color:#e8f4f8;font:500 13px/1.45 var(--font);box-shadow:0 14px 40px -12px rgba(0,0,0,.7);backdrop-filter:blur(10px);animation:toastIn .22s ease}
+.toast i{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:700 12px var(--font);font-style:normal;margin-top:1px}
+.toast.ok i{background:#134d40;color:#6df0c6}.toast.err{border-color:#7a3340}.toast.err i{background:#5a2029;color:#ff8c9b}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.dlg-bd{position:fixed;inset:0;z-index:150;background:rgba(3,10,16,.62);backdrop-filter:blur(6px);display:grid;place-items:center;padding:18px;animation:dlgBd .18s ease}
+.dlg{width:min(440px,100%);background:linear-gradient(160deg,#142b3f,#0d1d2c);border:1px solid #2a4a5c;border-radius:20px;padding:22px 22px 18px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8);animation:dlgIn .22s cubic-bezier(.2,.9,.3,1.2)}
+.dlg h4{margin:0 0 8px;font:700 17px var(--font);color:#f1fbfd;display:flex;align-items:center;gap:10px}
+.dlg h4 i{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-size:15px;background:#123b44;color:#6df0e0}
+.dlg.warn h4 i{background:rgba(237,189,106,.14);color:#ffcf8a}.dlg.danger h4 i{background:rgba(255,119,138,.15);color:#ff9aa8}
+.dlg p{margin:0 0 14px;font:400 13.5px/1.6 var(--font);color:#a9c1cd;white-space:pre-line}
+.dlg input{width:100%;height:42px;border-radius:12px;box-sizing:border-box;margin:0 0 14px;text-align:center;letter-spacing:2px;font:600 14px var(--mono)}
+.dlg .acts{display:flex;gap:10px;justify-content:flex-end}
+@keyframes dlgBd{from{opacity:0}to{opacity:1}}@keyframes dlgIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.toast,.dlg,.dlg-bd{animation:none}.chip[data-s="run"]::before{animation:none}}
+@media(max-width:520px){.st-row{flex-wrap:wrap}.st-row .btn{width:100%}}
 </style>
 </head>
 <body>
@@ -261,38 +307,26 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <section class="dsec" data-p="reader"><h3>สถานะ reader</h3>
 <div class="rd-kv"><span>สถานะ</span><b id="rdConn">—</b></div><div class="rd-kv"><span>รุ่น</span><b id="rdModel">—</b></div><div class="rd-kv"><span>เฟิร์มแวร์</span><b id="rdFw">—</b></div>
 <div class="rd-kv"><span>เสาเสมือนทั้งหมด</span><b id="rdAnt">—</b></div><div class="rd-kv"><span>บีมที่กำลังสแกน</span><b id="rdBeams">—</b></div><div class="rd-kv"><span>อ่านแล้วรวม</span><b id="rdReads">—</b></div>
-<div style="margin-top:10px"><button type="button" class="button small" id="rdRefresh">รีเฟรชข้อมูล</button></div></section>
-<section class="dsec" data-p="reader"><h3>ควบคุมการทำงาน</h3>
-<div class="rd-kv"><span>การอ่านแท็ก</span><b id="rdRun">—</b></div>
-<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="button small" id="rdPause">หยุดการอ่าน (พัก)</button><button type="button" class="button small primary" id="rdResume">เริ่มอ่านต่อ</button></div>
-<div class="s-small" style="margin-top:8px">หยุดการอ่าน = reader เลิกส่งสัญญาณอ่านแท็ก แต่ยังเปิดและเชื่อมต่ออยู่ กดเริ่มอ่านต่อเมื่อพร้อม (ไม่ต้องรีสตาร์ต)</div>
-<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="button small" id="rdRestart2" style="color:#ffb454">รีสตาร์ต reader…</button><button type="button" class="button small" id="rdShut" style="color:#ff6b6b">ปิดโปรแกรม reader…</button></div>
-<div class="s-small" style="margin-top:8px">ปิดโปรแกรม reader สั่งปิดแล้ว<b>เปิดกลับจากหน้านี้ไม่ได้</b> ต้องไปที่ตัวเครื่องแล้วถอด-เสียบไฟ PoE ส่วนรีสตาร์ตใช้เวลา 2-3 นาที bridge จะต่อกลับเอง ทั้งสองอย่างต้องพิมพ์ข้อความยืนยัน</div></section>
+<div style="margin-top:10px"><button type="button" class="btn" id="rdRefresh">รีเฟรชข้อมูล</button></div></section>
+<section class="dsec st-card" data-p="reader"><h3>ควบคุมการทำงาน</h3><div class="st-row"><div class="st-txt"><b>การอ่านแท็ก</b><small>สถานะตอนนี้ของ reader</small></div><span class="chip" id="rdRun" data-s="off">—</span></div><div class="st-row"><div class="st-txt"><b>พักการอ่าน</b><small>reader เลิกอ่านแท็กแต่ยังเปิดและเชื่อมต่ออยู่ เริ่มต่อได้ทันที</small></div><div style="display:flex;gap:8px"><button type="button" class="btn" id="rdPause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>พัก</button><button type="button" class="btn btn-primary" id="rdResume"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>อ่านต่อ</button></div></div><div class="st-row"><div class="st-txt"><b>รีสตาร์ต reader</b><small>หยุดอ่านราว 2–3 นาที bridge ต่อกลับเอง</small></div><button type="button" class="btn btn-warn" id="rdRestart2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg>รีสตาร์ต</button></div><div class="st-row"><div class="st-txt"><b>ปิดโปรแกรม reader</b><small>เปิดกลับจากหน้านี้ไม่ได้ ต้องถอด-เสียบไฟ PoE ที่ตัวเครื่อง</small></div><button type="button" class="btn btn-danger" id="rdShut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v9M6.3 6.9a8 8 0 1 0 11.4 0"/></svg>ปิด</button></div></section>
 <section class="dsec" data-p="reader"><h3>กำลังส่ง (TX power)</h3>
 <div class="rd-kv"><span>ตอนนี้</span><b id="rdTxNow">—</b></div>
 <label class="s-small" style="display:flex;justify-content:space-between;margin-top:10px">ตั้งเป็น <b id="rdTxVal">—</b></label><input id="rdTx" type="range" min="16" max="35.2" step="0.2" value="27">
 <label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">ใช้กับ<select id="rdTxScope" class="inpt" style="width:190px"><option value="all">ทุกบีม (301–397)</option><option value="r60">วงเงย 60° (301–324)</option><option value="r45">วงเงย 45° (325–348)</option><option value="r30">วงเงย 30° (349–372)</option><option value="r15">วงเงย 15° (373–396)</option><option value="c">กลาง (397)</option></select></label>
-<div style="margin-top:10px"><button type="button" class="button small primary" id="rdTxApply">ใช้ค่ากำลังส่ง</button></div>
+<div style="margin-top:10px"><button type="button" class="btn btn-primary" id="rdTxApply">ใช้ค่ากำลังส่ง</button></div>
 <div class="s-small" id="rdTxNote" style="margin-top:8px">ลดกำลังส่ง = ระยะอ่านสั้นลง ใช้เมื่อแท็กอยู่ใกล้และอ่านชนกัน ค่านี้เป็นค่าชั่วคราวของ reader (กลับเป็นเดิมเมื่อรีสตาร์ต)</div></section>
 <section class="dsec" data-p="reader"><h3>บีมที่สแกน</h3>
 <div class="rd-chk" id="rdRings"></div>
 <label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">เวลาต่อบีม (dwell)<select id="rdDwell" class="inpt" style="width:110px"><option value="15">15 ms</option><option value="20" selected>20 ms</option><option value="30">30 ms</option><option value="50">50 ms</option></select></label>
-<div style="margin-top:10px"><button type="button" class="button small primary" id="rdScanApply">ใช้การสแกนนี้</button></div>
+<div style="margin-top:10px"><button type="button" class="btn btn-primary" id="rdScanApply">ใช้การสแกนนี้</button></div>
 <div class="s-small" id="rdScanNote" style="margin-top:8px">เลือกอย่างน้อย 1 วง ยิ่งน้อยวง รอบสแกนยิ่งสั้น แต่ได้ทิศน้อยลง</div></section>
 <section class="dsec" data-p="reader"><h3>ข้อมูลจากแอดมินของ reader (RM)</h3>
 <div class="rd-kv"><span>ชื่อ</span><b id="rmName">—</b></div><div class="rd-kv"><span>Region</span><b id="rmRegion">—</b></div><div class="rd-kv"><span>LLRP</span><b id="rmLlrp">—</b></div>
 <div class="rd-kv"><span>เวลาของ reader</span><b id="rmTime">—</b></div><div class="rd-kv"><span>CPU</span><b id="rmCpu">—</b></div><div class="rd-kv"><span>RAM</span><b id="rmRam">—</b></div>
 <details style="margin-top:8px"><summary class="s-small" style="cursor:pointer">เวอร์ชันของส่วนต่าง ๆ</summary><div id="rmVers" class="s-small" style="margin-top:6px;line-height:1.7"></div></details>
-<div style="margin-top:10px"><button type="button" class="button small" id="rmRead">อ่านข้อมูลจาก reader</button></div>
+<div style="margin-top:10px"><button type="button" class="btn" id="rmRead">อ่านข้อมูลจาก reader</button></div>
 <div class="s-small" id="rmNote" style="margin-top:8px">ใช้ล็อกอินแอดมินจากไฟล์ reader.conf ในเครื่องคุณ อ่านอย่างเดียว ล็อกอินแล้วออกทันที <b>ถ้าเปิดหน้าแอดมินของ reader ค้างไว้ในเบราว์เซอร์ จะอ่านไม่ได้</b> (reader รับล็อกอินได้ทีละ session) ให้ออกจากระบบหน้านั้นก่อน</div></section>
-<section class="dsec" data-p="reader"><h3>ตั้งค่า reader (แอดมิน)</h3>
-<label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px">ชื่อ reader<input id="rmNameIn" class="inpt" type="text" maxlength="64" style="width:210px"></label>
-<div style="margin:8px 0 12px"><button type="button" class="button small" id="rmSetName">ตั้งชื่อ</button></div>
-<label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px">NTP server<input id="rmNtpIn" class="inpt" type="text" maxlength="63" placeholder="เช่น time.google.com" style="width:210px"></label>
-<div style="margin:8px 0 12px"><button type="button" class="button small" id="rmSetNtp">ตั้ง NTP</button> <button type="button" class="button small" id="rmSync">ตั้งเวลา reader ให้ตรงกับเครื่องนี้</button></div>
-<label class="sw-row" for="rmWd"><span>Watchdog (รีสตาร์ตเองถ้าระบบค้าง)</span><input id="rmWd" class="sw" type="checkbox" role="switch"></label>
-<div style="margin-top:14px"><button type="button" class="button small" id="rmRestart" style="color:#ff6b6b">รีสตาร์ต reader…</button></div>
-<div class="s-small" style="margin-top:8px">ตั้งแล้วเก็บถาวรบน reader · Region, ตั้งค่า LLRP, เฟิร์มแวร์, ผู้ใช้/รหัสผ่าน ไม่ได้อยู่ในหน้านี้โดยตั้งใจ (เสี่ยงทำให้วิทยุหรือการเชื่อมต่อนี้หลุด หรือกระทบกฎความถี่) ให้ตั้งที่หน้าแอดมินของ reader</div></section>
+<section class="dsec st-card" data-p="reader"><h3>ตั้งค่า reader (แอดมิน)</h3><div class="st-field"><div class="st-txt"><b>ชื่อ reader</b></div><div class="st-in"><input id="rmNameIn" class="inpt" type="text" maxlength="64" aria-label="ชื่อ reader"><button type="button" class="btn" id="rmSetName">บันทึก</button></div></div><div class="st-field"><div class="st-txt"><b>NTP server</b><small>เซิร์ฟเวอร์เวลาที่ reader ใช้ซิงก์</small></div><div class="st-in"><input id="rmNtpIn" class="inpt" type="text" maxlength="63" placeholder="เช่น time.google.com" aria-label="NTP server"><button type="button" class="btn" id="rmSetNtp">บันทึก</button></div></div><div class="st-row"><div class="st-txt"><b>ซิงก์เวลา</b><small>ตั้งเวลา reader ให้ตรงกับเครื่องนี้ (UTC)</small></div><button type="button" class="btn" id="rmSync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>ซิงก์</button></div><div class="st-row"><div class="st-txt"><b>Watchdog</b><small>reader รีสตาร์ตตัวเองถ้าระบบค้าง</small></div><input id="rmWd" class="sw" type="checkbox" role="switch" aria-label="Watchdog"></div><div class="s-small" style="margin-top:6px">ตั้งแล้วเก็บถาวรบน reader · Region, LLRP, เฟิร์มแวร์, ผู้ใช้/รหัสผ่าน ไม่อยู่ในหน้านี้โดยตั้งใจ (เสี่ยงทำให้วิทยุหรือการเชื่อมต่อหลุด หรือกระทบกฎความถี่) ให้ตั้งที่หน้าแอดมินของ reader</div></section>
 <section class="dsec" data-p="reader"><div class="s-small" id="rdMsg">—</div></section>
 <section class="dsec" data-p="conn"><h3>การเชื่อมต่อ</h3><div class="s-small">Bridge เชื่อมต่ออัตโนมัติ (ws://localhost:8765) ลองใหม่ทุก 3 วินาที · สถานะดูที่ป้ายมุมบนขวา</div></section>
 <section class="dsec" data-p="adv"><h3>ทดสอบขั้นสูง</h3><details class="card drawer-adv"><summary style="cursor:pointer;padding:14px 18px;font-weight:700">Advanced · Guided test (optional — เก็บผลลง Test Report)</summary><div class="card config"><div class="panel-head"><span class="panel-title">Test setup</span><span class="panel-meta">01 / INPUT</span></div><div class="config-body"><div class="field"><div class="field-top"><label for="angleSlider">มุมวางแท็ก (Azimuth)</label><strong id="angleVal">0°</strong></div><input type="range" id="angleSlider" min="0" max="359" step="1" value="0"><div class="ticks"><span>0°</span><span>90°</span><span>180°</span><span>270°</span><span>359°</span></div><div class="flex-gap" style="margin-top:10px"><button class="button small ghost" data-angle="0">0°</button><button class="button small ghost" data-angle="90">90°</button><button class="button small ghost" data-angle="180">180°</button><button class="button small ghost" data-angle="270">270°</button><input id="angleNumeric" aria-label="มุมตัวเลข" class="inpt inline-mono" type="number" min="0" max="359" value="0" style="width:76px;padding:7px 7px"></div></div>
@@ -734,15 +768,24 @@ let info=null;const RINGS=[['r60','วงเงย 60°',301,324],['r45','วง
 const range=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
 $('rdRings').innerHTML=RINGS.map(r=>'<label><span>'+r[1]+' <em style="color:#6f90a1;font-style:normal">('+r[2]+(r[3]>r[2]?'–'+r[3]:'')+')</em></span><input type="checkbox" class="sw" data-ring="'+r[0]+'" checked></label>').join('');
 const send=o=>{try{if(ws&&ws.readyState===1){ws.send(JSON.stringify(o));return true}}catch(e){}$('rdMsg').textContent='ยังไม่ได้เชื่อมต่อ bridge';return false};
-const msg=t=>{$('rdMsg').textContent=t};
+const toast=(t,ok)=>{let h=document.getElementById('toasts');if(!h){h=document.createElement('div');h.id='toasts';h.setAttribute('aria-live','polite');document.body.appendChild(h)}
+const e=document.createElement('div');e.className='toast '+(ok?'ok':'err');const ic=document.createElement('i');ic.textContent=ok?'✓':'!';const tx=document.createElement('span');tx.textContent=t;e.append(ic,tx);h.appendChild(e);setTimeout(()=>{e.style.transition='opacity .25s,transform .25s';e.style.opacity='0';e.style.transform='translateY(6px)';setTimeout(()=>e.remove(),260)},ok?3200:6000)};
+const msg=t=>{$('rdMsg').textContent=t;if(!t||/^(กำลัง)/.test(t))return;const ok=/^✓/.test(t);toast(t.replace(/^[✓✗]\s*/,''),ok)};
+const ask=o=>new Promise(res=>{const bd=document.createElement('div');bd.className='dlg-bd';const tone=o.tone||'';
+bd.innerHTML='<div class="dlg '+tone+'" role="dialog" aria-modal="true" aria-labelledby="dlgT"><h4 id="dlgT"><i aria-hidden="true">'+(tone==='danger'?'!':tone==='warn'?'!':'?')+'</i><span></span></h4><p></p>'+(o.type?'<input class="inpt" autocomplete="off" spellcheck="false" aria-label="พิมพ์เพื่อยืนยัน" placeholder="'+o.type+'">':'')+'<div class="acts"><button type="button" class="btn" data-x="0">ยกเลิก</button><button type="button" class="btn '+(tone==='danger'?'btn-danger':tone==='warn'?'btn-warn':'btn-primary')+'" data-x="1"></button></div></div>';
+bd.querySelector('h4 span').textContent=o.title;bd.querySelector('p').textContent=o.text||'';const okb=bd.querySelector('[data-x="1"]');okb.textContent=o.ok||'ตกลง';const inp=bd.querySelector('input');if(inp)okb.disabled=true;
+const prev=document.activeElement;const done=v=>{document.removeEventListener('keydown',kd,true);bd.remove();if(prev&&prev.focus)try{prev.focus()}catch(e){}res(v)};
+const kd=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false)}else if(e.key==='Enter'&&!okb.disabled){e.preventDefault();e.stopPropagation();done(true)}else if(e.key==='Tab'){const f=[...bd.querySelectorAll('button:not(:disabled),input')];if(!f.length)return;const i=f.indexOf(document.activeElement);e.preventDefault();f[(i+(e.shiftKey?-1:1)+f.length)%f.length].focus()}};
+document.addEventListener('keydown',kd,true);bd.addEventListener('pointerdown',e=>{if(e.target===bd)done(false)});bd.addEventListener('click',e=>{const x=e.target.closest('[data-x]');if(x)done(x.dataset.x==='1')});
+if(inp)inp.addEventListener('input',()=>{okb.disabled=inp.value.trim()!==o.type});document.body.appendChild(bd);(inp||okb).focus()});
 let busyT=null;const secs=()=>document.querySelectorAll('.dsec[data-p="reader"]');
-const busy=t=>{$('rdLoadTxt').textContent=t;$('rdLoad').hidden=false;secs().forEach(e=>{e.classList.add('rd-wait');e.querySelectorAll('button,input,select').forEach(c=>c.disabled=true)});clearTimeout(busyT);busyT=setTimeout(()=>idle('ไม่ได้รับคำตอบจาก reader (หมดเวลา)'),25000)};
-const idle=m=>{clearTimeout(busyT);$('rdLoad').hidden=true;secs().forEach(e=>{e.classList.remove('rd-wait');e.querySelectorAll('button,input,select').forEach(c=>c.disabled=false)});if(m)msg(m)};
+let pressed=null;const busy=t=>{pressed=document.activeElement&&document.activeElement.classList&&document.activeElement.classList.contains('btn')?document.activeElement:null;if(pressed)pressed.classList.add('is-load');$('rdLoadTxt').textContent=t;$('rdLoad').hidden=false;secs().forEach(e=>{e.classList.add('rd-wait');e.querySelectorAll('button,input,select').forEach(c=>c.disabled=true)});clearTimeout(busyT);busyT=setTimeout(()=>idle('ไม่ได้รับคำตอบจาก reader (หมดเวลา)'),25000)};
+const idle=m=>{clearTimeout(busyT);if(pressed){pressed.classList.remove('is-load');pressed=null}document.querySelectorAll('.btn.is-load').forEach(b=>b.classList.remove('is-load'));$('rdLoad').hidden=true;secs().forEach(e=>{e.classList.remove('rd-wait');e.querySelectorAll('button,input,select').forEach(c=>c.disabled=false)});if(m)msg(m)};
 const go=(o,t)=>{if(send(o)){busy(t);return true}return false};
 const show=()=>{const i=info||{};$('rdConn').textContent=i.connected?'เชื่อมต่อ LLRP แล้ว':'—';$('rdModel').textContent=i.model_id||'—';$('rdFw').textContent=i.firmware||'—';$('rdAnt').textContent=i.max_antennas||'—';$('rdBeams').textContent=i.beams!=null?i.beams+' · '+i.dwell_ms+' ms ต่อบีม':'—';$('rdReads').textContent=i.reads!=null?i.reads.toLocaleString():'—';
 const p=i.power_dbm;if(p){const t=$('rdTx');t.min=p.min;t.max=p.max;if(!t.dataset.set){t.value=Math.min(27,p.max);t.dataset.set='1'}$('rdTxVal').textContent=(+t.value).toFixed(1)+' dBm'}
 const v=i.tx&&i.tx.dbm_values;$('rdTxNow').textContent=v&&v.length?(v.length===1?v[0].toFixed(1)+' dBm (ทุกบีม)':v[0].toFixed(1)+'–'+v[v.length-1].toFixed(1)+' dBm (ต่างกันตามบีม)'):'—';
-$('rdRun').textContent=i.connected?(i.paused?'หยุดชั่วคราว':'กำลังอ่าน'):'—';const sm=$('sum-reader');if(sm)sm.textContent=v&&v.length?v[v.length-1].toFixed(1)+' dBm':(i.connected?'เชื่อมต่อแล้ว':'—')};
+$('rdRun').textContent=i.connected?(i.paused?'พักอยู่':'กำลังอ่าน'):'ไม่ได้เชื่อมต่อ';$('rdRun').dataset.s=i.connected?(i.paused?'pause':'run'):'off';const sm=$('sum-reader');if(sm)sm.textContent=v&&v.length?v[v.length-1].toFixed(1)+' dBm':(i.connected?'เชื่อมต่อแล้ว':'—')};
 const mb=n=>(n/1048576).toFixed(0)+' MB';
 const rmShow=o=>{const n=$('rmNote');if(!o.ok){n.textContent='✗ '+o.msg;return}const d=o.data;$('rmName').textContent=d.name||'—';if(d.name&&document.activeElement!==$('rmNameIn'))$('rmNameIn').value=d.name;$('rmWd').checked=d.watchdog==='true';$('rmRegion').textContent=d.region||'—';
 const l=d.llrp||{};$('rmLlrp').textContent=(l.running==='true'?'ทำงาน':'ไม่ทำงาน')+' · พอร์ต '+(l.port||'?')+(l.secure==='true'?' · secure':'')+(l.validate_peer==='true'?' · ตรวจ peer':'');
@@ -751,21 +794,19 @@ $('rmRam').textContent=d.ram&&d.ram.total?mb(d.ram.used)+' / '+mb(d.ram.total):'
 $('rmVers').innerHTML=(d.versions||[]).map(v=>v[0].replace(/[<>&]/g,'')+' <b>'+v[1].replace(/[<>&]/g,'')+'</b>').join('<br>');n.textContent='✓ อ่านเมื่อ '+new Date().toLocaleTimeString()};
 $('rmRead').addEventListener('click',()=>go({cmd:'reader',op:'rm_info'},'กำลังล็อกอินและอ่านข้อมูลจากแอดมินของ reader…'));
 const rmw=(what,arg,extra)=>{go(Object.assign({cmd:'reader',op:'rm_write',what:what,arg:arg},extra||{}),what==='restart'?'กำลังสั่งรีสตาร์ต reader…':what==='shutdown'?'กำลังสั่งปิดโปรแกรม reader…':'กำลังส่งคำสั่งไปที่ reader… (ล็อกอิน → ตั้งค่า → บันทึก)')};
-$('rmSetName').addEventListener('click',()=>{const v=$('rmNameIn').value.trim();if(!v){msg('ใส่ชื่อก่อน');return}if(confirm('ตั้งชื่อ reader เป็น "'+v+'"?'))rmw('set_name',v)});
-$('rmSetNtp').addEventListener('click',()=>{const v=$('rmNtpIn').value.trim();if(!v){msg('ใส่ชื่อหรือ IP ของ NTP server ก่อน');return}if(confirm('ตั้ง NTP server เป็น '+v+'?\n\nถ้า reader ติดต่อ server นี้ไม่ได้ เวลาของ reader จะไม่ซิงก์'))rmw('set_ntp',v)});
-$('rmSync').addEventListener('click',()=>{if(confirm('ตั้งเวลาของ reader ให้ตรงกับเวลาของเครื่องนี้ (UTC)?'))rmw('sync_time',null)});
-$('rmWd').addEventListener('change',e=>{const on=e.target.checked;if(!confirm((on?'เปิด':'ปิด')+' watchdog ของ reader?')){e.target.checked=!on;return}rmw('set_watchdog',on)});
-$('rdPause').addEventListener('click',()=>{if(confirm('หยุดการอ่านแท็กชั่วคราว?\n\nหน้าเรดาร์จะไม่มีข้อมูลใหม่จนกว่าจะกด "เริ่มอ่านต่อ"'))go({cmd:'reader',op:'pause'},'กำลังสั่งให้ reader หยุดอ่าน…')});
+$('rmSetName').addEventListener('click',()=>{const v=$('rmNameIn').value.trim();if(!v){msg('ใส่ชื่อก่อน');return}ask({title:'ตั้งชื่อ reader',text:'เปลี่ยนชื่อเป็น "'+v+'"\nค่านี้เก็บถาวรบน reader',ok:'ตั้งชื่อ'}).then(y=>{if(y)rmw('set_name',v)})});
+$('rmSetNtp').addEventListener('click',()=>{const v=$('rmNtpIn').value.trim();if(!v){msg('ใส่ชื่อหรือ IP ของ NTP server ก่อน');return}ask({title:'ตั้ง NTP server',text:'ตั้งเป็น '+v+'\nถ้า reader ติดต่อเซิร์ฟเวอร์นี้ไม่ได้ เวลาของ reader จะไม่ซิงก์',tone:'warn',ok:'ตั้งค่า'}).then(y=>{if(y)rmw('set_ntp',v)})});
+$('rmSync').addEventListener('click',()=>ask({title:'ซิงก์เวลา',text:'ตั้งเวลาของ reader ให้ตรงกับเครื่องนี้ (UTC)',ok:'ซิงก์'}).then(y=>{if(y)rmw('sync_time',null)}));
+$('rmWd').addEventListener('change',e=>{const on=e.target.checked,el=e.target;ask({title:(on?'เปิด':'ปิด')+' Watchdog',text:on?'reader จะรีสตาร์ตตัวเองถ้าระบบค้าง':'ถ้าระบบค้าง reader จะไม่รีสตาร์ตตัวเอง',tone:on?'':'warn',ok:on?'เปิด':'ปิด'}).then(y=>{if(y)rmw('set_watchdog',on);else el.checked=!on})});
+$('rdPause').addEventListener('click',()=>ask({title:'พักการอ่านแท็ก',text:'เรดาร์จะไม่มีข้อมูลใหม่จนกว่าจะกด "อ่านต่อ"',tone:'warn',ok:'พักการอ่าน'}).then(y=>{if(y)go({cmd:'reader',op:'pause'},'กำลังสั่งให้ reader หยุดอ่าน…')}));
 $('rdResume').addEventListener('click',()=>go({cmd:'reader',op:'resume'},'กำลังสั่งให้ reader เริ่มอ่านต่อ…'));
-$('rdRestart2').addEventListener('click',()=>$('rmRestart').click());
-$('rdShut').addEventListener('click',()=>{const t=prompt('ปิดโปรแกรม reader: การอ่านหยุดทั้งหมด และ **เปิดกลับจากหน้านี้ไม่ได้** ต้องไปถอด-เสียบไฟ PoE ที่ตัวเครื่อง\n\nพิมพ์ SHUTDOWN เพื่อยืนยัน');if(t===null)return;if(t.trim()!=='SHUTDOWN'){msg('ยกเลิก — พิมพ์ไม่ตรง');return}rmw('shutdown',null,{confirm:'SHUTDOWN'})});
-$('rmRestart').addEventListener('click',()=>{const t=prompt('รีสตาร์ต reader: การอ่านแท็กจะหยุดประมาณ 2-3 นาที bridge จะต่อกลับเอง\n\nพิมพ์ RESTART เพื่อยืนยัน');if(t===null)return;if(t.trim()!=='RESTART'){msg('ยกเลิก — พิมพ์ไม่ตรง');return}rmw('restart',null,{confirm:'RESTART'})});
+$('rdShut').addEventListener('click',()=>ask({title:'ปิดโปรแกรม reader',text:'การอ่านจะหยุดทั้งหมด และเปิดกลับจากหน้านี้ไม่ได้ ต้องไปถอด-เสียบไฟ PoE ที่ตัวเครื่อง\n\nพิมพ์ SHUTDOWN เพื่อยืนยัน',tone:'danger',ok:'ปิดโปรแกรม',type:'SHUTDOWN'}).then(y=>{if(y)rmw('shutdown',null,{confirm:'SHUTDOWN'})}));
+$('rdRestart2').addEventListener('click',()=>ask({title:'รีสตาร์ต reader',text:'การอ่านแท็กจะหยุดประมาณ 2–3 นาที bridge จะต่อกลับเอง\n\nพิมพ์ RESTART เพื่อยืนยัน',tone:'warn',ok:'รีสตาร์ต',type:'RESTART'}).then(y=>{if(y)rmw('restart',null,{confirm:'RESTART'})}));
 window.__readerMsg=o=>{if(o.type==='reader_rm_write'||o.type==='reader_rm'||(o.type==='reader_result'&&o.op!=='info')||o.type==='reader_info')idle();if(o.type==='reader_rm_write'){msg((o.ok?'✓ ':'✗ ')+o.msg);if(o.ok&&o.what!=='restart'&&o.what!=='shutdown')setTimeout(()=>send({cmd:'reader',op:'rm_info'}),1200);return}if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
 $('rdTx').addEventListener('input',()=>{$('rdTxVal').textContent=(+$('rdTx').value).toFixed(1)+' dBm'});
 $('rdRefresh').addEventListener('click',()=>go({cmd:'reader',op:'info'},'กำลังอ่านข้อมูลจาก reader…'));
 $('rdTxApply').addEventListener('click',()=>{const dbm=+$('rdTx').value,sc=$('rdTxScope').value,r=RINGS.find(x=>x[0]===sc),ants=r?range(r[2],r[3]):null;
-if(!confirm('ตั้งกำลังส่งเป็น '+dbm.toFixed(1)+' dBm บน '+(r?r[1]+' ('+(r[3]-r[2]+1)+' บีม)':'ทุกบีม')+'?\n\nกำลังต่ำลง = ระยะอ่านสั้นลง ค่านี้จะกลับเป็นเดิมเมื่อ reader รีสตาร์ต'))return;
-go({cmd:'reader',op:'power',dbm:dbm,ants:ants},'กำลังตั้งกำลังส่งที่ reader… (รอจนกว่า reader ยืนยัน)')});
+ask({title:'ตั้งกำลังส่ง',text:'ตั้งเป็น '+dbm.toFixed(1)+' dBm บน '+(r?r[1]+' ('+(r[3]-r[2]+1)+' บีม)':'ทุกบีม')+'\nกำลังต่ำลง = ระยะอ่านสั้นลง ค่านี้กลับเป็นเดิมเมื่อ reader รีสตาร์ต',ok:'ตั้งกำลังส่ง'}).then(y=>{if(y)go({cmd:'reader',op:'power',dbm:dbm,ants:ants},'กำลังตั้งกำลังส่งที่ reader… (รอจนกว่า reader ยืนยัน)')})});
 $('rdScanApply').addEventListener('click',()=>{const on=[...document.querySelectorAll('[data-ring]')].filter(c=>c.checked).map(c=>RINGS.find(r=>r[0]===c.dataset.ring));if(!on.length){msg('เลือกอย่างน้อย 1 วง');return}
 const ants=on.flatMap(r=>range(r[2],r[3]));if(go({cmd:'scan',ants:ants,dwell:+$('rdDwell').value},'กำลังเปลี่ยนการสแกนเป็น '+ants.length+' บีม · '+$('rdDwell').value+' ms ต่อบีม…'))setTimeout(()=>{if(!$('rdLoad').hidden)idle('✓ ส่งคำสั่งสแกนแล้ว ('+ants.length+' บีม · '+$('rdDwell').value+' ms)')},3500)});
 setInterval(()=>{const d=$('drawer');if(d&&d.classList.contains('open')&&document.querySelector('.drawer-body').dataset.view==='reader')send({cmd:'reader',op:'info'})},4000);
