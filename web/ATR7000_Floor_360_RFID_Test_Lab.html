@@ -262,6 +262,12 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <div class="rd-kv"><span>สถานะ</span><b id="rdConn">—</b></div><div class="rd-kv"><span>รุ่น</span><b id="rdModel">—</b></div><div class="rd-kv"><span>เฟิร์มแวร์</span><b id="rdFw">—</b></div>
 <div class="rd-kv"><span>เสาเสมือนทั้งหมด</span><b id="rdAnt">—</b></div><div class="rd-kv"><span>บีมที่กำลังสแกน</span><b id="rdBeams">—</b></div><div class="rd-kv"><span>อ่านแล้วรวม</span><b id="rdReads">—</b></div>
 <div style="margin-top:10px"><button type="button" class="button small" id="rdRefresh">รีเฟรชข้อมูล</button></div></section>
+<section class="dsec" data-p="reader"><h3>ควบคุมการทำงาน</h3>
+<div class="rd-kv"><span>การอ่านแท็ก</span><b id="rdRun">—</b></div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="button small" id="rdPause">หยุดการอ่าน (พัก)</button><button type="button" class="button small primary" id="rdResume">เริ่มอ่านต่อ</button></div>
+<div class="s-small" style="margin-top:8px">หยุดการอ่าน = reader เลิกส่งสัญญาณอ่านแท็ก แต่ยังเปิดและเชื่อมต่ออยู่ กดเริ่มอ่านต่อเมื่อพร้อม (ไม่ต้องรีสตาร์ต)</div>
+<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="button small" id="rdRestart2" style="color:#ffb454">รีสตาร์ต reader…</button><button type="button" class="button small" id="rdShut" style="color:#ff6b6b">ปิดโปรแกรม reader…</button></div>
+<div class="s-small" style="margin-top:8px">ปิดโปรแกรม reader สั่งปิดแล้ว<b>เปิดกลับจากหน้านี้ไม่ได้</b> ต้องไปที่ตัวเครื่องแล้วถอด-เสียบไฟ PoE ส่วนรีสตาร์ตใช้เวลา 2-3 นาที bridge จะต่อกลับเอง ทั้งสองอย่างต้องพิมพ์ข้อความยืนยัน</div></section>
 <section class="dsec" data-p="reader"><h3>กำลังส่ง (TX power)</h3>
 <div class="rd-kv"><span>ตอนนี้</span><b id="rdTxNow">—</b></div>
 <label class="s-small" style="display:flex;justify-content:space-between;margin-top:10px">ตั้งเป็น <b id="rdTxVal">—</b></label><input id="rdTx" type="range" min="16" max="35.2" step="0.2" value="27">
@@ -736,7 +742,7 @@ const go=(o,t)=>{if(send(o)){busy(t);return true}return false};
 const show=()=>{const i=info||{};$('rdConn').textContent=i.connected?'เชื่อมต่อ LLRP แล้ว':'—';$('rdModel').textContent=i.model_id||'—';$('rdFw').textContent=i.firmware||'—';$('rdAnt').textContent=i.max_antennas||'—';$('rdBeams').textContent=i.beams!=null?i.beams+' · '+i.dwell_ms+' ms ต่อบีม':'—';$('rdReads').textContent=i.reads!=null?i.reads.toLocaleString():'—';
 const p=i.power_dbm;if(p){const t=$('rdTx');t.min=p.min;t.max=p.max;if(!t.dataset.set){t.value=Math.min(27,p.max);t.dataset.set='1'}$('rdTxVal').textContent=(+t.value).toFixed(1)+' dBm'}
 const v=i.tx&&i.tx.dbm_values;$('rdTxNow').textContent=v&&v.length?(v.length===1?v[0].toFixed(1)+' dBm (ทุกบีม)':v[0].toFixed(1)+'–'+v[v.length-1].toFixed(1)+' dBm (ต่างกันตามบีม)'):'—';
-const sm=$('sum-reader');if(sm)sm.textContent=v&&v.length?v[v.length-1].toFixed(1)+' dBm':(i.connected?'เชื่อมต่อแล้ว':'—')};
+$('rdRun').textContent=i.connected?(i.paused?'หยุดชั่วคราว':'กำลังอ่าน'):'—';const sm=$('sum-reader');if(sm)sm.textContent=v&&v.length?v[v.length-1].toFixed(1)+' dBm':(i.connected?'เชื่อมต่อแล้ว':'—')};
 const mb=n=>(n/1048576).toFixed(0)+' MB';
 const rmShow=o=>{const n=$('rmNote');if(!o.ok){n.textContent='✗ '+o.msg;return}const d=o.data;$('rmName').textContent=d.name||'—';if(d.name&&document.activeElement!==$('rmNameIn'))$('rmNameIn').value=d.name;$('rmWd').checked=d.watchdog==='true';$('rmRegion').textContent=d.region||'—';
 const l=d.llrp||{};$('rmLlrp').textContent=(l.running==='true'?'ทำงาน':'ไม่ทำงาน')+' · พอร์ต '+(l.port||'?')+(l.secure==='true'?' · secure':'')+(l.validate_peer==='true'?' · ตรวจ peer':'');
@@ -744,13 +750,17 @@ $('rmTime').textContent=d.time||'—';$('rmCpu').textContent=d.cpu&&d.cpu.user!=
 $('rmRam').textContent=d.ram&&d.ram.total?mb(d.ram.used)+' / '+mb(d.ram.total):'—';
 $('rmVers').innerHTML=(d.versions||[]).map(v=>v[0].replace(/[<>&]/g,'')+' <b>'+v[1].replace(/[<>&]/g,'')+'</b>').join('<br>');n.textContent='✓ อ่านเมื่อ '+new Date().toLocaleTimeString()};
 $('rmRead').addEventListener('click',()=>go({cmd:'reader',op:'rm_info'},'กำลังล็อกอินและอ่านข้อมูลจากแอดมินของ reader…'));
-const rmw=(what,arg,extra)=>{go(Object.assign({cmd:'reader',op:'rm_write',what:what,arg:arg},extra||{}),what==='restart'?'กำลังสั่งรีสตาร์ต reader…':'กำลังส่งคำสั่งไปที่ reader… (ล็อกอิน → ตั้งค่า → บันทึก)')};
+const rmw=(what,arg,extra)=>{go(Object.assign({cmd:'reader',op:'rm_write',what:what,arg:arg},extra||{}),what==='restart'?'กำลังสั่งรีสตาร์ต reader…':what==='shutdown'?'กำลังสั่งปิดโปรแกรม reader…':'กำลังส่งคำสั่งไปที่ reader… (ล็อกอิน → ตั้งค่า → บันทึก)')};
 $('rmSetName').addEventListener('click',()=>{const v=$('rmNameIn').value.trim();if(!v){msg('ใส่ชื่อก่อน');return}if(confirm('ตั้งชื่อ reader เป็น "'+v+'"?'))rmw('set_name',v)});
 $('rmSetNtp').addEventListener('click',()=>{const v=$('rmNtpIn').value.trim();if(!v){msg('ใส่ชื่อหรือ IP ของ NTP server ก่อน');return}if(confirm('ตั้ง NTP server เป็น '+v+'?\n\nถ้า reader ติดต่อ server นี้ไม่ได้ เวลาของ reader จะไม่ซิงก์'))rmw('set_ntp',v)});
 $('rmSync').addEventListener('click',()=>{if(confirm('ตั้งเวลาของ reader ให้ตรงกับเวลาของเครื่องนี้ (UTC)?'))rmw('sync_time',null)});
 $('rmWd').addEventListener('change',e=>{const on=e.target.checked;if(!confirm((on?'เปิด':'ปิด')+' watchdog ของ reader?')){e.target.checked=!on;return}rmw('set_watchdog',on)});
+$('rdPause').addEventListener('click',()=>{if(confirm('หยุดการอ่านแท็กชั่วคราว?\n\nหน้าเรดาร์จะไม่มีข้อมูลใหม่จนกว่าจะกด "เริ่มอ่านต่อ"'))go({cmd:'reader',op:'pause'},'กำลังสั่งให้ reader หยุดอ่าน…')});
+$('rdResume').addEventListener('click',()=>go({cmd:'reader',op:'resume'},'กำลังสั่งให้ reader เริ่มอ่านต่อ…'));
+$('rdRestart2').addEventListener('click',()=>$('rmRestart').click());
+$('rdShut').addEventListener('click',()=>{const t=prompt('ปิดโปรแกรม reader: การอ่านหยุดทั้งหมด และ **เปิดกลับจากหน้านี้ไม่ได้** ต้องไปถอด-เสียบไฟ PoE ที่ตัวเครื่อง\n\nพิมพ์ SHUTDOWN เพื่อยืนยัน');if(t===null)return;if(t.trim()!=='SHUTDOWN'){msg('ยกเลิก — พิมพ์ไม่ตรง');return}rmw('shutdown',null,{confirm:'SHUTDOWN'})});
 $('rmRestart').addEventListener('click',()=>{const t=prompt('รีสตาร์ต reader: การอ่านแท็กจะหยุดประมาณ 2-3 นาที bridge จะต่อกลับเอง\n\nพิมพ์ RESTART เพื่อยืนยัน');if(t===null)return;if(t.trim()!=='RESTART'){msg('ยกเลิก — พิมพ์ไม่ตรง');return}rmw('restart',null,{confirm:'RESTART'})});
-window.__readerMsg=o=>{if(o.type==='reader_rm_write'||o.type==='reader_rm'||(o.type==='reader_result'&&o.op!=='info')||o.type==='reader_info')idle();if(o.type==='reader_rm_write'){msg((o.ok?'✓ ':'✗ ')+o.msg);if(o.ok&&o.what!=='restart')setTimeout(()=>send({cmd:'reader',op:'rm_info'}),1200);return}if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
+window.__readerMsg=o=>{if(o.type==='reader_rm_write'||o.type==='reader_rm'||(o.type==='reader_result'&&o.op!=='info')||o.type==='reader_info')idle();if(o.type==='reader_rm_write'){msg((o.ok?'✓ ':'✗ ')+o.msg);if(o.ok&&o.what!=='restart'&&o.what!=='shutdown')setTimeout(()=>send({cmd:'reader',op:'rm_info'}),1200);return}if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
 $('rdTx').addEventListener('input',()=>{$('rdTxVal').textContent=(+$('rdTx').value).toFixed(1)+' dBm'});
 $('rdRefresh').addEventListener('click',()=>go({cmd:'reader',op:'info'},'กำลังอ่านข้อมูลจาก reader…'));
 $('rdTxApply').addEventListener('click',()=>{const dbm=+$('rdTx').value,sc=$('rdTxScope').value,r=RINGS.find(x=>x[0]===sc),ants=r?range(r[2],r[3]):null;

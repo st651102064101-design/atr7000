@@ -254,9 +254,13 @@ def handle_page_command(payload):
             op = msg.get("op")
             if op == "rm_info":
                 start_rm_read()
+            elif op in ("pause", "resume"):
+                if llrp_client is not None:
+                    llrp_client.request_op({"op": op})
             elif op == "rm_write":
                 what, arg = msg.get("what"), msg.get("arg")
-                if what in ("set_name", "set_ntp", "sync_time", "set_watchdog", "restart") and (what != "restart" or msg.get("confirm") == "RESTART"):
+                need = {"restart": "RESTART", "shutdown": "SHUTDOWN"}.get(what)
+                if what in ("set_name", "set_ntp", "sync_time", "set_watchdog", "restart", "shutdown") and (need is None or msg.get("confirm") == need):
                     start_rm_write(what, arg)
             elif op == "info":
                 if llrp_client is not None:

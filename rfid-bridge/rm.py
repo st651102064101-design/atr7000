@@ -207,4 +207,9 @@ def write(op, arg=None):
                 raise RMError("มีการตั้งค่าที่ยังไม่ได้บันทึกบน reader — บันทึกหรือยกเลิกที่หน้าแอดมินก่อน")
             raise
         return "สั่งรีสตาร์ต reader แล้ว (ใช้เวลา 2-3 นาที bridge จะต่อกลับเอง)"
+    if op == "shutdown":
+        rm = RM()
+        rm.login()
+        rm._post("<motorm:shutDown><motorm:restartNeeded>false</motorm:restartNeeded><motorm:forceShutdown>false</motorm:forceShutdown></motorm:shutDown>")
+        return "สั่งปิดโปรแกรม reader แล้ว — เปิดกลับต้องไปที่ตัวเครื่อง (ถอดแล้วเสียบไฟ PoE) ไม่สามารถสั่งจากหน้านี้"
     raise RMError("คำสั่งนี้ไม่อนุญาต")

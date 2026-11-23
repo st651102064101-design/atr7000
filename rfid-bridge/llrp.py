@@ -24,8 +24,9 @@ GET_READER_CONFIG, GET_READER_CONFIG_RESPONSE = 2, 12
 ADD_ROSPEC, ADD_ROSPEC_RESPONSE = 20, 30
 DELETE_ROSPEC, DELETE_ROSPEC_RESPONSE = 21, 31
 START_ROSPEC, START_ROSPEC_RESPONSE = 22, 32
-STOP_ROSPEC = 23
+STOP_ROSPEC, STOP_ROSPEC_RESPONSE = 23, 33
 ENABLE_ROSPEC, ENABLE_ROSPEC_RESPONSE = 24, 34
+DISABLE_ROSPEC, DISABLE_ROSPEC_RESPONSE = 25, 35
 RO_ACCESS_REPORT = 61
 KEEPALIVE, KEEPALIVE_ACK = 62, 72
 READER_EVENT_NOTIFICATION = 63
@@ -223,6 +224,7 @@ class LlrpClient:
         self.power_table = {}      # index -> dBm
         self.ant_tx = {}           # antenna -> (hop table, channel index, power index)
         self.info = {}
+        self.paused = False        # reading stopped from the page (connection stays up)
 
     def set_scan(self, ants=None, session="keep", flip=None, dwell=None):
         """Change what the reader scans while the bridge keeps running (applied by the read loop):
@@ -234,6 +236,7 @@ class LlrpClient:
         global SESSION, QUERY_FLIP
         ants, session, flip, dwell = self.pending_scan
         self.pending_scan = None
+        self.paused = False        # installing a scan starts reading again
         if ants:
             self.base = list(ants)
             self.antennas = list(ants)
@@ -296,6 +299,24 @@ class LlrpClient:
         kind = op.get("op")
         res = {"type": "reader_result", "op": kind, "ok": True, "msg": ""}
         try:
+            if kind == "pause":
+                b = await self._rpc(STOP_ROSPEC, struct.pack("!I", ROSPEC_ID), STOP_ROSPEC_RESPONSE)
+                code, desc = status_of(b)
+                if code != 0:
+                    raise RuntimeError("reader rejected the stop: %r %s" % (code, desc))
+                b = await self._rpc(DISABLE_ROSPEC, struct.pack("!I", ROSPEC_ID), DISABLE_ROSPEC_RESPONSE)
+                code, desc = status_of(b)
+                if code != 0:
+                    raise RuntimeError("reader rejected the disable: %r %s" % (code, desc))
+                self.paused = True
+                res["msg"] = "หยุดการอ่านแล้ว (ยังเชื่อมต่อ reader อยู่ กด 'เริ่มอ่านต่อ' เพื่อกลับมาอ่าน)"
+            elif kind == "resume":
+                ok, why = await self._install(list(self.base))
+                if not ok:
+                    raise RuntimeError("reader rejected the restart: %s" % why)
+                self.paused = False
+                self.last_swap = time.time()
+                res["msg"] = "เริ่มอ่านต่อแล้ว"
             if kind in ("info", "power"):
                 if kind == "power":
                     if not self.power_table or not self.ant_tx:
@@ -324,7 +345,7 @@ class LlrpClient:
             res["msg"] = str(e) or type(e).__name__
             self.log("[llrp] op %s failed: %s" % (kind, res["msg"]))
         self.emit(res)
-        self.emit({"type": "reader_info", "info": dict(self.info, reads=self.reports, connected=True, beams=len(self.base), dwell_ms=self.dwell_ms)})
+        self.emit({"type": "reader_info", "info": dict(self.info, reads=self.reports, connected=True, paused=self.paused, beams=len(self.base), dwell_ms=self.dwell_ms)})
 
     def set_focus(self, beams, ring=()):
         """Ask for these beams (and a wider ring) to be scanned more often. Applied by the read loop."""
@@ -467,7 +488,7 @@ class LlrpClient:
                     await self._do_op(self.pending_ops.pop(0))
                 if self.pending_scan:
                     await self._apply_scan()
-                elif self.want != self.focus:
+                elif self.want != self.focus and not self.paused:
                     await self._maybe_swap()
         finally:
             self.q = None
