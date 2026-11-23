@@ -436,7 +436,7 @@ else ctx.fillText=ctx.__ft;
 fn(ctx,w,h)}
 let zoom=1,panX=0,panY=0,tagH=(()=>{try{return +localStorage.getItem('atr_tag_h')||1.5}catch(e){return 1.5}})();
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}};
-let distMode=lsGet('atr_dist_mode','rssi'),P1=parseFloat(lsGet('atr_p1','-42')),scaleSel=lsGet('atr_scale','auto'),autoScale=3,autoLow=0;if(!isFinite(P1))P1=-42;
+let distMode=lsGet('atr_dist_mode','rssi'),P1=parseFloat(lsGet('atr_p1','-25')),scaleSel=lsGet('atr_scale','auto'),autoScale=3,autoLow=0;if(!isFinite(P1))P1=-25;
 const RS_SENS=-85;   /* weakest backscatter the reader still decodes (datasheet: -85 / -88 dBm) */
 const dMaxM=()=>Math.pow(10,(P1-RS_SENS)/40);
 function rangeOf(t,rs){const el=t.elev,rr=rs!=null?rs:t.rssiBest;if(distMode==='rssi'&&rr!=null&&el!=null){const sl=clamp(Math.pow(10,(P1-rr)/40),.1,60);return {s:sl,h:sl*Math.sin(rad(Math.min(el,89))),src:'rssi'}}const g=distOf(el);return g?{s:g.s,h:g.h,src:'geo'}:null}
