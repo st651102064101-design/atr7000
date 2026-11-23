@@ -249,6 +249,12 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 </section>
 <section class="dsec" data-p="dist"><h3>การประเมินระยะ (วิธีมุม+ความสูง)</h3><label class="s-small" style="display:flex;gap:8px;align-items:center;margin-top:8px">ความสูงแท็กเหนือ reader (เมตร) <input id="tagH" class="inpt" type="number" min="0.2" max="30" step="0.1" value="1.5" style="width:90px"></label><span class="s-small">ระยะ ≈ ประมาณจากมุมเงยของ beam และความสูงที่ตั้งไว้ (สมมติแท็กทุกตัวอยู่สูงเท่ากัน) ไม่ใช่ค่าที่ reader วัดโดยตรง</span></section>
 <section class="dsec" data-p="track"><h3>ความไวของตำแหน่ง</h3><div class="seg" role="group" aria-label="ความไวของตำแหน่ง"><button type="button" class="seg-b" data-trk="lock" aria-pressed="false">ล็อก</button><button type="button" class="seg-b" data-trk="calm" aria-pressed="false">นิ่ง</button><button type="button" class="seg-b" data-trk="balanced" aria-pressed="false">สมดุล</button><button type="button" class="seg-b" data-trk="live" aria-pressed="false">ไว</button></div><div class="s-small" id="trkNote" style="margin-top:8px"></div></section>
+<section class="dsec" data-p="track"><h3>รอบอัปเดตตำแหน่ง (realtime)</h3>
+<label class="s-small" style="display:flex;justify-content:space-between;gap:8px">ทุก <b id="updVal">100 ms</b></label>
+<input id="updSlider" type="range" min="0" max="1000" step="1" value="750">
+<div style="display:flex;align-items:center;gap:8px;margin-top:10px"><input id="updNum" class="inpt" type="number" min="0.01" max="1000" step="any" style="width:110px"><span class="s-small">ms (0.01 – 1000)</span></div>
+<div class="seg" role="group" aria-label="ค่าที่ใช้บ่อย" style="margin-top:10px;flex-wrap:wrap"><button type="button" class="seg-b" data-upd="0.01">0.01</button><button type="button" class="seg-b" data-upd="1">1</button><button type="button" class="seg-b" data-upd="10">10</button><button type="button" class="seg-b" data-upd="50">50</button><button type="button" class="seg-b" data-upd="100">100</button><button type="button" class="seg-b" data-upd="500">500</button><button type="button" class="seg-b" data-upd="1000">1000</button></div>
+<div class="s-small" id="updNote" style="margin-top:8px">—</div></section>
 <section class="dsec" data-p="track"><h3>โหมดสแกนของ reader</h3><div class="seg" role="group" aria-label="โหมดสแกน"><button type="button" class="seg-b" data-scan="full" aria-pressed="false">ครบ 97 beam</button><button type="button" class="seg-b" data-scan="ring30" aria-pressed="false">วงเดียว (ทดลอง)</button></div><div class="s-small" id="scanNote" style="margin-top:8px">—</div></section>
 <section class="dsec" data-p="track"><h3>สแกนโฟกัส</h3><label class="sw-row" for="focusSw"><span>อ่านแท็กที่เลือก/ปักหมุดถี่ขึ้น</span><input id="focusSw" class="sw" type="checkbox" role="switch"></label><div class="s-small" id="focusState" style="margin-top:8px">—</div><div class="s-small" style="margin-top:6px">ทดลอง — ปิดไว้เป็นค่าเริ่มต้น: วัดกับ reader จริงแล้วพบว่าการสแกน beam ซ้ำทำให้อัตราอ่านรวมตกจาก ~40 เหลือ ~4-20 ครั้ง/วินาที (แท็กที่อ่านแล้วจะเงียบชั่วครู่ จึงอ่านซ้ำไม่ได้) เปิดเฉพาะเมื่อต้องการลองเทียบ</div></section>
 <div class="rd-load" id="rdLoad" hidden role="status" aria-live="polite"><i class="rd-spin"></i><span id="rdLoadTxt">กำลังทำงาน…</span></div>
@@ -304,7 +310,7 @@ let pT=0;function persist(){if(pT)return;pT=setTimeout(()=>{pT=0;try{localStorag
 events=events.filter(e=>e&&e.source!=='MOCK');sessions=sessions.filter(s=>s&&s.source!=='MOCK');
 let agg={};try{agg=JSON.parse(localStorage.getItem('atr_agg_v1')||'{}')||{}}catch(e){agg={}}
 const isReal=e=>e&&e.source!=='MOCK';
-let focusAuto='',selEpc=null,trk={},hid={},lat=null,evCount=0,evRate=0,ltC=null,ltT=0;const flt={q:'',min:-90,active:false,maxAge:60};
+let UPD_C=30,focusAuto='',selEpc=null,trk={},hid={},lat=null,evCount=0,evRate=0,ltC=null,ltT=0;const flt={q:'',min:-90,active:false,maxAge:60};
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};let names=ld('atr_tag_names',{}),pins=ld('atr_tag_pins',{}),colors=ld('atr_tag_colors',{});for(const k in colors)if(!/^#[0-9a-f]{6}$/i.test(colors[k]))delete colors[k];
 const svTags=()=>{try{localStorage.setItem('atr_tag_names',JSON.stringify(names));localStorage.setItem('atr_tag_pins',JSON.stringify(pins));localStorage.setItem('atr_tag_colors',JSON.stringify(colors))}catch(e){}};
 const escH=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -407,7 +413,7 @@ const TRK={tau:0,snap:2600,hysAz:25,hysEl:18,confirm:250,deadAz:6,deadEl:5,
   /* tags being followed (selected/pinned) are scanned every ~0.3-0.6 s by the focus scan, so a short window is safe */
   snapF:700,tauF:250,hysAzF:18,confirmF:100};
 const applyTrkMode=m=>{trkMode=m;try{localStorage.setItem('atr_trk_mode3',m)}catch(e){}Object.assign(TRK,TRK_PRESETS[m==='calm'?'calm':'balanced'])};applyTrkMode(trkMode);
-function liveTags(){const n0=performance.now();if(ltC&&n0-ltT<30)return ltC;const now=Date.now(),by=recentByTag(flt.maxAge*1000),out=[],q=flt.q.trim().toUpperCase();for(const k in by){const all=by[k],last=all[all.length-1],rec=all.filter(e=>now-e.rx<5000);const foc=!!pins[k]||k===selEpc,live=foc&&trkMode==='live';/* live window = the shortest span holding >=14 reads (0.6 s for strong tags, up to 3 s for weak ones) */const liveSpan=Math.min(LIVE.maxSpan,Math.max(LIVE.snap,all.length>=LIVE.minN?now-all[all.length-LIVE.minN].rx:LIVE.maxSpan));let win=all.filter(e=>now-e.rx<(live?liveSpan:foc?TRK.snapF:TRK.snap)),ref=now;if(win.length<3){win=all.slice(live?-10:-24);ref=last.rx}let S;if(live){const S0=estimate(win,ref,LIVE.tau),Tt=trk[k]||(trk[k]={az:null,el:null,cand:null,mv:0});let anc=Tt.b;if(anc==null||!(S0.pm&&S0.pm[anc]>0))anc=S0.beam;else if(S0.beam!==anc&&S0.pm[S0.beam]/S0.pm[anc]>=LIVE.hys){if(!Tt.ch||Tt.ch.b!==S0.beam)Tt.ch={b:S0.beam,t:now};else if(now-Tt.ch.t>=LIVE.hold){anc=S0.beam;Tt.ch=null}}else Tt.ch=null;Tt.b=anc;S=estimate(win,ref,LIVE.tau,{anchor:anc,gate:LIVE.gate,thr:LIVE.thr,flat:true})}
+function liveTags(){const n0=performance.now();if(ltC&&n0-ltT<UPD_C)return ltC;const now=Date.now(),by=recentByTag(flt.maxAge*1000),out=[],q=flt.q.trim().toUpperCase();for(const k in by){const all=by[k],last=all[all.length-1],rec=all.filter(e=>now-e.rx<5000);const foc=!!pins[k]||k===selEpc,live=foc&&trkMode==='live';/* live window = the shortest span holding >=14 reads (0.6 s for strong tags, up to 3 s for weak ones) */const liveSpan=Math.min(LIVE.maxSpan,Math.max(LIVE.snap,all.length>=LIVE.minN?now-all[all.length-LIVE.minN].rx:LIVE.maxSpan));let win=all.filter(e=>now-e.rx<(live?liveSpan:foc?TRK.snapF:TRK.snap)),ref=now;if(win.length<3){win=all.slice(live?-10:-24);ref=last.rx}let S;if(live){const S0=estimate(win,ref,LIVE.tau),Tt=trk[k]||(trk[k]={az:null,el:null,cand:null,mv:0});let anc=Tt.b;if(anc==null||!(S0.pm&&S0.pm[anc]>0))anc=S0.beam;else if(S0.beam!==anc&&S0.pm[S0.beam]/S0.pm[anc]>=LIVE.hys){if(!Tt.ch||Tt.ch.b!==S0.beam)Tt.ch={b:S0.beam,t:now};else if(now-Tt.ch.t>=LIVE.hold){anc=S0.beam;Tt.ch=null}}else Tt.ch=null;Tt.b=anc;S=estimate(win,ref,LIVE.tau,{anchor:anc,gate:LIVE.gate,thr:LIVE.thr,flat:true})}
 else S=estimate(win,ref,foc?TRK.tauF:TRK.tau,{gate:60});const E=S;E.epc=k;E.age=now-last.rx;E.active=rec.length>0;E.n3=rec.length;E.n=E.n3;E.peak=rec.length?Math.max(...rec.map(e=>e.rssi)):last.rssi;E.total=agg[k]?agg[k].count:all.length;E.rssiBest=(S.pm&&S.beam!=null&&S.pm[S.beam]>0)?10*Math.log10(S.pm[S.beam]):E.peak;
 const T=trk[k]||(trk[k]={az:null,el:null,cand:null,mv:0});
 const ambig=(S.amb||0)>=AMB_N;E.amb=ambig;
@@ -754,6 +760,19 @@ const ants=on.flatMap(r=>range(r[2],r[3]));if(go({cmd:'scan',ants:ants,dwell:+$(
 setInterval(()=>{const d=$('drawer');if(d&&d.classList.contains('open')&&document.querySelector('.drawer-body').dataset.view==='reader')send({cmd:'reader',op:'info'})},4000);
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-go="reader"]')&&!info){if(ws&&ws.readyState===1)go({cmd:'reader',op:'info'},'กำลังโหลดข้อมูลจาก reader…');else msg('ยังไม่ได้เชื่อมต่อ bridge')}});
 setTimeout(()=>{if(ws&&ws.readyState===1)send({cmd:'reader',op:'info'})},1500);show()})();
+(function(){const sl=$('updSlider'),num=$('updNum'),val=$('updVal'),note=$('updNote');if(!sl)return;
+const MIN=0.01,MAX=1000,K=Math.log(MAX/MIN)/1000;const toMs=p=>MIN*Math.exp(K*p),toPos=m=>Math.round(Math.log(m/MIN)/K);
+const fmt=m=>(m<1?m.toFixed(2):m<10?m.toFixed(1):Math.round(m))+' ms';
+let ms=100;try{const v=parseFloat(localStorage.getItem('atr_upd'));if(v>=MIN&&v<=MAX)ms=v}catch(e){}
+const apply=(m,save)=>{ms=Math.min(MAX,Math.max(MIN,m));LK.interval=ms;UPD_C=Math.min(30,ms);for(const k in lks)lks[k].t=0;ltT=0;
+sl.value=toPos(ms);if(document.activeElement!==num)num.value=+ms.toPrecision(3);val.textContent=fmt(ms);
+document.querySelectorAll('[data-upd]').forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(parseFloat(b.dataset.upd)-ms)<1e-9)));
+const real=Math.max(ms,16.7);note.textContent=ms<16.7?'ต่ำกว่ารอบวาดจอ (~16 ms) จะคำนวณทุกเฟรม: จอวาดได้สูงสุดตามความถี่หน้าจอ และ reader ส่งการอ่านราว 20 ms ต่อครั้ง ค่านี้จึงไม่ทำให้ข้อมูลใหม่มาเร็วขึ้น แค่ไม่หน่วงเพิ่ม':'คำนวณตำแหน่งใหม่ทุก '+fmt(ms)+' (ประมาณ '+(1000/real).toFixed(ms>=100?0:1)+' ครั้ง/วินาที) ค่ามากขึ้น = นิ่งขึ้น/ประหยัดเครื่อง ค่าน้อยลง = ตามไวขึ้น';
+if(save)try{localStorage.setItem('atr_upd',String(ms))}catch(e){}};
+sl.addEventListener('input',()=>apply(toMs(+sl.value),true));
+num.addEventListener('change',()=>{const v=parseFloat(num.value);if(v>0)apply(v,true);else apply(ms,false)});
+document.querySelectorAll('[data-upd]').forEach(b=>b.addEventListener('click',()=>apply(parseFloat(b.dataset.upd),true)));
+apply(ms,false)})();
 setMode('MOCK');navSetup();render();openWs(true);})();
 </script>
 </body></html>
