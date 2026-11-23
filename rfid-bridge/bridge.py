@@ -215,6 +215,8 @@ def start_rm_write(what, arg):
     async def run():
         try:
             m = await loop.run_in_executor(None, rm.write, what, arg)
+            if what in ("restart", "shutdown") and llrp_client is not None:
+                llrp_client.expect_reboot()
             obj = {"type": "reader_rm_write", "what": what, "ok": True, "msg": m}
         except rm.RMError as e:
             obj = {"type": "reader_rm_write", "what": what, "ok": False, "msg": str(e)}

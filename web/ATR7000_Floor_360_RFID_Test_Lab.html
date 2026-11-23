@@ -807,7 +807,13 @@ $('rdPause').addEventListener('click',()=>ask({title:'พักการอ่�
 $('rdResume').addEventListener('click',()=>go({cmd:'reader',op:'resume'},'กำลังสั่งให้ reader เริ่มอ่านต่อ…'));
 $('rdShut').addEventListener('click',()=>ask({title:'ปิดโปรแกรม reader',text:'การอ่านจะหยุดทั้งหมด และเปิดกลับจากหน้านี้ไม่ได้ ต้องไปถอด-เสียบไฟ PoE ที่ตัวเครื่อง\n\nพิมพ์ SHUTDOWN เพื่อยืนยัน',tone:'danger',ok:'ปิดโปรแกรม',type:'SHUTDOWN'}).then(y=>{if(y)rmw('shutdown',null,{confirm:'SHUTDOWN'})}));
 $('rdRestart2').addEventListener('click',()=>ask({title:'รีสตาร์ต reader',text:'การอ่านแท็กจะหยุดประมาณ 2–3 นาที bridge จะต่อกลับเอง\n\nพิมพ์ RESTART เพื่อยืนยัน',tone:'warn',ok:'รีสตาร์ต',type:'RESTART'}).then(y=>{if(y)rmw('restart',null,{confirm:'RESTART'})}));
-window.__readerMsg=o=>{if(o.type==='reader_rm_write'||o.type==='reader_rm'||(o.type==='reader_result'&&o.op!=='info')||o.type==='reader_info')idle();if(o.type==='reader_rm_write'){msg((o.ok?'✓ ':'✗ ')+o.msg);if(o.ok&&o.what!=='restart'&&o.what!=='shutdown')setTimeout(()=>send({cmd:'reader',op:'rm_info'}),1200);return}if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
+let rebooting=false,rbStart=0,rbT=null;
+const startReboot=(t0,txt)=>{rebooting=true;rbStart=t0||Date.now();try{sessionStorage.setItem('rd_rb',String(rbStart))}catch(e){}
+busy(txt||'reader กำลังรีสตาร์ต… รอให้เปิดเสร็จ (ราว 2–3 นาที) ปุ่มทั้งหมดถูกล็อกไว้จนกว่าจะพร้อม');clearTimeout(busyT);
+clearInterval(rbT);rbT=setInterval(()=>{if(Date.now()-rbStart>300000){endReboot('หมดเวลารอ reader (5 นาที) — เช็กสถานะที่หน้าแอดมิน');return}send({cmd:'reader',op:'info'})},4000)};
+const endReboot=m=>{rebooting=false;clearInterval(rbT);try{sessionStorage.removeItem('rd_rb')}catch(e){}idle();if(m)msg('✗ '+m)};
+window.__readerMsg=o=>{if(rebooting){if(o.type==='reader_info'&&o.info&&o.info.connected&&Date.now()-rbStart>15000){info=o.info;endReboot();show();toast('reader พร้อมแล้ว กลับมาอ่านแท็กได้',true)}return}
+if(o.type==='reader_rm_write'||o.type==='reader_rm'||(o.type==='reader_result'&&o.op!=='info')||o.type==='reader_info')idle();if(o.type==='reader_rm_write'){msg((o.ok?'✓ ':'✗ ')+o.msg);if(o.ok&&o.what==='restart'){startReboot();return}if(o.ok&&o.what==='shutdown'){startReboot(0,'ปิดโปรแกรม reader แล้ว — ต้องไปถอด-เสียบไฟ PoE ที่ตัวเครื่อง ปุ่มจะปลดล็อกเมื่อ reader กลับมาเชื่อมต่อ');return}if(o.ok&&o.what!=='restart'&&o.what!=='shutdown')setTimeout(()=>send({cmd:'reader',op:'rm_info'}),1200);return}if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
 $('rdTx').addEventListener('input',()=>{$('rdTxVal').textContent=(+$('rdTx').value).toFixed(1)+' dBm'});
 $('rdRefresh').addEventListener('click',()=>go({cmd:'reader',op:'info'},'กำลังอ่านข้อมูลจาก reader…'));
 $('rdTxApply').addEventListener('click',()=>{const dbm=+$('rdTx').value,sc=$('rdTxScope').value,r=RINGS.find(x=>x[0]===sc),ants=r?range(r[2],r[3]):null;
@@ -816,7 +822,9 @@ $('rdScanApply').addEventListener('click',()=>{const on=[...document.querySelect
 const ants=on.flatMap(r=>range(r[2],r[3]));if(go({cmd:'scan',ants:ants,dwell:+$('rdDwell').value},'กำลังเปลี่ยนการสแกนเป็น '+ants.length+' บีม · '+$('rdDwell').value+' ms ต่อบีม…'))setTimeout(()=>{if(!$('rdLoad').hidden)idle('✓ ส่งคำสั่งสแกนแล้ว ('+ants.length+' บีม · '+$('rdDwell').value+' ms)')},3500)});
 setInterval(()=>{const d=$('drawer');if(d&&d.classList.contains('open')&&document.querySelector('.drawer-body').dataset.view==='reader')send({cmd:'reader',op:'info'})},4000);
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-go="reader"]')&&!info){if(ws&&ws.readyState===1)go({cmd:'reader',op:'info'},'กำลังโหลดข้อมูลจาก reader…');else msg('ยังไม่ได้เชื่อมต่อ bridge')}});
-setTimeout(()=>{if(ws&&ws.readyState===1)send({cmd:'reader',op:'info'})},1500);show()})();
+setTimeout(()=>{if(ws&&ws.readyState===1)send({cmd:'reader',op:'info'})},1500);
+try{const t=parseInt(sessionStorage.getItem('rd_rb')||'0',10);if(t&&Date.now()-t<300000)startReboot(t)}catch(e){}
+show()})();
 (function(){const sl=$('updSlider'),num=$('updNum'),val=$('updVal'),note=$('updNote');if(!sl)return;
 const MIN=0.01,MAX=1000,K=Math.log(MAX/MIN)/1000;const toMs=p=>MIN*Math.exp(K*p),toPos=m=>Math.round(Math.log(m/MIN)/K);
 const fmt=m=>(m<1?m.toFixed(2):m<10?m.toFixed(1):Math.round(m))+' ms';

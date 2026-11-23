@@ -225,6 +225,8 @@ class LlrpClient:
         self.ant_tx = {}           # antenna -> (hop table, channel index, power index)
         self.info = {}
         self.paused = False        # reading stopped from the page (connection stays up)
+        self.connected = False     # LLRP session up and streaming
+        self.reboot = False        # the reader is being restarted: drop the link and reconnect
 
     def set_scan(self, ants=None, session="keep", flip=None, dwell=None):
         """Change what the reader scans while the bridge keeps running (applied by the read loop):
@@ -256,8 +258,14 @@ class LlrpClient:
             raise RuntimeError("scan change rejected: %s" % why)
 
     def request_op(self, op):
+        if not self.connected:
+            self.emit({"type": "reader_info", "info": {"connected": False}})
+            return
         if len(self.pending_ops) < 8:
             self.pending_ops.append(op)
+
+    def expect_reboot(self):
+        self.reboot = True
 
     async def _read_caps(self):
         b = await self._rpc(GET_READER_CAPABILITIES, struct.pack("!B", 0), GET_READER_CAPABILITIES_RESPONSE)
@@ -475,9 +483,13 @@ class LlrpClient:
             self.focus = ((), ())
             self.last_swap = time.time()
             self.log("[llrp] streaming tag reports")
+            self.connected = True
             self.q = asyncio.Queue()
             pump = asyncio.ensure_future(self._pump())
             while True:
+                if self.reboot:
+                    self.reboot = False
+                    raise ConnectionError("reader restarting")
                 try:
                     t, mid, b = await asyncio.wait_for(self._get(), 2)
                     self._handle(t, mid, b)
@@ -491,6 +503,7 @@ class LlrpClient:
                 elif self.want != self.focus and not self.paused:
                     await self._maybe_swap()
         finally:
+            self.connected = False
             self.q = None
             try:
                 pump.cancel()
