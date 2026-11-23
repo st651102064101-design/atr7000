@@ -8,3 +8,4 @@ notes/
 
 # reader admin login for the management panel (local only, never commit)
 rfid-bridge/reader.conf
+rfid-bridge/reader_settings.json

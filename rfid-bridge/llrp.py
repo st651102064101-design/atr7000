@@ -12,6 +12,8 @@ Message / parameter type numbers were checked against the sllurp source
 are verified at runtime (unknown TV parameters are logged, never guessed).
 """
 import asyncio
+import json
+import os
 import ssl
 import struct
 import time
@@ -53,6 +55,41 @@ TV_LEN = {1: 2, 2: 8, 3: 8, 4: 8, 5: 8, 6: 1, 7: 2, 8: 2, 9: 4, 10: 2,
 TV_ANTENNA, TV_FIRST_UTC, TV_PEAK_RSSI, TV_EPC96, TV_CHANNEL = 1, 2, 6, 13, 7
 
 ROSPEC_ID = 1
+
+SETTINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reader_settings.json")
+
+
+def load_settings():
+    try:
+        with open(SETTINGS, encoding="utf-8") as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def save_settings(**upd):
+    """What the user chose on the Manage page (scan beams/dwell, TX power) is kept here and re-applied whenever the
+    reader link comes up, so a reader restart or a bridge restart never silently resets it."""
+    d = load_settings()
+    d.update(upd)
+    try:
+        tmp = SETTINGS + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(d, f)
+        os.replace(tmp, SETTINGS)
+    except OSError:
+        pass
+
+
+def remember_power(ants, dbm):
+    entries = load_settings().get("power", [])
+    if ants is None:
+        entries = [{"ants": None, "dbm": dbm}]
+    else:
+        key = sorted(ants)
+        entries = [e for e in entries if e.get("ants") is None or sorted(e["ants"]) != key] + [{"ants": key, "dbm": dbm}]
+    save_settings(power=entries)
 
 SUB_TAG_CONTENT, SUB_TAG_PHASE = 708, 709   # MotoTagReportContentSelector / MotoTagPhase
 DEBUG_CUSTOM, DEBUG_SEEN = False, []
@@ -252,10 +289,34 @@ class LlrpClient:
         ok, why = await self._install(list(self.base))
         self.last_swap = time.time()
         self.focus = ((), ())
+        if ok:
+            save_settings(scan={"ants": list(self.base), "dwell": self.dwell_ms})
         self.log("[llrp] scan changed: %d beams, session %s, A/B flip %s, dwell %s ms -> %s" % (
             len(self.base), SESSION if SESSION is not None else "default", "on" if QUERY_FLIP else "off", self.dwell_ms, "ok" if ok else "REJECTED " + why))
         if not ok:
             raise RuntimeError("scan change rejected: %s" % why)
+
+    async def _restore(self):
+        """re-apply the settings the user chose earlier (after a reader restart or a bridge restart)"""
+        st = load_settings()
+        try:
+            sc = st.get("scan")
+            if isinstance(sc, dict) and isinstance(sc.get("ants"), list) and sc["ants"] and all(isinstance(a, int) and 301 <= a <= 397 for a in sc["ants"]):
+                dw = sc.get("dwell")
+                if (sorted(sc["ants"]) != sorted(self.base)) or (isinstance(dw, int) and 15 <= dw <= 50 and dw != self.dwell_ms):
+                    self.base = list(sc["ants"])
+                    self.antennas = list(sc["ants"])
+                    if isinstance(dw, int) and 15 <= dw <= 50:
+                        self.dwell_ms = dw
+                    ok, why = await self._install(list(self.base))
+                    self.log("[llrp] restored saved scan: %d beams, %s ms -> %s" % (len(self.base), self.dwell_ms, "ok" if ok else "REJECTED " + why))
+            for e in st.get("power", []) if isinstance(st.get("power"), list) else []:
+                dbm = e.get("dbm")
+                ants = e.get("ants")
+                if isinstance(dbm, (int, float)) and 10 <= dbm <= 36 and (ants is None or (isinstance(ants, list) and all(isinstance(a, int) and 301 <= a <= 397 for a in ants))):
+                    await self._do_op({"op": "power", "dbm": float(dbm), "ants": ants, "persist": False})
+        except (RuntimeError, ConnectionError, OSError, asyncio.TimeoutError) as ex:
+            self.log("[llrp] could not restore saved settings: %s" % ex)
 
     def request_op(self, op):
         if not self.connected:
@@ -344,6 +405,8 @@ class LlrpClient:
                     if code != 0:
                         raise RuntimeError("reader rejected the power change: %r %s" % (code, desc))
                     res["msg"] = "TX power set to %.1f dBm on %d beams" % (self.power_table[idx], len(targets))
+                    if op.get("persist", True):
+                        remember_power(None if len(targets) == len(self.ant_tx) else targets, self.power_table[idx])
                     self.log("[llrp] " + res["msg"])
                 self.info.update(await self._read_caps())
                 await self._read_tx()
@@ -484,6 +547,7 @@ class LlrpClient:
             self.last_swap = time.time()
             self.log("[llrp] streaming tag reports")
             self.connected = True
+            await self._restore()
             self.q = asyncio.Queue()
             pump = asyncio.ensure_future(self._pump())
             while True:
