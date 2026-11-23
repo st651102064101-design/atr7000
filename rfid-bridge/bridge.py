@@ -318,6 +318,25 @@ async def read_body(reader, hdr):
     return await reader.readexactly(n) if n else b""
 
 
+STATE_FILE = __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "page_state.json")
+
+
+def load_state():
+    try:
+        with open(STATE_FILE, encoding="utf-8") as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def save_state(st):
+    tmp = STATE_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(st, f, ensure_ascii=False)
+    __import__("os").replace(tmp, STATE_FILE)
+
+
 def respond(writer, code, obj):
     body = json.dumps(obj).encode()
     reason = {200: "OK", 400: "Bad Request", 404: "Not Found"}.get(code, "OK")
@@ -348,6 +367,21 @@ async def http_handler(reader, writer):
                          b"Access-Control-Allow-Headers: *\r\nAccess-Control-Allow-Methods: *\r\nContent-Length: 0\r\n\r\n")
         elif method == "GET" and path == "/health":
             respond(writer, 200, {"ok": True, "ws_clients": len(clients), "uptime_s": int(time.time() - stats["started"]), **stats})
+        elif method == "GET" and path == "/state":
+            respond(writer, 200, load_state())
+        elif method == "POST" and path == "/state":
+            try:
+                req = json.loads(body.decode("utf-8") or "{}")
+                st = load_state()
+                for k, v in (req.get("set") or {}).items():
+                    if isinstance(k, str) and k.startswith("atr_") and isinstance(v, str) and len(v) < 6_000_000:
+                        st[k] = v
+                for k in req.get("del") or []:
+                    st.pop(k, None)
+                save_state(st)
+                respond(writer, 200, {"ok": True})
+            except (ValueError, OSError, AttributeError):
+                respond(writer, 400, {"ok": False})
         elif method == "GET" and path == "/last":
             respond(writer, 200, recent[-20:])
         elif method == "POST" and path in ("/rfid", "/simulate", "/"):

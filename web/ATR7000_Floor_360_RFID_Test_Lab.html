@@ -371,6 +371,21 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 </details></section>
 </div></aside>
 <script>
+/* settings, tag names/pins and test data live on the PC that runs the bridge (page_state.json), not in each visitor's browser */
+(function(){var base=(/^https?:$/.test(location.protocol)&&location.hostname?location.hostname:'localhost'),url='http://'+base+':8080/state',ok=false,P='atr_';
+function req(m,b){var x=new XMLHttpRequest();x.open(m,url,m==='GET'?false:true);if(m!=='GET')x.timeout=8000;if(b)x.setRequestHeader('Content-Type','text/plain');try{x.send(b||null)}catch(e){return null}return x}
+try{var x=req('GET');if(x&&x.status===200){var st=JSON.parse(x.responseText)||{},n=Object.keys(st).length;ok=true;
+if(n){for(var k in st)if(k.indexOf(P)===0)localStorage.setItem(k,st[k]);}
+else{var up={};for(var i=0;i<localStorage.length;i++){var kk=localStorage.key(i);if(kk&&kk.indexOf(P)===0)up[kk]=localStorage.getItem(kk)}if(Object.keys(up).length)req('POST',JSON.stringify({set:up}))}}}catch(e){}
+if(!ok)return;
+var set={},del=[],t=0,S=Storage.prototype,si=S.setItem,ri=S.removeItem;
+function flush(){t=0;var b=JSON.stringify({set:set,del:del});set={};del=[];req('POST',b)}
+function q(){if(!t)t=setTimeout(flush,800)}
+S.setItem=function(k,v){si.call(this,k,v);if(this===localStorage&&String(k).indexOf(P)===0){set[k]=String(v);q()}};
+S.removeItem=function(k){ri.call(this,k);if(this===localStorage&&String(k).indexOf(P)===0){delete set[k];del.push(k);q()}};
+window.addEventListener('pagehide',function(){if(t){clearTimeout(t);try{navigator.sendBeacon(url,new Blob([JSON.stringify({set:set,del:del})],{type:'text/plain'}))}catch(e){}}})})();
+</script>
+<script>
 (()=>{'use strict';
 const PAGES=[['angle','360° Angle Test'],['beam','Beam Analysis'],['monitor','Tag Monitor'],['coverage','Coverage Heatmap'],['report','Test Report']];
 const $=id=>document.getElementById(id), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),mod=x=>(x%360+360)%360, rad=d=>d*Math.PI/180,fmt=(n,d=1)=>Number(n).toFixed(d), time=ts=>new Date(ts).toLocaleTimeString('th-TH',{hour12:false});
