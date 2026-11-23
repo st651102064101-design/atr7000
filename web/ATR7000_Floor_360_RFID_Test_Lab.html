@@ -882,7 +882,7 @@ const SM0={move:SMOOTH.move,still:SMOOTH.still};let predPref=PRED.on;
 const apply=(m,save)=>{ms=Math.min(MAX,Math.max(MIN,m));LK.interval=ms;UPD_C=Math.min(30,ms);INST=ms<16.7;SMOOTH.move=INST?.08:SM0.move;SMOOTH.still=INST?.15:SM0.still;PRED.on=INST?false:predPref;for(const k in lks)lks[k].t=0;ltT=0;
 sl.value=toPos(ms);if(document.activeElement!==num)num.value=+ms.toPrecision(3);val.textContent=fmt(ms);
 document.querySelectorAll('[data-upd]').forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(parseFloat(b.dataset.upd)-ms)<1e-9)));
-const real=Math.max(ms,16.7);note.textContent=ms<16.7?'โหมดไวสุด (ต่ำกว่า ~16 ms = ทุกเฟรมของจอ): คำนวณจากการอ่านใน ~0.6 วินาทีล่าสุด ตัดการสั่นเล็กน้อย (ขยับเมื่อต่างเกิน 14°) และไม่เชื่อทิศของแท็กที่อยู่ใกล้ reader มาก ไวกว่าโหมดล็อกแต่ยังกระโดดได้เมื่อแท็กอ่านได้น้อย':'คำนวณตำแหน่งใหม่ทุก '+fmt(ms)+' (ประมาณ '+(1000/real).toFixed(ms>=100?0:1)+' ครั้ง/วินาที) ค่ามากขึ้น = นิ่งขึ้น/ประหยัดเครื่อง ค่าน้อยลง = ตามไวขึ้น';
+const real=Math.max(ms,16.7);note.textContent=ms<16.7?'โหมดไวสุด (ต่ำกว่า ~16 ms = ทุกเฟรมของจอ): วาดทุกเฟรมของจอ คำนวณจากการอ่านราว 0.35 วินาทีล่าสุด ตำแหน่งใหม่ที่ไม่เคยอยู่ตามทันที แต่การสลับกลับไปที่เดิมหรือแท็กชิด reader ต้องคงอยู่ 1.2–1.5 วินาทีจึงจะย้าย (กันสั่น) หมายเหตุ: ค่า ms คือรอบวาดภาพ ไม่ใช่ความหน่วงของ reader ซึ่งกวาดบีมครบรอบราว 2 วินาที':'คำนวณตำแหน่งใหม่ทุก '+fmt(ms)+' (ประมาณ '+(1000/real).toFixed(ms>=100?0:1)+' ครั้ง/วินาที) ค่ามากขึ้น = นิ่งขึ้น/ประหยัดเครื่อง ค่าน้อยลง = ตามไวขึ้น';
 if(save)try{localStorage.setItem('atr_upd',String(ms))}catch(e){}};
 sl.addEventListener('input',()=>apply(toMs(+sl.value),true));
 num.addEventListener('change',()=>{const v=parseFloat(num.value);if(v>0)apply(v,true);else apply(ms,false)});
