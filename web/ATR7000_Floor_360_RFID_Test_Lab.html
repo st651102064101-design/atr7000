@@ -500,7 +500,7 @@ const TRK_PRESETS={calm:{snap:2600,tau:0,hysAz:35,confirm:800,snapF:2600,tauF:0,
 let trkMode=(()=>{try{return localStorage.getItem('atr_trk_mode3')||'lock'}catch(e){return 'lock'}})();
 const AMB_N=3;   /* >=3 beams within 4 dB of the winner but >60 deg away => direction ambiguous */
 /* the reader visits each beam about once per 2.2 s sweep, so a window shorter than a sweep only contains the beams scanned a moment ago and the winner follows the scan instead of the tag: the live window must cover a whole sweep */
-const LIVE_I={snap:120,tau:60,hys:0,hold:0,gate:35,thr:0.4,minN:1,maxSpan:300,dead:0,confirm:0};const LIVE0={snap:2600,tau:800,hys:2.5,hold:150,gate:35,thr:0.4,minN:14,maxSpan:3200,dead:9};   /* winner-take-all: the strongest beam wins, beams more than 35 deg away or 4 dB weaker are ignored, and the winner changes only when another beam is 3 dB stronger */   /* 'live': followed tags use the latest ~1 s directly, no hysteresis */
+const LIVE_I={snap:120,tau:60,hys:0,hold:0,gate:35,thr:0.4,minN:3,maxSpan:1100,dead:0,confirm:0};const LIVE0={snap:2600,tau:800,hys:2.5,hold:150,gate:35,thr:0.4,minN:14,maxSpan:3200,dead:9};   /* winner-take-all: the strongest beam wins, beams more than 35 deg away or 4 dB weaker are ignored, and the winner changes only when another beam is 3 dB stronger */   /* 'live': followed tags use the latest ~1 s directly, no hysteresis */
 const TRK={tau:0,snap:2600,hysAz:25,hysEl:18,confirm:250,deadAz:6,deadEl:5,
   /* tags being followed (selected/pinned) are scanned every ~0.3-0.6 s by the focus scan, so a short window is safe */
   snapF:700,tauF:250,hysAzF:18,confirmF:100};
