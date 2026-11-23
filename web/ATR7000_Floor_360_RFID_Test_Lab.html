@@ -182,6 +182,13 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 .drawer-body[data-view="reader"] .dsec[data-p="reader"]{display:block}
 .rd-kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #1d3a52;font-size:13px;color:#a9c1cd}.rd-kv:last-of-type{border-bottom:0}.rd-kv b{color:#e8f4f8;font-weight:500;text-align:right}
 .rd-chk{display:grid;gap:8px}.rd-chk label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:#cfe3ec}
+.rd-load{display:flex;align-items:center;gap:10px;padding:11px 14px;margin:12px 0 0;border:1px solid #1b585e;border-radius:12px;background:#0f2a33;color:#a9fff1;font:12px var(--font)}
+.rd-load[hidden]{display:none}
+.drawer-body:not([data-view="reader"]) .rd-load{display:none}
+.rd-spin{flex:none;width:15px;height:15px;border:2px solid #2a5b63;border-top-color:#36dfcf;border-radius:50%;animation:rdspin .8s linear infinite}
+@keyframes rdspin{to{transform:rotate(360deg)}}
+.dsec[data-p="reader"].rd-wait{opacity:.55;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.rd-spin{animation-duration:2.4s}}
 </style>
 </head>
 <body>
@@ -244,6 +251,7 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <section class="dsec" data-p="track"><h3>ความไวของตำแหน่ง</h3><div class="seg" role="group" aria-label="ความไวของตำแหน่ง"><button type="button" class="seg-b" data-trk="lock" aria-pressed="false">ล็อก</button><button type="button" class="seg-b" data-trk="calm" aria-pressed="false">นิ่ง</button><button type="button" class="seg-b" data-trk="balanced" aria-pressed="false">สมดุล</button><button type="button" class="seg-b" data-trk="live" aria-pressed="false">ไว</button></div><div class="s-small" id="trkNote" style="margin-top:8px"></div></section>
 <section class="dsec" data-p="track"><h3>โหมดสแกนของ reader</h3><div class="seg" role="group" aria-label="โหมดสแกน"><button type="button" class="seg-b" data-scan="full" aria-pressed="false">ครบ 97 beam</button><button type="button" class="seg-b" data-scan="ring30" aria-pressed="false">วงเดียว (ทดลอง)</button></div><div class="s-small" id="scanNote" style="margin-top:8px">—</div></section>
 <section class="dsec" data-p="track"><h3>สแกนโฟกัส</h3><label class="sw-row" for="focusSw"><span>อ่านแท็กที่เลือก/ปักหมุดถี่ขึ้น</span><input id="focusSw" class="sw" type="checkbox" role="switch"></label><div class="s-small" id="focusState" style="margin-top:8px">—</div><div class="s-small" style="margin-top:6px">ทดลอง — ปิดไว้เป็นค่าเริ่มต้น: วัดกับ reader จริงแล้วพบว่าการสแกน beam ซ้ำทำให้อัตราอ่านรวมตกจาก ~40 เหลือ ~4-20 ครั้ง/วินาที (แท็กที่อ่านแล้วจะเงียบชั่วครู่ จึงอ่านซ้ำไม่ได้) เปิดเฉพาะเมื่อต้องการลองเทียบ</div></section>
+<div class="rd-load" id="rdLoad" hidden role="status" aria-live="polite"><i class="rd-spin"></i><span id="rdLoadTxt">กำลังทำงาน…</span></div>
 <section class="dsec" data-p="reader"><h3>สถานะ reader</h3>
 <div class="rd-kv"><span>สถานะ</span><b id="rdConn">—</b></div><div class="rd-kv"><span>รุ่น</span><b id="rdModel">—</b></div><div class="rd-kv"><span>เฟิร์มแวร์</span><b id="rdFw">—</b></div>
 <div class="rd-kv"><span>เสาเสมือนทั้งหมด</span><b id="rdAnt">—</b></div><div class="rd-kv"><span>บีมที่กำลังสแกน</span><b id="rdBeams">—</b></div><div class="rd-kv"><span>อ่านแล้วรวม</span><b id="rdReads">—</b></div>
@@ -714,6 +722,10 @@ const range=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
 $('rdRings').innerHTML=RINGS.map(r=>'<label><span>'+r[1]+' <em style="color:#6f90a1;font-style:normal">('+r[2]+(r[3]>r[2]?'–'+r[3]:'')+')</em></span><input type="checkbox" class="sw" data-ring="'+r[0]+'" checked></label>').join('');
 const send=o=>{try{if(ws&&ws.readyState===1){ws.send(JSON.stringify(o));return true}}catch(e){}$('rdMsg').textContent='ยังไม่ได้เชื่อมต่อ bridge';return false};
 const msg=t=>{$('rdMsg').textContent=t};
+let busyT=null;const secs=()=>document.querySelectorAll('.dsec[data-p="reader"]');
+const busy=t=>{$('rdLoadTxt').textContent=t;$('rdLoad').hidden=false;secs().forEach(e=>{e.classList.add('rd-wait');e.querySelectorAll('button,input,select').forEach(c=>c.disabled=true)});clearTimeout(busyT);busyT=setTimeout(()=>idle('ไม่ได้รับคำตอบจาก reader (หมดเวลา)'),25000)};
+const idle=m=>{clearTimeout(busyT);$('rdLoad').hidden=true;secs().forEach(e=>{e.classList.remove('rd-wait');e.querySelectorAll('button,input,select').forEach(c=>c.disabled=false)});if(m)msg(m)};
+const go=(o,t)=>{if(send(o)){busy(t);return true}return false};
 const show=()=>{const i=info||{};$('rdConn').textContent=i.connected?'เชื่อมต่อ LLRP แล้ว':'—';$('rdModel').textContent=i.model_id||'—';$('rdFw').textContent=i.firmware||'—';$('rdAnt').textContent=i.max_antennas||'—';$('rdBeams').textContent=i.beams!=null?i.beams+' · '+i.dwell_ms+' ms ต่อบีม':'—';$('rdReads').textContent=i.reads!=null?i.reads.toLocaleString():'—';
 const p=i.power_dbm;if(p){const t=$('rdTx');t.min=p.min;t.max=p.max;if(!t.dataset.set){t.value=Math.min(27,p.max);t.dataset.set='1'}$('rdTxVal').textContent=(+t.value).toFixed(1)+' dBm'}
 const v=i.tx&&i.tx.dbm_values;$('rdTxNow').textContent=v&&v.length?(v.length===1?v[0].toFixed(1)+' dBm (ทุกบีม)':v[0].toFixed(1)+'–'+v[v.length-1].toFixed(1)+' dBm (ต่างกันตามบีม)'):'—';
@@ -724,22 +736,23 @@ const l=d.llrp||{};$('rmLlrp').textContent=(l.running==='true'?'ทำงาน'
 $('rmTime').textContent=d.time||'—';$('rmCpu').textContent=d.cpu&&d.cpu.user!=null?('user '+d.cpu.user+'% · system '+d.cpu.system+'%'):'—';
 $('rmRam').textContent=d.ram&&d.ram.total?mb(d.ram.used)+' / '+mb(d.ram.total):'—';
 $('rmVers').innerHTML=(d.versions||[]).map(v=>v[0].replace(/[<>&]/g,'')+' <b>'+v[1].replace(/[<>&]/g,'')+'</b>').join('<br>');n.textContent='✓ อ่านเมื่อ '+new Date().toLocaleTimeString()};
-$('rmRead').addEventListener('click',()=>{if(send({cmd:'reader',op:'rm_info'}))$('rmNote').textContent='กำลังล็อกอินและอ่านข้อมูล…'});
-const rmw=(what,arg,extra)=>{if(send(Object.assign({cmd:'reader',op:'rm_write',what:what,arg:arg},extra||{})))$('rdMsg').textContent='กำลังส่งคำสั่งไปที่ reader…'};
+$('rmRead').addEventListener('click',()=>go({cmd:'reader',op:'rm_info'},'กำลังล็อกอินและอ่านข้อมูลจากแอดมินของ reader…'));
+const rmw=(what,arg,extra)=>{go(Object.assign({cmd:'reader',op:'rm_write',what:what,arg:arg},extra||{}),what==='restart'?'กำลังสั่งรีสตาร์ต reader…':'กำลังส่งคำสั่งไปที่ reader… (ล็อกอิน → ตั้งค่า → บันทึก)')};
 $('rmSetName').addEventListener('click',()=>{const v=$('rmNameIn').value.trim();if(!v){msg('ใส่ชื่อก่อน');return}if(confirm('ตั้งชื่อ reader เป็น "'+v+'"?'))rmw('set_name',v)});
 $('rmSetNtp').addEventListener('click',()=>{const v=$('rmNtpIn').value.trim();if(!v){msg('ใส่ชื่อหรือ IP ของ NTP server ก่อน');return}if(confirm('ตั้ง NTP server เป็น '+v+'?\n\nถ้า reader ติดต่อ server นี้ไม่ได้ เวลาของ reader จะไม่ซิงก์'))rmw('set_ntp',v)});
 $('rmSync').addEventListener('click',()=>{if(confirm('ตั้งเวลาของ reader ให้ตรงกับเวลาของเครื่องนี้ (UTC)?'))rmw('sync_time',null)});
 $('rmWd').addEventListener('change',e=>{const on=e.target.checked;if(!confirm((on?'เปิด':'ปิด')+' watchdog ของ reader?')){e.target.checked=!on;return}rmw('set_watchdog',on)});
 $('rmRestart').addEventListener('click',()=>{const t=prompt('รีสตาร์ต reader: การอ่านแท็กจะหยุดประมาณ 2-3 นาที bridge จะต่อกลับเอง\n\nพิมพ์ RESTART เพื่อยืนยัน');if(t===null)return;if(t.trim()!=='RESTART'){msg('ยกเลิก — พิมพ์ไม่ตรง');return}rmw('restart',null,{confirm:'RESTART'})});
-window.__readerMsg=o=>{if(o.type==='reader_rm_write'){msg((o.ok?'✓ ':'✗ ')+o.msg);if(o.ok&&o.what!=='restart')setTimeout(()=>send({cmd:'reader',op:'rm_info'}),1200);return}if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
+window.__readerMsg=o=>{if(o.type==='reader_rm_write'||o.type==='reader_rm'||(o.type==='reader_result'&&o.op!=='info')||o.type==='reader_info')idle();if(o.type==='reader_rm_write'){msg((o.ok?'✓ ':'✗ ')+o.msg);if(o.ok&&o.what!=='restart')setTimeout(()=>send({cmd:'reader',op:'rm_info'}),1200);return}if(o.type==='reader_rm'){rmShow(o);return}if(o.type==='reader_info'){info=o.info;show()}else if(o.type==='reader_result'&&o.op!=='info'){msg((o.ok?'✓ ':'✗ ')+o.msg)}};
 $('rdTx').addEventListener('input',()=>{$('rdTxVal').textContent=(+$('rdTx').value).toFixed(1)+' dBm'});
-$('rdRefresh').addEventListener('click',()=>{if(send({cmd:'reader',op:'info'}))msg('กำลังอ่านข้อมูลจาก reader…')});
+$('rdRefresh').addEventListener('click',()=>go({cmd:'reader',op:'info'},'กำลังอ่านข้อมูลจาก reader…'));
 $('rdTxApply').addEventListener('click',()=>{const dbm=+$('rdTx').value,sc=$('rdTxScope').value,r=RINGS.find(x=>x[0]===sc),ants=r?range(r[2],r[3]):null;
 if(!confirm('ตั้งกำลังส่งเป็น '+dbm.toFixed(1)+' dBm บน '+(r?r[1]+' ('+(r[3]-r[2]+1)+' บีม)':'ทุกบีม')+'?\n\nกำลังต่ำลง = ระยะอ่านสั้นลง ค่านี้จะกลับเป็นเดิมเมื่อ reader รีสตาร์ต'))return;
-if(send({cmd:'reader',op:'power',dbm:dbm,ants:ants}))msg('กำลังส่งคำสั่งไปที่ reader…')});
+go({cmd:'reader',op:'power',dbm:dbm,ants:ants},'กำลังตั้งกำลังส่งที่ reader… (รอจนกว่า reader ยืนยัน)')});
 $('rdScanApply').addEventListener('click',()=>{const on=[...document.querySelectorAll('[data-ring]')].filter(c=>c.checked).map(c=>RINGS.find(r=>r[0]===c.dataset.ring));if(!on.length){msg('เลือกอย่างน้อย 1 วง');return}
-const ants=on.flatMap(r=>range(r[2],r[3]));if(send({cmd:'scan',ants:ants,dwell:+$('rdDwell').value}))msg('เปลี่ยนการสแกนเป็น '+ants.length+' บีม · '+$('rdDwell').value+' ms ต่อบีม')});
+const ants=on.flatMap(r=>range(r[2],r[3]));if(go({cmd:'scan',ants:ants,dwell:+$('rdDwell').value},'กำลังเปลี่ยนการสแกนเป็น '+ants.length+' บีม · '+$('rdDwell').value+' ms ต่อบีม…'))setTimeout(()=>{if(!$('rdLoad').hidden)idle('✓ ส่งคำสั่งสแกนแล้ว ('+ants.length+' บีม · '+$('rdDwell').value+' ms)')},3500)});
 setInterval(()=>{const d=$('drawer');if(d&&d.classList.contains('open')&&document.querySelector('.drawer-body').dataset.view==='reader')send({cmd:'reader',op:'info'})},4000);
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-go="reader"]')&&!info){if(ws&&ws.readyState===1)go({cmd:'reader',op:'info'},'กำลังโหลดข้อมูลจาก reader…');else msg('ยังไม่ได้เชื่อมต่อ bridge')}});
 setTimeout(()=>{if(ws&&ws.readyState===1)send({cmd:'reader',op:'info'})},1500);show()})();
 setMode('MOCK');navSetup();render();openWs(true);})();
 </script>
