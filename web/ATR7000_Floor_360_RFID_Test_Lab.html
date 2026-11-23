@@ -310,7 +310,7 @@ let pT=0;function persist(){if(pT)return;pT=setTimeout(()=>{pT=0;try{localStorag
 events=events.filter(e=>e&&e.source!=='MOCK');sessions=sessions.filter(s=>s&&s.source!=='MOCK');
 let agg={};try{agg=JSON.parse(localStorage.getItem('atr_agg_v1')||'{}')||{}}catch(e){agg={}}
 const isReal=e=>e&&e.source!=='MOCK';
-let UPD_C=30,focusAuto='',selEpc=null,trk={},hid={},lat=null,evCount=0,evRate=0,ltC=null,ltT=0;const flt={q:'',min:-90,active:false,maxAge:60};
+let UPD_C=30,INST=false,focusAuto='',selEpc=null,trk={},hid={},lat=null,evCount=0,evRate=0,ltC=null,ltT=0;const flt={q:'',min:-90,active:false,maxAge:60};
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};let names=ld('atr_tag_names',{}),pins=ld('atr_tag_pins',{}),colors=ld('atr_tag_colors',{});for(const k in colors)if(!/^#[0-9a-f]{6}$/i.test(colors[k]))delete colors[k];
 const svTags=()=>{try{localStorage.setItem('atr_tag_names',JSON.stringify(names));localStorage.setItem('atr_tag_pins',JSON.stringify(pins));localStorage.setItem('atr_tag_colors',JSON.stringify(colors))}catch(e){}};
 const escH=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -417,8 +417,9 @@ function liveTags(){const n0=performance.now();if(ltC&&n0-ltT<UPD_C)return ltC;c
 else S=estimate(win,ref,foc?TRK.tauF:TRK.tau,{gate:60});const E=S;E.epc=k;E.age=now-last.rx;E.active=rec.length>0;E.n3=rec.length;E.n=E.n3;E.peak=rec.length?Math.max(...rec.map(e=>e.rssi)):last.rssi;E.total=agg[k]?agg[k].count:all.length;E.rssiBest=(S.pm&&S.beam!=null&&S.pm[S.beam]>0)?10*Math.log10(S.pm[S.beam]):E.peak;
 const T=trk[k]||(trk[k]={az:null,el:null,cand:null,mv:0});
 const ambig=(S.amb||0)>=AMB_N;E.amb=ambig;
-const lockM=trkMode==='lock',LKr=lockM?lockUpdate(k,now):null;
-if(lockM){if(LKr&&LKr.az!=null){T.az=LKr.az;T.el=LKr.el;if(LKr.movedAt)T.mv=LKr.movedAt;if(LKr.rs!=null)E.rssiBest=LKr.rs}else if(T.az==null&&S.beamAz!=null){T.az=S.beamAz;T.el=S.elev}}
+const lockM=!INST&&trkMode==='lock',LKr=lockM?lockUpdate(k,now):null;
+if(INST){const w=all.filter(e=>now-e.rx<250),I2=estimate(w.length?w:all.slice(-2),w.length?now:last.rx,120);if(I2&&I2.beamAz!=null){T.az=I2.beamAz;T.el=I2.elev;T.mv=now;E.rssiBest=(I2.pm&&I2.beam!=null&&I2.pm[I2.beam]>0)?10*Math.log10(I2.pm[I2.beam]):E.rssiBest}}
+else if(lockM){if(LKr&&LKr.az!=null){T.az=LKr.az;T.el=LKr.el;if(LKr.movedAt)T.mv=LKr.movedAt;if(LKr.rs!=null)E.rssiBest=LKr.rs}else if(T.az==null&&S.beamAz!=null){T.az=S.beamAz;T.el=S.elev}}
 else if(T.az==null&&T.el==null){T.az=S.beamAz;T.el=S.elev}
 else if(ambig){/* too close to the reader: beams on opposite sides are equally strong, the direction is unknown -> keep the last reliable one */}
 else if(live){const dA=S.beamAz==null?0:angDiff(S.beamAz,T.az),dE=S.elev==null?0:S.elev-T.el;if(Math.hypot(dA,dE)>LIVE.dead){if(S.beamAz!=null)T.az=S.beamAz;if(S.elev!=null)T.el=S.elev;T.mv=now}T.cand=null}
@@ -764,10 +765,11 @@ setTimeout(()=>{if(ws&&ws.readyState===1)send({cmd:'reader',op:'info'})},1500);s
 const MIN=0.01,MAX=1000,K=Math.log(MAX/MIN)/1000;const toMs=p=>MIN*Math.exp(K*p),toPos=m=>Math.round(Math.log(m/MIN)/K);
 const fmt=m=>(m<1?m.toFixed(2):m<10?m.toFixed(1):Math.round(m))+' ms';
 let ms=100;try{const v=parseFloat(localStorage.getItem('atr_upd'));if(v>=MIN&&v<=MAX)ms=v}catch(e){}
-const apply=(m,save)=>{ms=Math.min(MAX,Math.max(MIN,m));LK.interval=ms;UPD_C=Math.min(30,ms);for(const k in lks)lks[k].t=0;ltT=0;
+const SM0={move:SMOOTH.move,still:SMOOTH.still};let predPref=PRED.on;
+const apply=(m,save)=>{ms=Math.min(MAX,Math.max(MIN,m));LK.interval=ms;UPD_C=Math.min(30,ms);INST=ms<16.7;SMOOTH.move=INST?.05:SM0.move;SMOOTH.still=INST?.05:SM0.still;PRED.on=INST?false:predPref;for(const k in lks)lks[k].t=0;ltT=0;
 sl.value=toPos(ms);if(document.activeElement!==num)num.value=+ms.toPrecision(3);val.textContent=fmt(ms);
 document.querySelectorAll('[data-upd]').forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(parseFloat(b.dataset.upd)-ms)<1e-9)));
-const real=Math.max(ms,16.7);note.textContent=ms<16.7?'ต่ำกว่ารอบวาดจอ (~16 ms) จะคำนวณทุกเฟรม: จอวาดได้สูงสุดตามความถี่หน้าจอ และ reader ส่งการอ่านราว 20 ms ต่อครั้ง ค่านี้จึงไม่ทำให้ข้อมูลใหม่มาเร็วขึ้น แค่ไม่หน่วงเพิ่ม':'คำนวณตำแหน่งใหม่ทุก '+fmt(ms)+' (ประมาณ '+(1000/real).toFixed(ms>=100?0:1)+' ครั้ง/วินาที) ค่ามากขึ้น = นิ่งขึ้น/ประหยัดเครื่อง ค่าน้อยลง = ตามไวขึ้น';
+const real=Math.max(ms,16.7);note.textContent=ms<16.7?'โหมดทันที (ต่ำกว่า ~16 ms = ทุกเฟรมของจอ): ตำแหน่งตามการอ่านใน 0.25 วินาทีล่าสุดโดยตรง ไม่ล็อก ไม่กรอง ไม่ทำนาย เกือบไม่หน่วง จุดจึงกระโดดหรือสั่นได้ เพราะการอ่านครั้งเดียวมีสัญญาณรบกวนสูง และ reader ส่งการอ่านราว 20 ms ต่อครั้ง':'คำนวณตำแหน่งใหม่ทุก '+fmt(ms)+' (ประมาณ '+(1000/real).toFixed(ms>=100?0:1)+' ครั้ง/วินาที) ค่ามากขึ้น = นิ่งขึ้น/ประหยัดเครื่อง ค่าน้อยลง = ตามไวขึ้น';
 if(save)try{localStorage.setItem('atr_upd',String(ms))}catch(e){}};
 sl.addEventListener('input',()=>apply(toMs(+sl.value),true));
 num.addEventListener('change',()=>{const v=parseFloat(num.value);if(v>0)apply(v,true);else apply(ms,false)});
