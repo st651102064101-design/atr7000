@@ -16,6 +16,7 @@ import asyncio
 import base64
 import hashlib
 import json
+import re
 import socket
 import struct
 import sys
@@ -176,6 +177,7 @@ async def ws_handler(reader, writer):
         print("[ws] client disconnected (%d left)" % len(clients))
         if not clients and llrp_client is not None:
             llrp_client.set_focus([], [])   # nobody is watching: back to the plain full sweep
+            llrp_client.set_only(None)      # ...and back to reading every tag
         writer.close()
 
 
@@ -250,6 +252,14 @@ def handle_page_command(payload):
                 return
             if llrp_client is not None:
                 llrp_client.set_scan(ants, sess, flip, dwell)
+            return
+        if isinstance(msg, dict) and msg.get("cmd") == "only":
+            # {"cmd":"only","epc":"<hex>"|null}: the reader answers only this tag (fast tracking); null = all tags again
+            epc = msg.get("epc")
+            if epc is not None and (not isinstance(epc, str) or not re.fullmatch(r"(?:[0-9A-Fa-f]{2}){4,32}", epc)):
+                return
+            if llrp_client is not None:
+                llrp_client.set_only(epc.upper() if epc else None)
             return
         if isinstance(msg, dict) and msg.get("cmd") == "reader":
             # reader management over LLRP: {"cmd":"reader","op":"info"} or {"cmd":"reader","op":"power","dbm":10..36,"ants":[301..397]|null}

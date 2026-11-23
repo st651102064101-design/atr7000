@@ -325,6 +325,9 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 </section>
 <section class="dsec" data-p="dist"><h3>การประเมินระยะ (วิธีมุม+ความสูง)</h3><label class="s-small" style="display:flex;gap:8px;align-items:center;margin-top:8px">ความสูงแท็กเหนือ reader (เมตร) <input id="tagH" class="inpt" type="number" min="0.2" max="30" step="0.1" value="1.5" style="width:90px"></label><span class="s-small">ระยะ ≈ ประมาณจากมุมเงยของ beam และความสูงที่ตั้งไว้ (สมมติแท็กทุกตัวอยู่สูงเท่ากัน) ไม่ใช่ค่าที่ reader วัดโดยตรง</span></section>
 <section class="dsec" data-p="track"><h3>ความไวของตำแหน่ง</h3><div class="seg" role="group" aria-label="ความไวของตำแหน่ง"><button type="button" class="seg-b" data-trk="lock" aria-pressed="false">ล็อก</button><button type="button" class="seg-b" data-trk="calm" aria-pressed="false">นิ่ง</button><button type="button" class="seg-b" data-trk="balanced" aria-pressed="false">สมดุล</button><button type="button" class="seg-b" data-trk="live" aria-pressed="false">ไว</button></div><div class="s-small" id="trkNote" style="margin-top:8px"></div></section>
+<section class="dsec" data-p="track"><h3>ติดตามแท็กเดียวให้เร็วขึ้น</h3>
+<div class="st-row"><div class="st-txt"><b>อ่านเฉพาะแท็กที่เลือก/ปักหมุด</b><small>ให้ reader ตอบเฉพาะแท็กนั้น ตามเร็วขึ้นราว 2–3 เท่า แต่แท็กอื่นจะ<b>หยุดอัปเดต</b>ระหว่างเปิด · ปิดแล้วกลับมาอ่านทุกแท็กเอง</small></div><input id="focusSw" class="sw" type="checkbox" role="switch" aria-label="ติดตามแท็กเดียว"></div>
+<div class="s-small" id="focusState" style="margin-top:6px">ปิดอยู่ — อ่านทุกแท็กเท่ากัน</div></section>
 <section class="dsec" data-p="track"><h3>รอบอัปเดตตำแหน่ง (realtime)</h3>
 <label class="s-small" style="display:flex;justify-content:space-between;gap:8px">ทุก <b id="updVal">100 ms</b></label>
 <input id="updSlider" type="range" min="0" max="1000" step="1" value="750">
@@ -607,7 +610,7 @@ const upd=()=>{const r=[...rows()],on=r.filter(x=>x.checked).length,all=r.length
 a.setAttribute('aria-pressed',String(all));n.setAttribute('aria-pressed',String(none));c.textContent=r.length?('แสดง '+on+' / '+r.length):'—'};
 setInterval(upd,300);a.addEventListener('click',()=>setTimeout(upd,60));n.addEventListener('click',()=>setTimeout(upd,60));upd()})();
 (function(){let on=false;try{on=localStorage.getItem('atr_focus')==='1'}catch(e){}
-const sw=$('focusSw'),st=$('focusState');let last=null,n=0;
+const sw=$('focusSw'),st=$('focusState');let last=null,n=0,onlyLast=null,onlyT=0;const send_only=e=>{try{if(ws&&ws.readyState===1){ws.send(JSON.stringify({cmd:'only',epc:e}));return true}}catch(x){}return false};
 const send=(bs,ring)=>{try{if(ws&&ws.readyState===1){ws.send(JSON.stringify({cmd:'focus',beams:bs,ring:ring||[]}));return true}}catch(e){}return false};
 const targets=()=>{/* the selected tag first, then the pinned tags that are being read right now (max 2 in total) */
 const by=recentByTag(5000),sc=k=>by[k]?by[k].length:0,out=[];if(selEpc)out.push(selEpc);
@@ -621,14 +624,14 @@ const hot=(()=>{const rr=recentByTag(2500)[k];if(!rr||!rr.length)return null;con
 if(hot!=null){out.push(hot);hots.push(hot)}sc.sort((x,y)=>y[1]-x[1]);sc.slice(0,tg.length>1?4:5).forEach(x=>out.push(x[0]));sc.slice(tg.length>1?4:5,(tg.length>1?4:5)+(tg.length>1?8:12)).forEach(x=>ringOut.push(x[0]))}const fo=[...new Set(out)].slice(0,12);return {beams:fo,ring:[...new Set(ringOut)].filter(b=>!fo.includes(b)).slice(0,20),tags:tg.length,seen,hots}};
 const tick=()=>{if(!sw)return;if(!ws||ws.readyState!==1){setText('focusState','ยังไม่เชื่อมต่อ bridge');return}
 if(window.__focusReset){window.__focusReset=false;last=null}
-const r=on&&!document.hidden?beamsFor():{beams:[],tags:0,seen:false,hots:[]};const prev=(last||'').split(',').filter(Boolean).map(Number);
+const r=on&&!document.hidden?beamsFor():{beams:[],tags:0,seen:false,hots:[]};{const oe=(on&&!document.hidden&&targets()[0])||null;if((oe!==onlyLast||(oe&&Date.now()-onlyT>4000))&&send_only(oe)){onlyLast=oe;onlyT=Date.now()}}const prev=(last||'').split(',').filter(Boolean).map(Number);
 let want=r.beams;if(on&&!r.beams.length&&r.tags&&prev.length)want=prev;/* tag momentarily unread: keep the current focus */
 const shared=want.filter(b=>prev.includes(b)).length,same=want.length===prev.length&&shared===want.length,mostlyKept=prev.length&&want.length&&shared>=Math.ceil(Math.min(want.length,prev.length)/2);
 const lostHot=(r.hots||[]).some(h=>!prev.includes(h));
 if(!same&&(!mostlyKept||lostHot)){if(send(want,RING_ON?(r.ring||[]):[]))last=want.slice().sort((a,b)=>a-b).join(',')}
 setText('focusState',!on?'ปิดอยู่ — สแกนทุก beam เท่ากัน':(prev.length?'กำลังโฟกัส '+r.tags+' แท็ก · beam '+prev.join(', '):'พร้อม — เลือกหรือปักหมุดแท็กเพื่อเริ่ม'))};
 if(sw){sw.checked=on;sw.addEventListener('change',()=>{on=sw.checked;try{localStorage.setItem('atr_focus',on?'1':'0')}catch(e){}last=null;tick()})}
-setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(document.hidden){send([]);last=''}})})();
+setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(document.hidden){send([]);last='';if(send_only(null))onlyLast=null}})})();
 (function(){const bs=[...document.querySelectorAll('[data-trk]')],note=$('trkNote');const T={lock:'ล็อก (แนะนำ): แท็กที่วางอยู่กับที่จะนิ่งสนิท ใช้ความจำระยะยาวของทุก beam และขยับก็ต่อเมื่อพบ beam ใหม่ที่แรงจริง ตามการย้ายภายในราว 2-3 วินาที',calm:'นิ่ง: ทิศไม่แกว่ง แต่ตามช้า (ราว 2 วินาทีขึ้นไป) เหมาะกับแท็กที่วางอยู่กับที่',balanced:'สมดุล: นิ่งพอใช้ ตามภายใน ~0.5-2 วินาที',live:'ไว (เฉพาะแท็กที่เลือก/ปักหมุด): เสาที่แรงสุดชนะ ตัดเสาที่ขัดกัน มีแถบกันสั่น 9° นิ่งเมื่อวางอยู่กับที่ และตามเมื่อย้าย (ช้าสุดราวหนึ่งรอบสแกน ~2 วินาที) แท็กอื่นใช้โหมดสมดุล — ปักหมุดแท็กที่สนใจเพื่อให้นิ่งและแม่น'};
 const show=()=>{bs.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.trk===trkMode)));if(note)note.textContent=T[trkMode]||''};
 bs.forEach(b=>b.addEventListener('click',()=>{applyTrkMode(b.dataset.trk);for(const k in trk)delete trk[k];ltT=0;show();renderLive()}));show()})();

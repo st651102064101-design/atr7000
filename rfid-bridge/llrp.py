@@ -114,6 +114,22 @@ QUERY_FLIP = None          # None = off; bytes = encoding of the two booleans (e
 
 P_SINGULATION = 336         # C1G2SingulationControl: Session, TagPopulation, TagTransitTime
 SESSION = None             # None = the reader's own default; 0..3 = Gen2 session sent with every antenna
+ONLY_EPC = None            # None = read every tag; hex string = Gen2 Select mask so ONLY this tag answers (fast tracking of one tag)
+P_C1G2_FILTER = 331
+P_C1G2_MASK = 332
+
+
+def only_filter():
+    """Gen2 Select on the EPC bank. The ATR7000 rejects (reads nothing for) masks longer than 64 bits, so the LAST 8 bytes of the
+    EPC are used - the end of an EPC is what differs between tags. Other tags that share those bytes would still answer; the page
+    ignores them."""
+    if not ONLY_EPC:
+        return b""
+    data = bytes.fromhex(ONLY_EPC)
+    pointer = 0x20 + max(0, len(data) - 8) * 8
+    data = data[-8:]
+    mask = tlv(P_C1G2_MASK, struct.pack("!BHH", 1 << 6, pointer, len(data) * 8) + data)   # MB=EPC memory (pointer 0x20 = after CRC+PC)
+    return tlv(P_C1G2_FILTER, struct.pack("!B", 1 << 6) + mask)                          # T=1: do not truncate
 
 
 def antenna_config(ant, dwell_ms):
@@ -122,7 +138,7 @@ def antenna_config(ant, dwell_ms):
         stop += custom(VENDOR_ZEBRA, SUB_ANT_QUERY, QUERY_FLIP)
     cfg = custom(VENDOR_ZEBRA, SUB_ANT_CONFIG, stop)
     sing = tlv(P_SINGULATION, struct.pack("!BHI", (SESSION & 3) << 6, 32, 0)) if SESSION is not None else b""
-    inv_cmd = tlv(P_C1G2_INV_CMD, struct.pack("!B", 0) + sing + cfg)
+    inv_cmd = tlv(P_C1G2_INV_CMD, struct.pack("!B", 0) + only_filter() + sing + cfg)
     return tlv(P_ANT_CONFIG, struct.pack("!H", ant) + inv_cmd)
 
 
@@ -265,6 +281,17 @@ class LlrpClient:
         self.connected = False     # LLRP session up and streaming
         self.reboot = False        # the reader is being restarted: drop the link and reconnect
 
+    def set_only(self, epc):
+        """Read only this tag (hex EPC) or, with None, every tag again. Never saved: a restart always goes back to all tags."""
+        global ONLY_EPC
+        if epc == ONLY_EPC:
+            return
+        if epc and not ONLY_EPC:
+            self._sess_before = SESSION
+        ONLY_EPC = epc
+        # one tag answering alone: Gen2 session 0 lets it answer on every visit instead of waiting for its flag to reset
+        self.pending_scan = (None, 0 if epc else getattr(self, "_sess_before", "keep"), None, None)
+
     def set_scan(self, ants=None, session="keep", flip=None, dwell=None):
         """Change what the reader scans while the bridge keeps running (applied by the read loop):
         ants = list of beam ids, session = None (reader default) or 0..3, flip = A/B flip on/off,
@@ -294,6 +321,9 @@ class LlrpClient:
         self.log("[llrp] scan changed: %d beams, session %s, A/B flip %s, dwell %s ms -> %s" % (
             len(self.base), SESSION if SESSION is not None else "default", "on" if QUERY_FLIP else "off", self.dwell_ms, "ok" if ok else "REJECTED " + why))
         if not ok:
+            global ONLY_EPC
+            ONLY_EPC = None        # never let a rejected filter keep the reader from starting
+            SESSION = getattr(self, "_sess_before", None)
             raise RuntimeError("scan change rejected: %s" % why)
 
     async def _restore(self):
@@ -571,6 +601,9 @@ class LlrpClient:
             if self.connected:
                 self.emit({"type": "reader_info", "info": {"connected": False}})
             self.connected = False
+            if globals()["ONLY_EPC"]:
+                globals()["SESSION"] = getattr(self, "_sess_before", None)
+            globals()["ONLY_EPC"] = None
             self.q = None
             try:
                 pump.cancel()
