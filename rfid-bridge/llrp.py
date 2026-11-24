@@ -15,6 +15,7 @@ import asyncio
 import json
 import os
 import ssl
+import sys
 import struct
 import time
 from datetime import datetime, timezone
@@ -753,6 +754,7 @@ class LlrpClient:
         is what the reader rejects, and any unexpected exception also leads to a retry instead of ending the task."""
         global ONLY_EPC, SESSION, RF_MODE, QUERY_FLIP
         fails = 0
+        last_errno = None
         last_log = 0.0
         while True:
             t0 = time.time()
@@ -762,11 +764,20 @@ class LlrpClient:
                 raise
             except Exception as e:      # noqa: BLE001 - the link must never stay down because of an unexpected error type
                 fails = 0 if time.time() - t0 > 60 else fails + 1       # it ran for a minute: that was a good link
+                last_errno = getattr(e, "errno", None)
                 if time.time() - last_log > 30 or fails <= 6:
                     self.log("[llrp] not connected (%s: %s); retry #%d" % (type(e).__name__, e, fails))
                     last_log = time.time()
             else:
                 fails = 0
+            if fails >= 8 and last_errno in (51, 64, 65):
+                # observed: a long-running bridge keeps getting "No route to host" while a fresh process reaches the reader at once
+                # (macOS network state of this process). Restart the whole process; the page reconnects by itself.
+                self.log("[llrp] %d failures with 'no route to host' - restarting the bridge process" % fails)
+                try:
+                    sys.stdout.flush()
+                finally:
+                    os.execv(sys.executable, [sys.executable] + sys.argv)
             if fails >= 3:
                 if ONLY_EPC or SESSION is not None or QUERY_FLIP is not None or RF_MODE != 19:
                     self.log("[llrp] %d failures in a row: resetting run-time scan settings to defaults" % fails)
