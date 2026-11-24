@@ -350,6 +350,13 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 <label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">ใช้กับ<select id="rdTxScope" class="inpt" style="width:190px"><option value="all">ทุกบีม (301–397)</option><option value="r60">วงเงย 60° (301–324)</option><option value="r45">วงเงย 45° (325–348)</option><option value="r30">วงเงย 30° (349–372)</option><option value="r15">วงเงย 15° (373–396)</option><option value="c">กลาง (397)</option></select></label>
 <div style="margin-top:10px"><button type="button" class="btn btn-primary" id="rdTxApply">ใช้ค่ากำลังส่ง</button></div>
 <div class="s-small" id="rdTxNote" style="margin-top:8px">ลดกำลังส่ง = ระยะอ่านสั้นลง ใช้เมื่อแท็กอยู่ใกล้และอ่านชนกัน ค่านี้เป็นค่าชั่วคราวของ reader (กลับเป็นเดิมเมื่อรีสตาร์ต)</div></section>
+<section class="dsec" data-p="reader" id="rgSec"><h3>จำกัดระยะอ่านด้านหน้า</h3>
+<div class="s-small" style="margin-bottom:8px">ถือแท็กที่เลือกให้ห่างจากหน้าเครื่องตามระยะที่ต้องการ แล้วกดสอบเทียบ เครื่องจะลดกำลังส่งของลำกลางและวงเอียง 15° ทีละ 1 dB จนอ่านแท็กไม่เจอ แล้วตั้งกำลังส่งเหนือจุดนั้น 1 dB ส่วนวงเอียง 30° ขึ้นไปเพิ่มกำลังส่งจนถึงสูงสุดที่ 45° เพื่อให้ด้านข้างอ่านได้กว้างที่สุด ค่าที่แสดงด้านล่างอ่านจากเครื่องโดยตรง</div>
+<label class="s-small" style="display:flex;align-items:center;justify-content:space-between;gap:10px">ระยะด้านหน้าที่ต้องการ (เมตร)<input id="rgD" class="inpt" type="number" step="0.5" min="0.5" max="60" value="4" style="width:90px"></label>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-primary" id="rgCal">สอบเทียบกับแท็กที่เลือก</button><button type="button" class="btn" id="rgClr">ยกเลิกการจำกัด</button></div>
+<div class="s-small" id="rgState" style="margin-top:8px"></div>
+<div class="rd-kv"><span>กำลังส่งจริงที่เครื่อง</span><b id="rgRings">—</b></div>
+<div class="rd-kv"><span>การจำกัดที่บันทึกในเครื่อง</span><b id="rgSaved">—</b></div></section>
 <section class="dsec" data-p="reader"><h3>บีมที่สแกน</h3>
 <div class="st-txt" style="margin-bottom:8px"><b>ชุดสแกนสำเร็จรูป</b><small>ยิ่งบีมน้อย แท็กที่ขยับยิ่งตามไว (ครบ 97 บีม ≈ 2 วินาที/รอบ)</small></div><div class="seg" role="group" aria-label="ชุดสแกน"><button type="button" class="seg-b" id="rdPrFull" title="ครอบคลุมกว้างสุดทุกทิศ ตั้งเป็นค่าเริ่มต้น">ครบ ≈1.5 วิ (ครอบคลุมกว้างสุด)</button><button type="button" class="seg-b" id="rdPr2">เร็ว ≈0.7 วิ</button><button type="button" class="seg-b" id="rdPr3">เร็วสุด ≈0.5 วิ</button><button type="button" class="seg-b" id="rdPrFront" title="เร็วกว่าแต่ครอบคลุมแค่ ±40° ด้านหน้า (ลำกลาง + วงเอียง 15° + 30°) ด้านข้างจะอ่านไม่เจอ">ด้านหน้าอย่างเดียว ≈0.55 วิ</button></div>
 <div class="rd-chk" id="rdRings"></div>
@@ -642,7 +649,25 @@ no.addEventListener('click',stop);
 yes.addEventListener('click',()=>{if(!lead||!sure)return;const k=lead;pins[k]=1;svTags();stop();ltT=0;renderLive();drawRadar();const l=list();if(l)l.scrollTop=0;if(!names[k]&&!colors[k])askName(k,'',(v,c)=>{if(v)names[k]=v;if(c)colors[k]=c;if(v||c){svTags();ltT=0;renderLive();drawRadar()}},colors[k])});
 })();
 /* 'เฉพาะที่เลือก': the reader itself answers only the ticked tags (up to 4; more than 4 = no filter), so those tags are read far more often */
-(function(){let last='',t=0;setInterval(()=>{try{if(!ws||ws.readyState!==1)return;const sel=LM.on&&!document.hidden,ks=sel?Object.keys(LM.picked).filter(k=>/^(?:[0-9A-F]{2}){4,32}$/.test(k)):[],want=(ks.length&&ks.length<=4)?ks.sort():[],key=want.join(',');if(LM.on||last){if(key!==last||(key&&Date.now()-t>4000)){ws.send(JSON.stringify({cmd:'only',epcs:want.length?want:null}));last=key;t=Date.now()}}}catch(e){}},1000)})();
+(function(){let last='',t=0;setInterval(()=>{try{if(!ws||ws.readyState!==1||window.__rgBusy)return;const sel=LM.on&&!document.hidden,ks=sel?Object.keys(LM.picked).filter(k=>/^(?:[0-9A-F]{2}){4,32}$/.test(k)):[],want=(ks.length&&ks.length<=4)?ks.sort():[],key=want.join(',');if(LM.on||last){if(key!==last||(key&&Date.now()-t>4000)){ws.send(JSON.stringify({cmd:'only',epcs:want.length?want:null}));last=key;t=Date.now()}}}catch(e){}},1000)})();
+/* front range limit: shows what the reader really reports (per-ring TX power, saved limit) and runs the calibration */
+(function(){const g=i=>document.getElementById(i);let busy=false;window.__rgBusy=false;
+const ringTxt=r=>{if(!r)return '—';const f=v=>Array.isArray(v)?v[0]+'–'+v[1]:v;return 'กลาง '+f(r['0'])+' · 15° '+f(r['15'])+' · 30° '+f(r['30'])+' · 45° '+f(r['45'])+' · 60° '+f(r['60'])+' dBm'};
+const info=o=>{const t=o.info&&o.info.tx;if(!t)return;g('rgRings')&&(g('rgRings').textContent=ringTxt(t.rings));const rg=t.range;g('rgSaved')&&(g('rgSaved').textContent=rg?(rg.d+' ม. · ลำกลาง '+rg.pc+' dBm · '+(rg.measured_at||'')):'ไม่ได้จำกัด (กำลังส่งสูงสุด)');
+if(rg&&rg.d>0&&Math.abs(rg.d-MAXR)>1e-9){MAXR=rg.d;try{localStorage.setItem('atr_maxr',String(rg.d))}catch(e){}const m=g('maxRIn');if(m)m.value=rg.d;ltT=0}
+const d=g('rgD');if(d&&rg&&document.activeElement!==d)d.value=rg.d};
+const hook=()=>{const p=window.__readerMsg;if(!p||p.__rg)return;const w=o=>{try{p(o)}catch(e){}
+if(o.type==='reader_info')info(o);
+if(o.type==='reader_range'){const st=g('rgState');if(!st)return;if(o.stage==='step')st.textContent='กำลังทดสอบ '+o.dbm+' dBm — อ่านแท็กได้ '+o.reads+' ครั้ง';else if(o.stage==='done'){st.textContent='เสร็จแล้ว: จำกัดด้านหน้า '+o.d+' ม. ที่กำลังส่ง '+o.pc+' dBm (ลำกลาง) · ค่าสุดท้ายที่ยังอ่านเจอ '+o.last_good+' dBm';busy=false;window.__rgBusy=false}}
+if(o.type==='reader_result'&&o.op==='range_cal'&&!o.ok){const st=g('rgState');if(st)st.textContent='✗ '+o.msg;busy=false;window.__rgBusy=false}
+if(o.type==='reader_result'&&o.op==='range_clear'){const st=g('rgState');if(st)st.textContent=o.ok?'✓ '+o.msg:'✗ '+o.msg}};w.__rg=true;window.__readerMsg=w};
+setInterval(hook,1000);
+g('rgCal')&&g('rgCal').addEventListener('click',()=>{const epc=(selEpc&&/^[0-9A-F]+$/.test(selEpc)?selEpc:Object.keys(LM.picked)[0])||'',d=Number(g('rgD').value);const st=g('rgState');
+if(!epc){st.textContent='✗ เลือกแท็กก่อน (คลิกแท็กในรายการ หรือติ๊กเลือก) แล้วถือไว้ที่ระยะที่ต้องการ';return}
+if(!(d>=.5&&d<=60)){st.textContent='✗ ระยะต้องอยู่ระหว่าง 0.5–60 เมตร';return}
+if(!ws||ws.readyState!==1){st.textContent='✗ ไม่ได้เชื่อมต่อ bridge';return}
+busy=true;window.__rgBusy=true;st.textContent='เริ่มสอบเทียบ… ถือแท็กนิ่ง ๆ ห่างหน้าเครื่อง '+d+' ม. (ใช้เวลาราว 1 นาที)';ws.send(JSON.stringify({cmd:'reader',op:'range_cal',epc:epc,d:d}))});
+g('rgClr')&&g('rgClr').addEventListener('click',()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({cmd:'reader',op:'range_clear'}))})})();
 (function(){const rows=()=>document.querySelectorAll('#liveTags .tagchk'),a=$('chkAll'),n=$('chkNone'),c=$('segCount');if(!a||!n||!c)return;
 const upd=()=>{const r=[...rows()],on=r.filter(x=>x.checked).length,all=r.length>0&&on===r.length,none=r.length>0&&on===0;
 const pk=Object.keys(LM.picked).length,so=$('selOnly');if(so&&so.checked!==LM.on)so.checked=LM.on;c.textContent=LM.on?(pk?'แสดงเฉพาะที่เลือก '+pk+' แท็ก (ซ่อนแท็กอื่น)':'ยังไม่ได้เลือกแท็ก'):(r.length?'เลือก '+pk+' / '+r.length:'—')};

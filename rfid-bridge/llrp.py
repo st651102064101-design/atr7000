@@ -59,6 +59,16 @@ ROSPEC_ID = 1
 SETTINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reader_settings.json")
 
 
+RING_ANTS = {60: range(301, 325), 45: range(325, 349), 30: range(349, 373), 15: range(373, 397), 0: range(397, 398)}   # LHCP beams per elevation ring (ATR7000 guide, table 4)
+P_MAX = 35.2
+
+
+def ring_powers(pc, pmax=P_MAX):
+    """front-limited power plan: the centre and the 15 deg ring get pc (that is what limits the reach straight ahead), the outer rings
+    ramp up to the maximum by 45 deg so the sides keep the widest reach the reader has"""
+    return {t: round(pc + (pmax - pc) * min(1.0, t / 45.0), 1) for t in RING_ANTS}
+
+
 def load_settings():
     try:
         with open(SETTINGS, encoding="utf-8") as f:
@@ -276,6 +286,7 @@ class LlrpClient:
         self.last_swap = 0.0
         self.swaps = 0
         self.pending_scan = None   # (ants, session, flip, dwell) requested at run time
+        self.epc_reads = {}        # reads per EPC since the bridge started (used by the range calibration)
         self.only_list = []        # tags the page wants (<=4); with more than one the single Select mask rotates through them
         self.only_next = 0
         self.only_t = 0.0
@@ -372,6 +383,12 @@ class LlrpClient:
                     self.log("[llrp] restored saved scan: %d beams, %s ms -> %s" % (len(self.base), self.dwell_ms, "ok" if ok else "REJECTED " + why))
             # always start at the reader's maximum TX power (longest range); a lower value chosen on the page lasts until the next reconnect
             await self._do_op({"op": "power", "dbm": 99.0, "ants": None, "persist": False})   # nearest table entry = the maximum
+            rg = load_settings().get("range")
+            if isinstance(rg, dict) and isinstance(rg.get("pc"), (int, float)) and 10 <= rg["pc"] <= P_MAX:
+                for t, dbm in ring_powers(float(rg["pc"])).items():
+                    if dbm < P_MAX:
+                        await self._do_op({"op": "power", "dbm": dbm, "ants": list(RING_ANTS[t]), "persist": False})
+                self.log("[llrp] range limit restored: %.1f m straight ahead (centre %.1f dBm)" % (rg.get("d", 0), rg["pc"]))
         except (RuntimeError, ConnectionError, OSError, asyncio.TimeoutError) as ex:
             self.log("[llrp] could not restore saved settings: %s" % ex)
 
@@ -426,7 +443,73 @@ class LlrpClient:
 
     def _tx_summary(self):
         vals = sorted({self.power_table.get(p[2]) for p in self.ant_tx.values() if self.power_table.get(p[2]) is not None})
-        return {"antennas": len(self.ant_tx), "dbm_values": vals[:6]}
+        rings = {}
+        for t, ants in RING_ANTS.items():
+            v = sorted({self.power_table.get(self.ant_tx[a][2]) for a in ants if a in self.ant_tx and self.power_table.get(self.ant_tx[a][2]) is not None})
+            if v:
+                rings[str(t)] = v[0] if len(v) == 1 else [v[0], v[-1]]
+        rg = load_settings().get("range")
+        return {"antennas": len(self.ant_tx), "dbm_values": vals[:6], "rings": rings, "range": rg if isinstance(rg, dict) else None}
+
+    async def _pump_for(self, secs):
+        """keep serving the reader (tag reports are counted in _handle) for secs seconds"""
+        end = time.time() + secs
+        while True:
+            left = end - time.time()
+            if left <= 0:
+                return
+            try:
+                t, mid, b = await asyncio.wait_for(self._get(), left)
+            except asyncio.TimeoutError:
+                return
+            self._handle(t, mid, b)
+
+    async def _range_cal(self, epc, d):
+        """Measure, do not assume: with the tag held d metres straight ahead, lower the power of the centre + 15 deg beams one dB at a
+        time until the tag is no longer read; the limit is one dB above the last power that still read it (plus 1 dB margin). The outer
+        rings stay at the maximum so the sides keep the widest reach."""
+        epc = epc.upper()
+        prev_only = list(self.only_list)
+        step_ev = lambda **k: self.emit(dict({"type": "reader_range"}, **k))
+        if not self.power_table or not self.ant_tx:
+            self.info.update(await self._read_caps())
+            await self._read_tx()
+        ants_c = list(RING_ANTS[0]) + list(RING_ANTS[15])
+        try:
+            self.set_only([epc])
+            if self.pending_scan:
+                await self._apply_scan()
+            await self._do_op({"op": "power", "dbm": 99.0, "ants": None, "persist": False})
+            tops = sorted(v for v in self.power_table.values() if v <= P_MAX)
+            last_good = None
+            dbm = tops[-1]
+            while dbm >= 16.0:
+                await self._do_op({"op": "power", "dbm": dbm, "ants": ants_c, "persist": False})
+                await self._pump_for(0.7)
+                n0 = self.epc_reads.get(epc, 0)
+                await self._pump_for(2.3)
+                n = self.epc_reads.get(epc, 0) - n0
+                step_ev(stage="step", dbm=dbm, reads=n)
+                if n == 0:
+                    break
+                last_good = dbm
+                dbm = round(dbm - 1.0, 1)
+            if last_good is None:
+                raise RuntimeError("ไม่พบแท็กนี้แม้ใช้กำลังส่งสูงสุด — ตรวจว่าถือแท็กอยู่ตรงหน้าเครื่องและเลือกแท็กถูกตัว")
+            if last_good <= min(tops) + 0.25:
+                for t, p in ring_powers(P_MAX).items():
+                    await self._do_op({"op": "power", "dbm": P_MAX, "ants": list(RING_ANTS[t]), "persist": False})
+                raise RuntimeError("แท็กนี้ยังถูกอ่านแม้ที่กำลังส่งต่ำสุดของเครื่อง (%.1f dBm) จึงจำกัดระยะด้วยกำลังส่งไม่ได้ที่ตำแหน่งนี้ — ตรวจว่าแท็กอยู่ไกลถึง %.1f ม. จริง ถ้าใช่ ให้ใช้ \"ระยะสูงสุดที่แสดง\" ซ่อนแท็กที่ไกลกว่า" % (min(tops), d))
+            pc = min(P_MAX, round(last_good + 1.0, 1))
+            for t, p in ring_powers(pc).items():
+                await self._do_op({"op": "power", "dbm": p, "ants": list(RING_ANTS[t]), "persist": False})
+            save_settings(range={"d": d, "pc": pc, "measured_at": time.strftime("%Y-%m-%d %H:%M:%S"), "last_good": last_good})
+            self.log("[llrp] range limit: %.1f m straight ahead = centre %.1f dBm (last power that read it %.1f)" % (d, pc, last_good))
+            step_ev(stage="done", d=d, pc=pc, last_good=last_good, rings=ring_powers(pc))
+        finally:
+            self.set_only(prev_only or None)
+            if self.pending_scan:
+                await self._apply_scan()
 
     async def _do_op(self, op):
         kind = op.get("op")
@@ -450,7 +533,13 @@ class LlrpClient:
                 self.paused = False
                 self.last_swap = time.time()
                 res["msg"] = "เริ่มอ่านต่อแล้ว"
-            if kind in ("info", "power"):
+            if kind == "range_cal":
+                await self._range_cal(op["epc"], float(op["d"]))
+            elif kind == "range_clear":
+                save_settings(range=None)
+                await self._do_op({"op": "power", "dbm": 99.0, "ants": None, "persist": False})
+                res["msg"] = "ยกเลิกการจำกัดระยะแล้ว (กำลังส่งสูงสุดทุกลำคลื่น)"
+            if kind in ("info", "power", "range_clear", "range_cal"):
                 if kind == "power":
                     if not self.power_table or not self.ant_tx:
                         self.info.update(await self._read_caps())
@@ -537,6 +626,7 @@ class LlrpClient:
                 iso = (datetime.fromtimestamp(ts / 1e6, timezone.utc).astimezone().isoformat()
                        if ts else datetime.now().astimezone().isoformat())
                 self.reports += 1
+                self.epc_reads[r["epc"]] = self.epc_reads.get(r["epc"], 0) + 1
                 self.last_report = now
                 ev = {"type": "tag_read", "epc": r["epc"], "beam_id": r["antenna"],
                       "rssi": float(r["rssi"]), "timestamp": iso,

@@ -282,6 +282,13 @@ def handle_page_command(payload):
             elif op == "info":
                 if llrp_client is not None:
                     llrp_client.request_op({"op": "info"})
+            elif op == "range_cal":
+                epc, dist = msg.get("epc"), msg.get("d")
+                if isinstance(epc, str) and re.fullmatch(r"(?:[0-9A-Fa-f]{2}){4,32}", epc) and isinstance(dist, (int, float)) and not isinstance(dist, bool) and 0.5 <= dist <= 60 and llrp_client is not None:
+                    llrp_client.request_op({"op": "range_cal", "epc": epc, "d": float(dist)})
+            elif op == "range_clear":
+                if llrp_client is not None:
+                    llrp_client.request_op({"op": "range_clear"})
             elif op == "power":
                 dbm = msg.get("dbm")
                 ants = msg.get("ants")
