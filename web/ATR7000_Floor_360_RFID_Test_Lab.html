@@ -117,6 +117,8 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 .seg{display:inline-flex;padding:3px;gap:2px;border-radius:11px;background:#0b1a2a;border:1px solid #1f3a4d}
 .seg-b{border:0;background:transparent;color:#8fb0be;font:600 12px var(--font);padding:6px 12px;border-radius:8px;cursor:pointer;transition:background .15s,color .15s}
 .seg-b:hover{color:#e6f6f5}
+.seg-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}.seg-row .seg{flex:1 1 100%;min-width:0;display:flex}.seg-row .seg-b{flex:1 1 0;min-width:0;white-space:nowrap;padding:6px 6px;overflow:hidden;text-overflow:ellipsis}.seg-row .seg-count{flex:1 1 100%;text-align:right}
+@media(max-width:420px){.seg-row .seg-b{font-size:11px;padding:6px 4px}}
 .seg-b[aria-pressed="true"]{background:#14485a;color:#d9fff7;box-shadow:0 1px 0 rgba(255,255,255,.06) inset}
 .seg-count{font:11px IBM Plex Mono,monospace;color:#7fa3b6;white-space:nowrap}
 .tagchk{appearance:none;-webkit-appearance:none;flex:none;width:16px;height:16px;margin:1px 0 0;border-radius:5px;border:1.5px solid #3b5a6d;background:#0b1a2a;cursor:pointer;transition:background .15s,border-color .15s;display:inline-block}
