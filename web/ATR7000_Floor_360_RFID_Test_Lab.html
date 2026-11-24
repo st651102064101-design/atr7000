@@ -331,9 +331,7 @@ body.sb-collapsed .sidebar{width:0!important;flex-basis:0!important;padding-left
 </section>
 <section class="dsec" data-p="dist"><h3>การประเมินระยะ (วิธีมุม+ความสูง)</h3><label class="s-small" style="display:flex;gap:8px;align-items:center;margin-top:8px">ความสูงแท็กเหนือ reader (เมตร) <input id="tagH" class="inpt" type="number" min="0.2" max="30" step="0.1" value="1.5" style="width:90px"></label><span class="s-small">ระยะ ≈ ประมาณจากมุมเงยของ beam และความสูงที่ตั้งไว้ (สมมติแท็กทุกตัวอยู่สูงเท่ากัน) ไม่ใช่ค่าที่ reader วัดโดยตรง</span></section>
 <section class="dsec" data-p="track"><h3>ความไวของตำแหน่ง</h3><div class="seg" role="group" aria-label="ความไวของตำแหน่ง"><button type="button" class="seg-b" data-trk="lock" aria-pressed="false">ล็อก</button><button type="button" class="seg-b" data-trk="calm" aria-pressed="false">นิ่ง</button><button type="button" class="seg-b" data-trk="balanced" aria-pressed="false">สมดุล</button><button type="button" class="seg-b" data-trk="live" aria-pressed="false">รวดเร็ว</button></div><div class="s-small" id="trkNote" style="margin-top:8px"></div></section>
-<section class="dsec" data-p="track"><h3>ติดตามแท็กเดียวให้รวดเร็วขึ้น</h3>
-<div class="st-row"><div class="st-txt"><b>อ่านเฉพาะแท็กที่เลือก/ปักหมุด</b><small>ให้เครื่องอ่านตอบเฉพาะแท็กนั้น ทำให้อัปเดตเร็วขึ้นราว 2–3 เท่า แต่แท็กอื่นจะ<b>ไม่อัปเดต</b>ขณะเปิดใช้งาน และเมื่อปิดจะกลับไปอ่านทุกแท็กโดยอัตโนมัติ</small></div><input id="focusSw" class="sw" type="checkbox" role="switch" aria-label="ติดตามแท็กเดียว"></div>
-<div class="s-small" id="focusState" style="margin-top:6px">ปิดอยู่ — อ่านทุกแท็กเท่ากัน</div></section>
+
 <section class="dsec" data-p="track"><h3>รอบอัปเดตตำแหน่ง (realtime)</h3>
 <label class="s-small" style="display:flex;justify-content:space-between;gap:8px">ทุก <b id="updVal">100 ms</b></label>
 <input id="updSlider" type="range" min="0" max="1000" step="1" value="750">
@@ -679,7 +677,8 @@ g('rgClr')&&g('rgClr').addEventListener('click',()=>{if(ws&&ws.readyState===1)ws
 const upd=()=>{const r=[...rows()],on=r.filter(x=>x.checked).length,all=r.length>0&&on===r.length,none=r.length>0&&on===0;
 const pk=Object.keys(LM.picked).length,so=$('selOnly');if(LM.on&&!pk)LM.on=false;if(so&&so.checked!==LM.on)so.checked=LM.on;if(so)so.classList.toggle('needsel',!pk);c.textContent=Date.now()<lmHint&&lmNone()?'ยังไม่ได้เลือกแท็ก — โปรดทำเครื่องหมายเลือกแท็กก่อน จึงจะเปิดสวิตช์นี้ได้':LM.on?(pk?'แสดงเฉพาะที่เลือก '+pk+' แท็ก (ซ่อนแท็กอื่น)':'ยังไม่ได้เลือกแท็ก'):(r.length?'เลือก '+pk+' / '+r.length:'—')};
 setInterval(upd,300);a.addEventListener('click',()=>setTimeout(upd,60));n.addEventListener('click',()=>setTimeout(upd,60));upd()})();
-(function(){let on=false;try{on=localStorage.getItem('atr_focus')==='1'}catch(e){}
+/* the old 'อ่านเฉพาะแท็กที่เลือก/ปักหมุด' switch was merged into 'แสดงและอ่านเฉพาะแท็กที่เลือก' in the tag list; this block is kept inert */
+(function(){if(!$('focusSw'))return;let on=false;try{on=localStorage.getItem('atr_focus')==='1'}catch(e){}
 const sw=$('focusSw'),st=$('focusState');let last=null,n=0,onlyLast=null,onlyT=0;const send_only=e=>{try{if(ws&&ws.readyState===1){ws.send(JSON.stringify({cmd:'only',epc:e}));return true}}catch(x){}return false};
 const send=(bs,ring)=>{try{if(ws&&ws.readyState===1){ws.send(JSON.stringify({cmd:'focus',beams:bs,ring:ring||[]}));return true}}catch(e){}return false};
 const targets=()=>{/* the selected tag first, then the pinned tags that are being read right now (max 2 in total) */
