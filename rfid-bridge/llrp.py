@@ -269,6 +269,7 @@ class LlrpClient:
         self.reader = self.writer = None
         self.reports = 0
         self.last_report = 0.0
+        self.t_stream = time.time()
         self.base = list(antennas)
         self.focus = ((), ())     # (focus beams, ring beams) currently emphasised in the sweep
         self.want = ((), ())      # requested by the page
@@ -610,6 +611,7 @@ class LlrpClient:
             self.last_swap = time.time()
             self.log("[llrp] streaming tag reports")
             self.connected = True
+            self.t_stream = time.time()
             await self._restore()
             self.emit({"type": "reader_info", "info": dict(self.info, reads=self.reports, connected=True, paused=self.paused, beams=len(self.base), dwell_ms=self.dwell_ms)})
             self.q = asyncio.Queue()
@@ -618,6 +620,8 @@ class LlrpClient:
                 if self.reboot:
                     self.reboot = False
                     raise ConnectionError("reader restarting")
+                if not self.paused and not ONLY_EPC and time.time() - max(self.last_report, self.t_stream) > 90:
+                    raise ConnectionError("no tag reports for 90 s - reconnecting")
                 try:
                     t, mid, b = await asyncio.wait_for(self._get(), 2)
                     self._handle(t, mid, b)
@@ -642,6 +646,7 @@ class LlrpClient:
             if globals()["ONLY_EPC"]:
                 globals()["SESSION"] = getattr(self, "_sess_before", None)
             globals()["ONLY_EPC"] = None
+            self.only_list = []      # so the page's next request installs the filter again after a reconnect
             self.q = None
             try:
                 pump.cancel()
@@ -653,16 +658,28 @@ class LlrpClient:
                 pass
 
     async def run_forever(self):
-        quiet = False
+        """Keep the reader link alive for ever: every failure is logged (rate limited), the wait is 2 s, then 5 s, after repeated
+        failures the run-time settings (single-tag filter, session, RF mode, A/B flip) are reset to defaults in case one of them
+        is what the reader rejects, and any unexpected exception also leads to a retry instead of ending the task."""
+        global ONLY_EPC, SESSION, RF_MODE, QUERY_FLIP
+        fails = 0
+        last_log = 0.0
         while True:
+            t0 = time.time()
             try:
                 await self.session()
             except asyncio.CancelledError:
                 raise
-            except (ConnectionError, OSError, asyncio.TimeoutError, asyncio.IncompleteReadError, ssl.SSLError, RuntimeError) as e:
-                if not quiet:
-                    self.log("[llrp] not connected (%s: %s); retrying every 3 s" % (type(e).__name__, e))
-                    quiet = True
+            except Exception as e:      # noqa: BLE001 - the link must never stay down because of an unexpected error type
+                fails = 0 if time.time() - t0 > 60 else fails + 1       # it ran for a minute: that was a good link
+                if time.time() - last_log > 30 or fails <= 6:
+                    self.log("[llrp] not connected (%s: %s); retry #%d" % (type(e).__name__, e, fails))
+                    last_log = time.time()
             else:
-                quiet = False
-            await asyncio.sleep(3)
+                fails = 0
+            if fails >= 3:
+                if ONLY_EPC or SESSION is not None or QUERY_FLIP is not None or RF_MODE != 19:
+                    self.log("[llrp] %d failures in a row: resetting run-time scan settings to defaults" % fails)
+                ONLY_EPC, SESSION, RF_MODE, QUERY_FLIP = None, None, 19, None
+                self.only_list = []
+            await asyncio.sleep(2 if fails < 3 else 5)
