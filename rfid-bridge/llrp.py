@@ -358,9 +358,9 @@ class LlrpClient:
         try:
             sc = st.get("scan")
             if not (isinstance(sc, dict) and sc.get("ants")):
-                # default for a side-mounted ATR: centre + 15 deg ring + every other 30 deg beam (front +-40 deg);
-                # measured at 7 m: 5.6 reads/s on the held tag vs 1.2 with the full sweep
-                sc = {"ants": [397] + list(range(373, 397)) + list(range(349, 373, 2)), "dwell": 15}
+                # default: all 97 beams (widest coverage, the sides of a side-mounted ATR need the 45/60 deg rings), 15 ms per beam.
+                # Narrower sets are faster for the centre only: front-only gave 5.6 reads/s at 7 m vs 1.2 with the full sweep, but loses the sides
+                sc = {"ants": list(range(301, 398)), "dwell": 15}
             if isinstance(sc, dict) and isinstance(sc.get("ants"), list) and sc["ants"] and all(isinstance(a, int) and 301 <= a <= 397 for a in sc["ants"]):
                 dw = sc.get("dwell")
                 if (sorted(sc["ants"]) != sorted(self.base)) or (isinstance(dw, int) and 15 <= dw <= 50 and dw != self.dwell_ms):
