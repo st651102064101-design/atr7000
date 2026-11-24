@@ -495,11 +495,11 @@ class LlrpClient:
                 last_good = dbm
                 dbm = round(dbm - 1.0, 1)
             if last_good is None:
-                raise RuntimeError("ไม่พบแท็กนี้แม้ใช้กำลังส่งสูงสุด — ตรวจว่าถือแท็กอยู่ตรงหน้าเครื่องและเลือกแท็กถูกตัว")
+                raise RuntimeError("ไม่พบแท็กนี้แม้ใช้กำลังส่งสูงสุด — โปรดตรวจสอบว่าถือแท็กอยู่ตรงหน้าเครื่องและเลือกแท็กถูกต้อง")
             if last_good <= min(tops) + 0.25:
                 for t, p in ring_powers(P_MAX).items():
                     await self._do_op({"op": "power", "dbm": P_MAX, "ants": list(RING_ANTS[t]), "persist": False})
-                raise RuntimeError("แท็กนี้ยังถูกอ่านแม้ที่กำลังส่งต่ำสุดของเครื่อง (%.1f dBm) จึงจำกัดระยะด้วยกำลังส่งไม่ได้ที่ตำแหน่งนี้ — ตรวจว่าแท็กอยู่ไกลถึง %.1f ม. จริง ถ้าใช่ ให้ใช้ \"ระยะสูงสุดที่แสดง\" ซ่อนแท็กที่ไกลกว่า" % (min(tops), d))
+                raise RuntimeError("แท็กนี้ยังถูกอ่านแม้ที่กำลังส่งต่ำสุดของเครื่อง (%.1f dBm) จึงจำกัดระยะด้วยกำลังส่งไม่ได้ที่ตำแหน่งนี้ — โปรดตรวจสอบว่าแท็กอยู่ห่างถึง %.1f ม. จริง หากเป็นเช่นนั้น ให้ใช้ \"ระยะสูงสุดที่แสดง\" ซ่อนแท็กที่ไกลกว่า" % (min(tops), d))
             pc = min(P_MAX, round(last_good + 1.0, 1))
             for t, p in ring_powers(pc).items():
                 await self._do_op({"op": "power", "dbm": p, "ants": list(RING_ANTS[t]), "persist": False})
