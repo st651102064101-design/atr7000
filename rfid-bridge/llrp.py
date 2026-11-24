@@ -304,7 +304,10 @@ class LlrpClient:
             self._sess_before = SESSION
         ONLY_EPC = epc
         # one tag answering alone: Gen2 session 0 lets it answer on every visit instead of waiting for its flag to reset
-        self.pending_scan = (None, 0 if epc else getattr(self, "_sess_before", "keep"), None, None)
+        back = getattr(self, "_sess_before", "keep")
+        if back == 0:
+            back = None             # session 0 is only ever set by this single-tag mode: back to the reader default
+        self.pending_scan = (None, 0 if epc else back, None, None)
 
     def set_scan(self, ants=None, session="keep", flip=None, dwell=None, rfmode="keep"):
         """Change what the reader scans while the bridge keeps running (applied by the read loop):
