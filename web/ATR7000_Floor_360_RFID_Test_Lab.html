@@ -514,7 +514,7 @@ const TRK_PRESETS={calm:{snap:2600,tau:0,hysAz:35,confirm:800,snapF:2600,tauF:0,
 let trkMode=(()=>{try{return localStorage.getItem('atr_trk_mode3')||'lock'}catch(e){return 'lock'}})();
 const AMB_N=3;   /* >=3 beams within 4 dB of the winner but >60 deg away => direction ambiguous */
 /* the reader visits each beam about once per 2.2 s sweep, so a window shorter than a sweep only contains the beams scanned a moment ago and the winner follows the scan instead of the tag: the live window must cover a whole sweep */
-const LIVE_I={snap:120,tau:60,hys:0,hold:0,gate:35,thr:0.4,minN:2,maxSpan:700,dead:0,confirm:0};const LIVE0={snap:2600,tau:800,hys:2.5,hold:150,gate:35,thr:0.4,minN:14,maxSpan:3200,dead:9};   /* winner-take-all: the strongest beam wins, beams more than 35 deg away or 4 dB weaker are ignored, and the winner changes only when another beam is 3 dB stronger */   /* 'live': followed tags use the latest ~1 s directly, no hysteresis */
+const LIVE_I={snap:120,tau:60,hys:0,hold:0,gate:35,thr:0.4,minN:2,maxSpan:450,dead:0,confirm:0};const LIVE0={snap:2600,tau:800,hys:2.5,hold:150,gate:35,thr:0.4,minN:14,maxSpan:3200,dead:9};   /* winner-take-all: the strongest beam wins, beams more than 35 deg away or 4 dB weaker are ignored, and the winner changes only when another beam is 3 dB stronger */   /* 'live': followed tags use the latest ~1 s directly, no hysteresis */
 const TRK={tau:0,snap:2600,hysAz:25,hysEl:18,confirm:250,deadAz:6,deadEl:5,
   /* tags being followed (selected/pinned) are scanned every ~0.3-0.6 s by the focus scan, so a short window is safe */
   snapF:700,tauF:250,hysAzF:18,confirmF:100};
@@ -561,7 +561,7 @@ return Math.max(-PRED.max,Math.min(PRED.max,v*PRED.t))}
 function smoothDamp(c,tg,v,st,dt){const om=2/st,x=om*dt,e=1/(1+x+.48*x*x+.235*x*x*x),ch=c-tg,tmp=(v+om*ch)*dt;return [tg+(ch+tmp)*e,(v-om*tmp)*e]}
 /* constant-velocity Kalman filter per axis (az unwrapped, el): smooth, follows a moving tag with little lag, and
    coasts between the reader's ~3 updates/s instead of stepping. R = how noisy one estimate is, Q = how hard a hand can turn */
-const KF={R:256,Q:400,ds:.1};
+const KF={R:100,Q:900,ds:.06};
 function kf1(k,z,dt){const P=k.P;if(dt>0){k.x+=k.v*dt;const q=KF.Q;P[0]+=dt*(2*P[1]+dt*P[3])+q*dt*dt*dt/3;P[1]+=dt*P[3]+q*dt*dt/2;P[2]=P[1];P[3]+=q*dt}
 if(z!=null){const S=P[0]+KF.R,K0=P[0]/S,K1=P[2]/S,y=z-k.x;k.x+=K0*y;k.v+=K1*y;const p0=P[0],p1=P[1];P[0]-=K0*p0;P[1]-=K0*p1;P[2]-=K1*p0;P[3]-=K1*p1}
 k.v=clamp(k.v,-360,360)}
