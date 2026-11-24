@@ -639,6 +639,8 @@ btn.addEventListener('click',()=>{if(on){stop();return}on=true;lead=null;since=0
 no.addEventListener('click',stop);
 yes.addEventListener('click',()=>{if(!lead||!sure)return;const k=lead;pins[k]=1;svTags();stop();ltT=0;renderLive();drawRadar();const l=list();if(l)l.scrollTop=0;if(!names[k]&&!colors[k])askName(k,'',(v,c)=>{if(v)names[k]=v;if(c)colors[k]=c;if(v||c){svTags();ltT=0;renderLive();drawRadar()}},colors[k])});
 })();
+/* 'เฉพาะที่เลือก': the reader itself answers only the ticked tags (up to 4; more than 4 = no filter), so those tags are read far more often */
+(function(){let last='',t=0;setInterval(()=>{try{if(!ws||ws.readyState!==1)return;const sel=LM.mode==='sel'&&!document.hidden,ks=sel?Object.keys(LM.picked).filter(k=>/^(?:[0-9A-F]{2}){4,32}$/.test(k)):[],want=(ks.length&&ks.length<=4)?ks.sort():[],key=want.join(',');if(LM.mode==='sel'||last){if(key!==last||(key&&Date.now()-t>4000)){ws.send(JSON.stringify({cmd:'only',epcs:want.length?want:null}));last=key;t=Date.now()}}}catch(e){}},1000)})();
 (function(){const rows=()=>document.querySelectorAll('#liveTags .tagchk'),a=$('chkAll'),n=$('chkNone'),c=$('segCount');if(!a||!n||!c)return;
 const upd=()=>{const r=[...rows()],on=r.filter(x=>x.checked).length,all=r.length>0&&on===r.length,none=r.length>0&&on===0;
 a.setAttribute('aria-pressed',String(LM.mode==='all'));n.setAttribute('aria-pressed',String(LM.mode==='none'));{const sb=$('chkSel');if(sb)sb.setAttribute('aria-pressed',String(LM.mode==='sel'))}c.textContent=r.length?('แสดง '+on+' / '+r.length)+(LM.mode==='all'?'':' · ซ่อนแท็กใหม่'):'—'};
@@ -658,7 +660,7 @@ const hot=(()=>{const rr=recentByTag(2500)[k];if(!rr||!rr.length)return null;con
 if(hot!=null){out.push(hot);hots.push(hot)}sc.sort((x,y)=>y[1]-x[1]);sc.slice(0,tg.length>1?4:5).forEach(x=>out.push(x[0]));sc.slice(tg.length>1?4:5,(tg.length>1?4:5)+(tg.length>1?8:12)).forEach(x=>ringOut.push(x[0]))}const fo=[...new Set(out)].slice(0,12);return {beams:fo,ring:[...new Set(ringOut)].filter(b=>!fo.includes(b)).slice(0,20),tags:tg.length,seen,hots}};
 const tick=()=>{if(!sw)return;if(!ws||ws.readyState!==1){setText('focusState','ยังไม่เชื่อมต่อ bridge');return}
 if(window.__focusReset){window.__focusReset=false;last=null}
-const r=on&&!document.hidden?beamsFor():{beams:[],tags:0,seen:false,hots:[]};{const oe=(on&&!document.hidden&&targets()[0])||null;if((oe!==onlyLast||(oe&&Date.now()-onlyT>4000))&&send_only(oe)){onlyLast=oe;onlyT=Date.now()}}const prev=(last||'').split(',').filter(Boolean).map(Number);
+const r=on&&!document.hidden?beamsFor():{beams:[],tags:0,seen:false,hots:[]};{const oe=(on&&!document.hidden&&targets()[0])||null;if(LM.mode!=='sel'&&(oe!==onlyLast||(oe&&Date.now()-onlyT>4000))&&send_only(oe)){onlyLast=oe;onlyT=Date.now()}}const prev=(last||'').split(',').filter(Boolean).map(Number);
 let want=r.beams;if(on&&!r.beams.length&&r.tags&&prev.length)want=prev;/* tag momentarily unread: keep the current focus */
 const shared=want.filter(b=>prev.includes(b)).length,same=want.length===prev.length&&shared===want.length,mostlyKept=prev.length&&want.length&&shared>=Math.ceil(Math.min(want.length,prev.length)/2);
 const lostHot=(r.hots||[]).some(h=>!prev.includes(h));

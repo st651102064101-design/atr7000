@@ -115,18 +115,19 @@ QUERY_FLIP = None          # None = off; bytes = encoding of the two booleans (e
 P_SINGULATION = 336         # C1G2SingulationControl: Session, TagPopulation, TagTransitTime
 RF_MODE = 19              # measured fastest on this reader (M4, 80 kHz BLF): ~36 reads/s vs ~24 default. None = reader default; else UHFC1G2RFModeTable ModeIdentifier sent as C1G2RFControl
 SESSION = None             # None = the reader's own default; 0..3 = Gen2 session sent with every antenna
-ONLY_EPC = None            # None = read every tag; hex string = Gen2 Select mask so ONLY this tag answers (fast tracking of one tag)
+ONLY_EPC = None            # None = read every tag; tuple of up to 4 hex EPCs = Gen2 Select masks so ONLY those tags answer
 P_C1G2_FILTER = 331
 P_C1G2_MASK = 332
 
 
 def only_filter():
-    """Gen2 Select on the EPC bank. The ATR7000 rejects (reads nothing for) masks longer than 64 bits, so the LAST 8 bytes of the
-    EPC are used - the end of an EPC is what differs between tags. Other tags that share those bytes would still answer; the page
-    ignores them."""
+    """Gen2 Select on the EPC bank so only one tag answers. The ATR7000 rejects (reads nothing for) masks longer than 64 bits, so the
+    LAST 8 bytes of the EPC are used - the end of an EPC is what differs between tags. Other tags that share those bytes would still
+    answer; the page ignores them. (Measured: several masks do not give a union on this reader - the last one wins - so several
+    selected tags are served one after another, see set_only.)"""
     if not ONLY_EPC:
         return b""
-    data = bytes.fromhex(ONLY_EPC)
+    data = bytes.fromhex(ONLY_EPC[0])
     pointer = 0x20 + max(0, len(data) - 8) * 8
     data = data[-8:]
     mask = tlv(P_C1G2_MASK, struct.pack("!BHH", 1 << 6, pointer, len(data) * 8) + data)   # MB=EPC memory (pointer 0x20 = after CRC+PC)
@@ -274,6 +275,9 @@ class LlrpClient:
         self.last_swap = 0.0
         self.swaps = 0
         self.pending_scan = None   # (ants, session, flip, dwell) requested at run time
+        self.only_list = []        # tags the page wants (<=4); with more than one the single Select mask rotates through them
+        self.only_next = 0
+        self.only_t = 0.0
         self.pending_ops = []      # reader management requests from the page (info / power)
         self.q = None              # message queue fed by _pump once streaming
         self.power_table = {}      # index -> dBm
@@ -286,6 +290,14 @@ class LlrpClient:
     def set_only(self, epc):
         """Read only this tag (hex EPC) or, with None, every tag again. Never saved: a restart always goes back to all tags."""
         global ONLY_EPC
+        if isinstance(epc, str):
+            epc = (epc,)
+        epc = tuple(sorted(set(epc)))[:4] if epc else None
+        if (list(epc) if epc else []) == self.only_list:
+            return                  # the page repeats the same request every few seconds
+        self.only_list = list(epc) if epc else []
+        self.only_next = 0
+        epc = (self.only_list[0],) if self.only_list else None
         if epc == ONLY_EPC:
             return
         if epc and not ONLY_EPC:
@@ -611,6 +623,11 @@ class LlrpClient:
                     pass          # no traffic: still serve page commands (e.g. undo a scan setting that silenced the reader)
                 if self.pending_ops:
                     await self._do_op(self.pending_ops.pop(0))
+                if len(self.only_list) > 1 and not self.pending_scan and time.time() - self.only_t > 1.2:
+                    self.only_t = time.time()
+                    self.only_next = (self.only_next + 1) % len(self.only_list)
+                    globals()["ONLY_EPC"] = (self.only_list[self.only_next],)
+                    self.pending_scan = (None, 0, None, None)
                 if self.pending_scan:
                     await self._apply_scan()
                 elif self.want != self.focus and not self.paused:

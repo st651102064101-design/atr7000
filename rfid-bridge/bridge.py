@@ -258,11 +258,13 @@ def handle_page_command(payload):
             return
         if isinstance(msg, dict) and msg.get("cmd") == "only":
             # {"cmd":"only","epc":"<hex>"|null}: the reader answers only this tag (fast tracking); null = all tags again
-            epc = msg.get("epc")
-            if epc is not None and (not isinstance(epc, str) or not re.fullmatch(r"(?:[0-9A-Fa-f]{2}){4,32}", epc)):
+            epc = msg.get("epcs", msg.get("epc"))
+            if isinstance(epc, str):
+                epc = [epc]
+            if epc is not None and (not isinstance(epc, list) or len(epc) > 4 or not all(isinstance(e, str) and re.fullmatch(r"(?:[0-9A-Fa-f]{2}){4,32}", e) for e in epc)):
                 return
             if llrp_client is not None:
-                llrp_client.set_only(epc.upper() if epc else None)
+                llrp_client.set_only([e.upper() for e in epc] if epc else None)
             return
         if isinstance(msg, dict) and msg.get("cmd") == "reader":
             # reader management over LLRP: {"cmd":"reader","op":"info"} or {"cmd":"reader","op":"power","dbm":10..36,"ants":[301..397]|null}
